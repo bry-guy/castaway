@@ -42,6 +42,8 @@ type gameResult struct {
 	Score     int `json:"score"` // cups + balls left once all three cups are in
 	Cups      int `json:"cups"`
 	BallsLeft int `json:"balls_left"`
+	// free_the_block (Place is shared with spell_it_out; Solved is shared with castawordle)
+	Moves int `json:"moves"`
 	// castawordle
 	Guesses int  `json:"guesses"`
 	Solved  bool `json:"solved"`
@@ -180,6 +182,26 @@ func (s *Server) gameResults(ctx context.Context, instanceID uuid.UUID, episode 
 				Score: r.Score, Cups: r.Cups, BallsLeft: r.BallsLeft})
 		}
 		return "inside_track", out, []tribeResult{}, nil
+	} else if !errors.Is(err, pgx.ErrNoRows) {
+		return "", nil, nil, err
+	}
+
+	err = s.pool.QueryRow(ctx, `SELECT g.id, g.resolved_at FROM free_the_block_games g JOIN instances i ON i.id = g.instance_id
+		WHERE i.public_id = $1 AND g.episode_number = $2`, toPGUUID(instanceID), episode).Scan(&id, &resolved)
+	if err == nil {
+		if resolved == nil {
+			return "", nil, nil, errGameNotScored
+		}
+		players, err := loadFreeTheBlockPlayers(ctx, s.pool, id)
+		if err != nil {
+			return "", nil, nil, err
+		}
+		out := []gameResult{}
+		for _, r := range freeTheBlockResults(players) {
+			out = append(out, gameResult{Name: r.Name, Tribe: r.Tribe, TribeEmoji: emoji[r.Tribe], Place: r.Place, Points: r.Points,
+				Moves: r.Moves, Solved: r.Solved})
+		}
+		return "free_the_block", out, []tribeResult{}, nil
 	} else if !errors.Is(err, pgx.ErrNoRows) {
 		return "", nil, nil, err
 	}

@@ -45,6 +45,11 @@ func TestGameSectionsRender(t *testing.T) {
 			{"name":"Ann","tribe_emoji":"🟣","points":3,"score":4,"cups":2,"balls_left":2},
 			{"name":"Bo","tribe_emoji":"🟡","points":1,"score":1,"cups":1}]}`,
 			[]string{"🎯 **Inside Track**:", "🟣 Ann (+3) · 4 (2 cups + 2 balls left)\n🟡 Bo (+1) · 1 (1 cup)"}},
+		"free_the_block": {`{"players":[
+			{"name":"Ann","tribe_emoji":"🟣","points":3,"moves":81,"solved":true},
+			{"name":"Bo","tribe_emoji":"🟡","points":1,"moves":83,"solved":true},
+			{"name":"Cy","tribe_emoji":"🟣","points":0,"moves":40}]}`,
+			[]string{"🧱 **Free the Block**:", "🟣 Ann (+3) · 81 moves\n🟡 Bo (+1) · 83 moves"}},
 	}
 	for game, c := range cases {
 		var f seasonFile

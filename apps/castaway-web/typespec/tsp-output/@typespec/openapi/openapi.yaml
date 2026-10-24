@@ -779,6 +779,32 @@ paths:
                 - version
                 - author_discord_user_id
                 - content
+  /free-the-block-games/{gameID}/resolve:
+    post:
+      operationId: resolveFreeTheBlockGame
+      parameters:
+        - name: gameID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - type: object
+                    properties:
+                      awards:
+                        type: object
+                        additionalProperties:
+                          type: integer
+                          format: int32
+                    required:
+                      - awards
+                  - $ref: '#/components/schemas/ErrorResponse'
   /healthz:
     get:
       operationId: healthz
@@ -2053,6 +2079,44 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/RecordFinaleBingoScoresRequest'
+  /instances/{instanceID}/free-the-block-games:
+    post:
+      operationId: createFreeTheBlockGame
+      parameters:
+        - name: instanceID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ButtonGame'
+                  - $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                episode_number:
+                  type: integer
+                  format: int32
+                opens_at:
+                  type: string
+                  format: date-time
+                cutoff_at:
+                  type: string
+                  format: date-time
+              required:
+                - episode_number
+                - opens_at
+                - cutoff_at
   /instances/{instanceID}/game-results/{episode}:
     get:
       operationId: getGameResults

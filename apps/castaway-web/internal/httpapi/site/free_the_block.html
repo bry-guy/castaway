@@ -1,0 +1,11 @@
+{{template "header" .}}
+{{with .FreeTheBlock}}<div class="game-heading"><a class="back-link" href="/games">← All games</a><p class="eyebrow">Episode {{.Episode}}</p><h1>Free the Block</h1>
+<p class="muted">Free the idol through the bottom gap. Solving is +1; fewest moves +2, second fewest +1. League points = your points.</p></div>
+{{if .Upcoming}}<p class="center">Opens {{.OpensAt.Format "Mon Jan 2, 3:04pm MST"}}.</p>
+{{else}}{{if .Solved}}<p class="scramble-result">Solved in {{.Moves}} {{if eq .Moves 1}}move{{else}}moves{{end}} 🔥</p>{{else if .Played}}<p class="center muted">Not solved after {{.Moves}} {{if eq .Moves 1}}move{{else}}moves{{end}}.</p>{{else if not .Open}}<p class="center muted">You didn't play this one.</p>{{end}}
+{{if .Open}}<p class="muted center">Results when it closes {{.CutoffAt.Format "Mon Jan 2, 3:04pm MST"}}.</p>
+{{else if .ResultsWait}}<p class="muted center">Results are being scored.</p>
+{{else}}<div class="table-wrap"><table><thead><tr><th scope="col">#</th><th scope="col">Player</th><th scope="col">Moves</th><th scope="col">Points</th></tr></thead><tbody>
+{{range .Results}}<tr><td>{{if .Place}}{{.Place}}{{else}}–{{end}}</td><td><a href="/players/{{.ID}}">{{.Name}}</a></td><td>{{if .Solved}}{{.Moves}}{{else}}<span class="muted">not solved</span>{{end}}</td><td>+{{.Points}}</td></tr>{{else}}<tr><td colspan="4" class="muted">Nobody played.</td></tr>{{end}}
+</tbody></table></div>{{end}}{{end}}{{end}}
+{{template "footer" .}}

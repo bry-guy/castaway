@@ -87,6 +87,17 @@ op createTrackGame(
 @post
 op resolveTrackGame(@path gameID: string): { awards: Record<int32>; } | ErrorResponse;
 
+@route("/instances/{instanceID}/free-the-block-games")
+@post
+op createFreeTheBlockGame(
+  @path instanceID: string,
+  @body body: { episode_number: int32; opens_at: utcDateTime; cutoff_at: utcDateTime; },
+): ButtonGame | ErrorResponse;
+
+@route("/free-the-block-games/{gameID}/resolve")
+@post
+op resolveFreeTheBlockGame(@path gameID: string): { awards: Record<int32>; } | ErrorResponse;
+
 model TrackPlay {
   participant_id: string;
   name: string;

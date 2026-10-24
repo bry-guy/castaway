@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Free the Block: `season apply` creates `free_the_block` games (`POST /instances/:id/free-the-block-games`) for weeks set to `type: free_the_block`; the scores post renders `games/free_the_block.md` from each solver's `moves` and `solved`; `next-game.md` shows 🧱.
+
 - `probst track plays --episode N` prints an episode's Inside Track runs (place, score, cups, balls left, finished, points). `probst track set PLAYER --episode N --cups N [--mask M] [--balls-used K] [--yes]` corrects one run: `--cups` fills the lowest N cups, balls used stays unless `--balls-used` is given, and a dry run shows before → after.
 
 - Scores posts are drafted for approval `automation.approval_lead` before their time (default `12h`, so the 8pm post's approval DM arrives at 8am ET) instead of only once the game is scored. Until the game is scored the draft shows a placeholder for its results; the server holds it, so a placeholder never sends, and the redraft with the results re-asks. An unscored game at the post's time still waits and alerts admins.

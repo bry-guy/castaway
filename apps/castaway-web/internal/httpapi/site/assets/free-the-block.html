@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Free the Block · Castaway</title>
+<link rel="stylesheet" href="/assets/free-the-block.css?v=1">
+</head>
+<body>
+<div class="banner hidden" id="practicing">Practice · not scored</div>
+<div class="pop" id="pop"></div>
+<canvas id="c" aria-label="Free the Block board"></canvas>
+<div class="hud"><span>MOVES <b id="moves">0</b></span><button id="restart" class="hidden">Restart</button></div>
+<div class="overlay" id="intro">
+  <div class="card">
+    <p class="eyebrow">Castaway challenge</p>
+    <h1>Free the Block</h1>
+    <button id="go" class="primary">Let's go</button>
+  </div>
+</div>
+<div class="overlay hidden" id="done">
+  <div class="card">
+    <p class="eyebrow">Idol freed</p>
+    <div class="stamps" id="stamps"></div>
+    <h1><span id="final">0</span> moves</h1>
+    <p id="finalNote"></p>
+    <button id="again" class="primary">Play again</button>
+  </div>
+</div>
+<script src="/assets/free-the-block.js?v=1" defer></script>
+</body>
+</html>

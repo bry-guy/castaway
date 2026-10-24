@@ -36,6 +36,7 @@ type sitePageData struct {
 	Button             *buttonView
 	Scramble           *scrambleView
 	Track              *trackView
+	FreeTheBlock       *freeTheBlockView
 	Champion           *championView
 	GameEpisodes       []gameEpisode
 	TestGames          []gameEntry
