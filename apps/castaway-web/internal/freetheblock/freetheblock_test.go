@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// The fewest-moves count for the start layout is 20; the BFS path must replay to that exactly.
+// The fewest-moves count for the start layout is 25; the BFS path must replay to that exactly.
 func TestSolveIsOptimal(t *testing.T) {
 	moves, err := Solve()
 	if err != nil {
@@ -15,8 +15,8 @@ func TestSolveIsOptimal(t *testing.T) {
 	if err != nil {
 		t.Fatalf("solution does not replay: %v", err)
 	}
-	if !res.Solved || res.Moves != 20 {
-		t.Fatalf("solve: %+v over %d records, want solved in 20 moves", res, len(moves))
+	if !res.Solved || res.Moves != 25 {
+		t.Fatalf("solve: %+v over %d records, want solved in 25 moves", res, len(moves))
 	}
 }
 
@@ -37,7 +37,7 @@ func TestReplayRules(t *testing.T) {
 		}
 	}
 	// Consecutive slides of one block are one move, whatever their direction; another block starts a new one.
-	res, err := Replay([]Move{{Piece: 8, Dir: "left", Steps: 1}, {Piece: 8, Dir: "right", Steps: 1}, {Piece: 9, Dir: "right", Steps: 1}})
+	res, err := Replay([]Move{{Piece: 8, Dir: "down", Steps: 1}, {Piece: 8, Dir: "up", Steps: 1}, {Piece: 9, Dir: "down", Steps: 1}})
 	if err != nil || res.Moves != 2 || res.Solved {
 		t.Fatalf("runs: %+v, %v", res, err)
 	}

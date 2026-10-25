@@ -8,9 +8,9 @@ A weekly Castawordle-hub game modeled on Inside Track: one scored run per player
 
 ## Rules
 
-- Klotski (Huarong Dao) on a 4-wide, 5-tall board: one 2×2 idol, four 1×2 verticals, five 1×1 soldiers (10 pieces), three empty cells. No 2×1 horizontal. Start (rows top→bottom): `V I I V` / `V I I V` / `V . s V` / `V s s V` / `. s s .`, so the empty cells are (1,2) and the bottom corners.
+- Klotski (Huarong Dao) on a 4-wide, 5-tall board: one 2×2 idol, four 1×2 verticals, five 1×1 soldiers (10 pieces), three empty cells. No 2×1 horizontal. Start (rows top→bottom): `I I V V` / `I I V V` / `V s s s` / `V s V s` / `. . V .`, so the empty cells are (0,4), (1,4) and (3,4) along the bottom row.
 - Blocks slide in any of four directions. The longest slide any reachable position allows is 3 cells (`MaxSteps`, found by exploring the whole reachable state space). Goal: the idol at cols 1–2, rows 3–4, out through the bottom gap.
-- Move count: consecutive slides of one block are one move (whatever their direction). The optimum is 20 moves (33 slides); `internal/freetheblock` finds it by BFS and a unit test asserts it.
+- Move count: consecutive slides of one block are one move (whatever their direction). The optimum is 25 moves (36 slides); `internal/freetheblock` finds it by BFS and a unit test asserts it.
 - Points: +1 for solving; among solvers, fewest moves +2 and second fewest +1; ties share the place (the Island Scramble rule). Non-solvers 0.
 
 ## Anti-cheat
@@ -36,6 +36,6 @@ A weekly Castawordle-hub game modeled on Inside Track: one scored run per player
 
 ## Verification
 
-- `internal/freetheblock` unit tests: optimum 20, replay rules, encoding round trip.
-- `TestFreeTheBlock` integration test: illegal and non-extending lists, finish rules, BFS solve, a tie at 20, a solve at 21, resolve once, results, ledger, profile, scheduled-games list.
-- Browser smoke test (Playwright, not committed): the BFS solution played by drags reaches MOVES 20 and the end card; a saved solved run loads locked as finished.
+- `internal/freetheblock` unit tests: optimum 25, replay rules, encoding round trip.
+- `TestFreeTheBlock` integration test: illegal and non-extending lists, finish rules, BFS solve, a tie at 25, a solve at 26, resolve once, results, ledger, profile, scheduled-games list.
+- Browser smoke test (Playwright, not committed): the BFS solution played by drags reaches MOVES 25 and the end card; a saved solved run loads locked as finished.

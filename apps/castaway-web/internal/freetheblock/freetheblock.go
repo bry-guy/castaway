@@ -11,17 +11,17 @@ import (
 const (
 	Width, Height = 4, 5
 	Pieces        = 10
-	MaxSteps      = 3 // the longest slide any reachable position allows
+	MaxSteps      = 3 // the longest slide any reachable position allows (exhaustive search)
 )
 
 // Piece ids: 0 is the idol (2×2); 1–4 are 1×2 verticals; 5–9 are 1×1 soldiers. The start has the soldiers in
-// the centre and the three empty cells at (1,2) and the bottom corners.
+// the middle and the three empty cells along the bottom row.
 var (
 	shapes = [Pieces]struct {
 		code uint64 // key digit: 1 idol, 2 vertical, 4 soldier
 		w, h int
 	}{{1, 2, 2}, {2, 1, 2}, {2, 1, 2}, {2, 1, 2}, {2, 1, 2}, {4, 1, 1}, {4, 1, 1}, {4, 1, 1}, {4, 1, 1}, {4, 1, 1}}
-	start = [Pieces][2]int{{1, 0}, {0, 0}, {3, 0}, {0, 2}, {3, 2}, {2, 2}, {1, 3}, {2, 3}, {1, 4}, {2, 4}}
+	start = [Pieces][2]int{{0, 0}, {2, 0}, {3, 0}, {0, 2}, {2, 3}, {1, 2}, {2, 2}, {3, 2}, {1, 3}, {3, 3}}
 	// The idol must reach the bottom centre (cols 1–2, rows 3–4) and slide out through the bottom opening.
 	goal     = [2]int{1, 3}
 	dirOrder = []string{"up", "down", "left", "right"}

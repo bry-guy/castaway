@@ -24,7 +24,7 @@ import (
 // finished, or the cutoff passes. League points: +1 for solving, fewest moves +2, second fewest +1 (ties share
 // the place, as Island Scramble does).
 
-const ftbMaxMoves = 2000 // the optimum is 33 slides; this only bounds a hostile request
+const ftbMaxMoves = 2000 // the optimum is 36 slides (25 moves); this only bounds a hostile request
 
 type ftbPlayer struct {
 	ID, Name, Tribe string

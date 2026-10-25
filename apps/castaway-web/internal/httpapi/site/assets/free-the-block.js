@@ -4,8 +4,8 @@
 // as on the server (internal/freetheblock), which replays the same list to score it.
 const COLS = 4, ROWS = 5;
 // Piece ids match internal/freetheblock: 0 idol (2×2), 1–4 verticals (1×2), 5–9 soldiers (1×1).
-// Each entry: [width, height, start x, start y]. Soldiers fill the centre; the empty cells are (1,2) and the bottom corners.
-const START = [[2, 2, 1, 0], [1, 2, 0, 0], [1, 2, 3, 0], [1, 2, 0, 2], [1, 2, 3, 2], [1, 1, 2, 2], [1, 1, 1, 3], [1, 1, 2, 3], [1, 1, 1, 4], [1, 1, 2, 4]];
+// Each entry: [width, height, start x, start y]. Soldiers fill the middle; the empty cells are along the bottom row.
+const START = [[2, 2, 0, 0], [1, 2, 2, 0], [1, 2, 3, 0], [1, 2, 0, 2], [1, 2, 2, 3], [1, 1, 1, 2], [1, 1, 2, 2], [1, 1, 3, 2], [1, 1, 1, 3], [1, 1, 3, 3]];
 const GOAL = [1, 3]; // the idol's top-left cell once it's out through the bottom gap
 const NAMES = { u: "up", d: "down", l: "left", r: "right" }; // wire codes from the saved run
 const DELTA = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
