@@ -29,3 +29,15 @@ The app uses mise for task management. Available tasks:
 - Keep repository and app docs aligned with `docs/documentation-standards.md`
 - Each app should keep `README.md`, `CHANGELOG.md`, `functional-requirements.md`, `non-functional-requirements.md`, `production-readiness-checklist.md`, and `plans/` present and in sync
 - Plan documents should be well-named and carry a status of `planning`, `in-progress`, or `done`
+
+## Roles
+
+Follow the `least-access` skill. Agents get no castaway secrets by default: fnox reads the `castaway` vault through
+Bryan's 1Password desktop app, so every secret read needs his Touch ID — treat that prompt as an admin request and
+only trigger it after saying why.
+
+| Role | Can | How |
+|---|---|---|
+| castaway-developer | read the cluster (k3s view), read prod data | `~/.kube/config` is read-only; prod DB reads use `castaway_web_ro` / `castaway_discord_bot_ro` (passwords in infra's `infra-developer` vault) |
+| castaway-operator | deploy | git push; Argo CD syncs. No direct DB writes — missing capabilities go to an admin CLI request |
+| castaway-admin | secrets, migrations by hand, DB writes | Bryan only: print the exact command and wait |
