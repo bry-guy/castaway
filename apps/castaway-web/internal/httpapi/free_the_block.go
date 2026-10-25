@@ -40,13 +40,13 @@ func ftbPlaces(players []ftbPlayer) map[string]int {
 			places[p.ID] = 0
 			continue
 		}
-		place := 1
+		better := map[int]bool{} // dense ranking: after a tie at first, the next move count is still second
 		for _, o := range players {
 			if o.Solved && o.Moves < p.Moves {
-				place++
+				better[o.Moves] = true
 			}
 		}
-		places[p.ID] = place
+		places[p.ID] = len(better) + 1
 	}
 	return places
 }

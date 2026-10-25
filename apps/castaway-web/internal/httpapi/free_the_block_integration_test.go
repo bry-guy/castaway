@@ -169,7 +169,7 @@ func TestFreeTheBlock(t *testing.T) {
 			t.Errorf("%s moves %d", p.Name, p.Moves)
 		}
 	}
-	if got := strings.Join(got, "|"); res.Type != "free_the_block" || got != "ace 1 9 true 3 true|tieA 1 9 true 3 true|low 3 1 true 0 false|quit 0 0 false 0 false" {
+	if got := strings.Join(got, "|"); res.Type != "free_the_block" || got != "ace 1 9 true 3 true|tieA 1 9 true 3 true|low 2 3 true 2 false|quit 0 0 false 0 false" {
 		t.Errorf("game results: %s %s", res.Type, got)
 	}
 	totals := map[string]int{}
@@ -186,7 +186,7 @@ func TestFreeTheBlock(t *testing.T) {
 		totals[id] = points
 	}
 	rows.Close()
-	for user, want := range map[string]int{"ace": 9, "tieA": 9, "low": 1, "quit": 0, "idle": 0, "admin": 0} {
+	for user, want := range map[string]int{"ace": 9, "tieA": 9, "low": 3, "quit": 0, "idle": 0, "admin": 0} {
 		if totals[ids[user]] != want {
 			t.Errorf("%s earned %d, want %d", user, totals[ids[user]], want)
 		}

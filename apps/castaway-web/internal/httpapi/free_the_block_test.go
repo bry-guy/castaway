@@ -12,7 +12,7 @@ func TestFreeTheBlockPoints(t *testing.T) {
 	places, points := ftbPoints([]ftbPlayer{
 		{ID: "a", Moves: 81, Solved: true}, {ID: "b", Moves: 90, Solved: true}, {ID: "c", Moves: 81, Solved: true}, {ID: "d", Moves: 70},
 	})
-	if got := fmt.Sprint(places, points); got != "map[a:1 b:3 c:1 d:0] map[a:4 b:1 c:4 d:0]" {
+	if got := fmt.Sprint(places, points); got != "map[a:1 b:2 c:1 d:0] map[a:4 b:3 c:4 d:0]" {
 		t.Errorf("tie for first: places and points %s", got)
 	}
 	places, points = ftbPoints([]ftbPlayer{{ID: "x", Moves: 80, Solved: true}, {ID: "y", Moves: 81, Solved: true}, {ID: "z", Moves: 82, Solved: true}})
