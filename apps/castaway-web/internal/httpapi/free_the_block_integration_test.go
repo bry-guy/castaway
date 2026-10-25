@@ -70,13 +70,13 @@ func TestFreeTheBlock(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if res, err := freetheblock.Replay(solution); err != nil || !res.Solved || res.Moves != 30 {
-		t.Fatalf("BFS solution: %+v, %v; want solved in 30 moves", res, err)
+	if res, err := freetheblock.Replay(solution); err != nil || !res.Solved || res.Moves != 20 {
+		t.Fatalf("BFS solution: %+v, %v; want solved in 20 moves", res, err)
 	}
-	// low opens with a slide of block 10 and its return: the same position, one move more in the count.
-	padded := append([]freetheblock.Move{{Piece: 10, Dir: "right", Steps: 1}, {Piece: 10, Dir: "left", Steps: 1}}, solution...)
-	if res, err := freetheblock.Replay(padded); err != nil || !res.Solved || res.Moves != 31 {
-		t.Fatalf("padded solution: %+v, %v; want solved in 31 moves", res, err)
+	// low opens with a slide of block 9 and its return: the same position, one move more in the count.
+	padded := append([]freetheblock.Move{{Piece: 9, Dir: "right", Steps: 1}, {Piece: 9, Dir: "left", Steps: 1}}, solution...)
+	if res, err := freetheblock.Replay(padded); err != nil || !res.Solved || res.Moves != 21 {
+		t.Fatalf("padded solution: %+v, %v; want solved in 21 moves", res, err)
 	}
 
 	// No game yet: admins get the practice board, players go back to /games.
@@ -111,25 +111,25 @@ func TestFreeTheBlock(t *testing.T) {
 		t.Fatal("game not listed on /games")
 	}
 
-	// ace: a legal start, then refusals. Block 5 (a soldier) can't go up into the idol; block 11 doesn't exist.
+	// ace: a legal start, then refusals. Block 5 (a soldier) can't go up into the idol; block 10 doesn't exist.
 	serve("POST", gameURL+"/progress", progress(solution[:4], false), "ace", 200)
 	serve("POST", gameURL+"/progress", progress(solution[:4], false), "ace", 200) // the same list again is fine
 	serve("POST", gameURL+"/progress", progress([]freetheblock.Move{{Piece: 5, Dir: "up", Steps: 1}}, false), "ace", 400)
-	serve("POST", gameURL+"/progress", progress([]freetheblock.Move{{Piece: 11, Dir: "left", Steps: 1}}, false), "ace", 400)
-	serve("POST", gameURL+"/progress", progress(solution[:2], false), "ace", 409)                                                                                                                                                        // shorter than the saved run
-	serve("POST", gameURL+"/progress", progress([]freetheblock.Move{{Piece: 10, Dir: "right", Steps: 1}, {Piece: 9, Dir: "left", Steps: 1}, {Piece: 9, Dir: "right", Steps: 1}, {Piece: 10, Dir: "left", Steps: 1}}, false), "ace", 409) // legal, same length, not the saved run
-	serve("POST", gameURL+"/progress", progress(solution[:6], true), "ace", 400)                                                                                                                                                         // not out yet, can't finish
+	serve("POST", gameURL+"/progress", progress([]freetheblock.Move{{Piece: 10, Dir: "left", Steps: 1}}, false), "ace", 400)
+	serve("POST", gameURL+"/progress", progress(solution[:2], false), "ace", 409)                                                                                                                                                      // shorter than the saved run
+	serve("POST", gameURL+"/progress", progress([]freetheblock.Move{{Piece: 9, Dir: "right", Steps: 1}, {Piece: 8, Dir: "left", Steps: 1}, {Piece: 8, Dir: "right", Steps: 1}, {Piece: 9, Dir: "left", Steps: 1}}, false), "ace", 409) // legal, same length, not the saved run
+	serve("POST", gameURL+"/progress", progress(solution[:6], true), "ace", 400)                                                                                                                                                       // not out yet, can't finish
 	if page := serve("GET", gameURL, "", "ace", 200); !strings.Contains(page, `data-moves="`+freetheblock.Encode(solution[:4])+`"`) {
 		t.Fatalf("resume: %s", page)
 	}
 	serve("POST", gameURL+"/progress", progress(solution, true), "ace", 200)
 	serve("POST", gameURL+"/progress", progress(append(append([]freetheblock.Move(nil), solution...), freetheblock.Move{Piece: 9, Dir: "left", Steps: 1}), false), "ace", 400) // after the idol is out
 	serve("POST", gameURL+"/progress", progress(solution, true), "ace", 409)                                                                                                   // one run
-	if page := serve("GET", gameURL, "", "ace", 200); !strings.Contains(page, "Solved in 30 moves") || strings.Contains(page, "data-action") {
+	if page := serve("GET", gameURL, "", "ace", 200); !strings.Contains(page, "Solved in 20 moves") || strings.Contains(page, "data-action") {
 		t.Fatalf("played: %s", page)
 	}
 
-	// tieA ties ace at 30; low solves in 31; quit stops short of solving; idle never starts.
+	// tieA ties ace at 20; low solves in 21; quit stops short of solving; idle never starts.
 	serve("POST", gameURL+"/progress", progress(solution, true), "tieA", 200)
 	serve("POST", gameURL+"/progress", progress(padded, true), "low", 200)
 	serve("POST", gameURL+"/progress", progress(solution[:20], false), "quit", 200)
@@ -163,7 +163,7 @@ func TestFreeTheBlock(t *testing.T) {
 	var got []string
 	for _, p := range res.Players {
 		got = append(got, fmt.Sprintf("%s %d %d %t", p.Name, p.Place, p.Points, p.Solved))
-		if p.Solved && p.Moves != map[string]int{"ace": 30, "tieA": 30, "low": 31}[p.Name] {
+		if p.Solved && p.Moves != map[string]int{"ace": 20, "tieA": 20, "low": 21}[p.Name] {
 			t.Errorf("%s moves %d", p.Name, p.Moves)
 		}
 	}
@@ -193,7 +193,7 @@ func TestFreeTheBlock(t *testing.T) {
 	if err := pool.QueryRow(ctx, `SELECT count(*) FROM bonus_point_ledger_entries WHERE award_key = 'free_the_block'`).Scan(&awardKeys); err != nil || awardKeys != 3 {
 		t.Fatalf("free_the_block ledger rows %d, err %v; want 3", awardKeys, err)
 	}
-	if page := serve("GET", "/players/"+ids["ace"], "", "idle", 200); !strings.Contains(page, "Free the Block") || !strings.Contains(page, "Solved in 30 moves · &#43;3 pts") {
+	if page := serve("GET", "/players/"+ids["ace"], "", "idle", 200); !strings.Contains(page, "Free the Block") || !strings.Contains(page, "Solved in 20 moves · &#43;3 pts") {
 		t.Fatalf("profile: %s", page)
 	}
 	if page := serve("GET", "/players/"+ids["quit"], "", "idle", 200); !strings.Contains(page, "Not solved · &#43;0 pts") {
