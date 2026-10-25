@@ -18,7 +18,7 @@ import (
 )
 
 // Free the Block: the server replays every move list from the start. Illegal moves and lists that don't extend the
-// saved run are refused; a solve scores by the moves it took (fewest +2, second +1, ties share), once.
+// saved run are refused; a solve scores by the moves it took (fewest +3, second +2, ties share; +5 at the optimum), once.
 func TestFreeTheBlock(t *testing.T) {
 	ctx, pool := integrationPool(t)
 	defer pool.Close()
@@ -150,11 +150,13 @@ func TestFreeTheBlock(t *testing.T) {
 	var res struct {
 		Type    string `json:"type"`
 		Players []struct {
-			Name   string `json:"name"`
-			Place  int    `json:"place"`
-			Points int    `json:"points"`
-			Moves  int    `json:"moves"`
-			Solved bool   `json:"solved"`
+			Name        string `json:"name"`
+			Place       int    `json:"place"`
+			Points      int    `json:"points"`
+			PlacePoints int    `json:"place_points"`
+			Perfect     bool   `json:"perfect"`
+			Moves       int    `json:"moves"`
+			Solved      bool   `json:"solved"`
 		} `json:"players"`
 	}
 	if err := json.Unmarshal([]byte(serve("GET", "/api/instances/"+instanceID+"/game-results/5", "", "admin", 200)), &res); err != nil {
@@ -162,12 +164,12 @@ func TestFreeTheBlock(t *testing.T) {
 	}
 	var got []string
 	for _, p := range res.Players {
-		got = append(got, fmt.Sprintf("%s %d %d %t", p.Name, p.Place, p.Points, p.Solved))
+		got = append(got, fmt.Sprintf("%s %d %d %t %d %t", p.Name, p.Place, p.Points, p.Solved, p.PlacePoints, p.Perfect))
 		if p.Solved && p.Moves != map[string]int{"ace": 25, "tieA": 25, "low": 26}[p.Name] {
 			t.Errorf("%s moves %d", p.Name, p.Moves)
 		}
 	}
-	if got := strings.Join(got, "|"); res.Type != "free_the_block" || got != "ace 1 3 true|tieA 1 3 true|low 3 1 true|quit 0 0 false" {
+	if got := strings.Join(got, "|"); res.Type != "free_the_block" || got != "ace 1 9 true 3 true|tieA 1 9 true 3 true|low 3 1 true 0 false|quit 0 0 false 0 false" {
 		t.Errorf("game results: %s %s", res.Type, got)
 	}
 	totals := map[string]int{}
@@ -184,7 +186,7 @@ func TestFreeTheBlock(t *testing.T) {
 		totals[id] = points
 	}
 	rows.Close()
-	for user, want := range map[string]int{"ace": 3, "tieA": 3, "low": 1, "quit": 0, "idle": 0, "admin": 0} {
+	for user, want := range map[string]int{"ace": 9, "tieA": 9, "low": 1, "quit": 0, "idle": 0, "admin": 0} {
 		if totals[ids[user]] != want {
 			t.Errorf("%s earned %d, want %d", user, totals[ids[user]], want)
 		}
@@ -193,7 +195,7 @@ func TestFreeTheBlock(t *testing.T) {
 	if err := pool.QueryRow(ctx, `SELECT count(*) FROM bonus_point_ledger_entries WHERE award_key = 'free_the_block'`).Scan(&awardKeys); err != nil || awardKeys != 3 {
 		t.Fatalf("free_the_block ledger rows %d, err %v; want 3", awardKeys, err)
 	}
-	if page := serve("GET", "/players/"+ids["ace"], "", "idle", 200); !strings.Contains(page, "Free the Block") || !strings.Contains(page, "Solved in 25 moves · &#43;3 pts") {
+	if page := serve("GET", "/players/"+ids["ace"], "", "idle", 200); !strings.Contains(page, "Free the Block") || !strings.Contains(page, "Solved in 25 moves · &#43;9 pts") {
 		t.Fatalf("profile: %s", page)
 	}
 	if page := serve("GET", "/players/"+ids["quit"], "", "idle", 200); !strings.Contains(page, "Not solved · &#43;0 pts") {

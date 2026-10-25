@@ -21,8 +21,8 @@ import (
 // Free the Block: slide the blocks to free the idol (internal/freetheblock, site/assets/free-the-block.js). One
 // scored run per player. The page posts the whole move list after every move, and the server replays it from
 // the start: it alone counts moves and decides whether the idol is out. A run stays open until it's solved,
-// finished, or the cutoff passes. League points: +1 for solving, fewest moves +2, second fewest +1 (ties share
-// the place, as Island Scramble does).
+// finished, or the cutoff passes. League points: +1 for solving, fewest moves +3, second fewest +2 (ties share
+// the place, as Island Scramble does), and +5 more for solving in the optimum (freetheblock.Optimum moves).
 
 const ftbMaxMoves = 2000 // the optimum is 36 slides (25 moves); this only bounds a hostile request
 
@@ -32,12 +32,12 @@ type ftbPlayer struct {
 	Solved          bool
 }
 
-// ftbPoints ranks solvers by moves (ties share the place); non-solvers have no place and score 0.
-func ftbPoints(players []ftbPlayer) (map[string]int, map[string]int) {
-	places, points := map[string]int{}, map[string]int{}
+// ftbPlaces ranks solvers by moves (ties share the place); non-solvers have no place (0).
+func ftbPlaces(players []ftbPlayer) map[string]int {
+	places := map[string]int{}
 	for _, p := range players {
 		if !p.Solved {
-			places[p.ID], points[p.ID] = 0, 0
+			places[p.ID] = 0
 			continue
 		}
 		place := 1
@@ -46,7 +46,33 @@ func ftbPoints(players []ftbPlayer) (map[string]int, map[string]int) {
 				place++
 			}
 		}
-		places[p.ID], points[p.ID] = place, 1+max(3-place, 0)
+		places[p.ID] = place
+	}
+	return places
+}
+
+// ftbPlacePoints: fewest moves +3, second fewest +2; no place (not solved) is 0.
+func ftbPlacePoints(place int) int {
+	return map[int]int{1: 3, 2: 2}[place]
+}
+
+// ftbPerfect: solved in the optimum number of moves, which earns +5 on top.
+func ftbPerfect(p ftbPlayer) bool {
+	return p.Solved && p.Moves == freetheblock.Optimum
+}
+
+// ftbPoints gives each player's league points: solvers get +1, their place points and +5 if perfect; the rest 0.
+func ftbPoints(players []ftbPlayer) (map[string]int, map[string]int) {
+	places, points := ftbPlaces(players), map[string]int{}
+	for _, p := range players {
+		if !p.Solved {
+			points[p.ID] = 0
+			continue
+		}
+		points[p.ID] = 1 + ftbPlacePoints(places[p.ID])
+		if ftbPerfect(p) {
+			points[p.ID] += 5
+		}
 	}
 	return places, points
 }
@@ -205,7 +231,7 @@ func (s *Server) resolveFreeTheBlockGame(ctx context.Context, gameID uuid.UUID) 
 				return nil, err
 			}
 			if _, err := q.CreateBonusPointLedgerEntry(ctx, db.CreateBonusPointLedgerEntryParams{
-				EntryKind: "award", Points: int32(awards[p.ID]), Visibility: "public", Reason: name, EffectiveAt: at, // #nosec G115 -- points are 1–4
+				EntryKind: "award", Points: int32(awards[p.ID]), Visibility: "public", Reason: name, EffectiveAt: at, // #nosec G115 -- points are 0–9
 				AwardKey: pgtype.Text{String: "free_the_block", Valid: true}, Metadata: metadata,
 				InstanceID: toPGUUID(instance), ParticipantID: toPGUUID(uuid.MustParse(p.ID)), ActivityOccurrenceID: occurrence.ID,
 			}); err != nil {
@@ -258,6 +284,9 @@ type freeTheBlockResult struct {
 	Moves  int
 	Solved bool
 	Points int
+	// The breakdown behind Points: place points (fewest +3, second +2) and the +5 optimum bonus.
+	PlacePoints int
+	Perfect     bool
 }
 
 type freeTheBlockPlay struct {
@@ -386,7 +415,8 @@ func freeTheBlockResults(players []ftbPlayer) []freeTheBlockResult {
 	places, points := ftbPoints(players)
 	out := make([]freeTheBlockResult, 0, len(players))
 	for _, p := range players {
-		out = append(out, freeTheBlockResult{Place: places[p.ID], ID: p.ID, Name: p.Name, Tribe: p.Tribe, Moves: p.Moves, Solved: p.Solved, Points: points[p.ID]})
+		out = append(out, freeTheBlockResult{Place: places[p.ID], ID: p.ID, Name: p.Name, Tribe: p.Tribe, Moves: p.Moves, Solved: p.Solved, Points: points[p.ID],
+			PlacePoints: ftbPlacePoints(places[p.ID]), Perfect: ftbPerfect(p)})
 	}
 	sort.SliceStable(out, func(i, j int) bool { // places first, unsolved last
 		a, b := out[i].Place, out[j].Place

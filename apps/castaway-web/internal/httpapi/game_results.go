@@ -43,7 +43,9 @@ type gameResult struct {
 	Cups      int `json:"cups"`
 	BallsLeft int `json:"balls_left"`
 	// free_the_block (Place is shared with spell_it_out; Solved is shared with castawordle)
-	Moves int `json:"moves"`
+	Moves       int  `json:"moves"`
+	PlacePoints int  `json:"place_points"` // fewest +3, second +2; Points adds +1 for solving and +5 if Perfect
+	Perfect     bool `json:"perfect"`      // solved in the optimum moves (+5)
 	// castawordle
 	Guesses int  `json:"guesses"`
 	Solved  bool `json:"solved"`
@@ -199,7 +201,7 @@ func (s *Server) gameResults(ctx context.Context, instanceID uuid.UUID, episode 
 		out := []gameResult{}
 		for _, r := range freeTheBlockResults(players) {
 			out = append(out, gameResult{Name: r.Name, Tribe: r.Tribe, TribeEmoji: emoji[r.Tribe], Place: r.Place, Points: r.Points,
-				Moves: r.Moves, Solved: r.Solved})
+				Moves: r.Moves, Solved: r.Solved, PlacePoints: r.PlacePoints, Perfect: r.Perfect})
 		}
 		return "free_the_block", out, []tribeResult{}, nil
 	} else if !errors.Is(err, pgx.ErrNoRows) {

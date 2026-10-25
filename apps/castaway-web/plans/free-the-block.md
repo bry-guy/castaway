@@ -11,7 +11,7 @@ A weekly Castawordle-hub game modeled on Inside Track: one scored run per player
 - Klotski (Huarong Dao) on a 4-wide, 5-tall board: one 2×2 idol, four 1×2 verticals, five 1×1 soldiers (10 pieces), three empty cells. No 2×1 horizontal. Start (rows top→bottom): `I I V V` / `I I V V` / `V s s s` / `V s V s` / `. . V .`, so the empty cells are (0,4), (1,4) and (3,4) along the bottom row.
 - Blocks slide in any of four directions. The longest slide any reachable position allows is 3 cells (`MaxSteps`, found by exploring the whole reachable state space). Goal: the idol at cols 1–2, rows 3–4, out through the bottom gap.
 - Move count: consecutive slides of one block are one move (whatever their direction). The optimum is 25 moves (36 slides); `internal/freetheblock` finds it by BFS and a unit test asserts it.
-- Points: +1 for solving; among solvers, fewest moves +2 and second fewest +1; ties share the place (the Island Scramble rule). Non-solvers 0.
+- Points: +1 for solving; among solvers, fewest moves +3 and second fewest +2; ties share the place (the Island Scramble rule); solving in the optimum (`freetheblock.Optimum`, 25 moves) adds +5. Best case 9. Non-solvers 0.
 
 ## Anti-cheat
 
@@ -25,7 +25,7 @@ A weekly Castawordle-hub game modeled on Inside Track: one scored run per player
 - Migration `041_free_the_block.sql`: `free_the_block_games` (per instance and episode, opens/cutoff/resolved) and `free_the_block_plays` (encoded moves, finished time).
 - Page: `GET /games/free-the-block[/:gameID]`; progress `POST /games/free-the-block/:gameID/progress` (same-origin).
 - Admin: `POST /instances/:instanceID/free-the-block-games` (create or reschedule before anyone plays), `POST /free-the-block-games/:gameID/resolve`. Cutoff resolution runs in `ResolveDueGames` and the button resolver loop.
-- Game results: `GET /instances/:id/game-results/:episode` returns type `free_the_block` (`place`, `points`, `moves`, `solved`). The admin alerts list and `/games` hub include it; the player profile lists it.
+- Game results: `GET /instances/:id/game-results/:episode` returns type `free_the_block` (`place`, `points`, `moves`, `solved`, and the breakdown `place_points`, `perfect`). The admin alerts list and `/games` hub include it; the player profile lists it.
 - Probst: `season apply` (`type: free_the_block`), scores template `games/free_the_block.md`, next-game 🧱.
 
 ## Not in this change

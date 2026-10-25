@@ -1,6 +1,6 @@
 {{template "header" .}}
 {{with .FreeTheBlock}}<div class="game-heading"><a class="back-link" href="/games">← All games</a><p class="eyebrow">Episode {{.Episode}}</p><h1>Free the Block</h1>
-<p class="muted">Free the idol through the bottom gap. Solving is +1; fewest moves +2, second fewest +1. League points = your points.</p></div>
+<p class="muted">Free the idol through the bottom gap. Solving is +1; fewest moves +3, second fewest +2 (ties share); solving in the 25-move optimum is +5 more. League points = your points.</p></div>
 {{if .Upcoming}}<p class="center">Opens {{.OpensAt.Format "Mon Jan 2, 3:04pm MST"}}.</p>
 {{else}}{{if .Solved}}<p class="scramble-result">Solved in {{.Moves}} {{if eq .Moves 1}}move{{else}}moves{{end}} 🔥</p>{{else if .Played}}<p class="center muted">Not solved after {{.Moves}} {{if eq .Moves 1}}move{{else}}moves{{end}}.</p>{{else if not .Open}}<p class="center muted">You didn't play this one.</p>{{end}}
 {{if .Open}}<p class="muted center">Results when it closes {{.CutoffAt.Format "Mon Jan 2, 3:04pm MST"}}.</p>

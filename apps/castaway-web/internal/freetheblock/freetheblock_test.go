@@ -15,8 +15,8 @@ func TestSolveIsOptimal(t *testing.T) {
 	if err != nil {
 		t.Fatalf("solution does not replay: %v", err)
 	}
-	if !res.Solved || res.Moves != 25 {
-		t.Fatalf("solve: %+v over %d records, want solved in 25 moves", res, len(moves))
+	if !res.Solved || res.Moves != Optimum {
+		t.Fatalf("solve: %+v over %d records, want solved in %d moves", res, len(moves), Optimum)
 	}
 }
 

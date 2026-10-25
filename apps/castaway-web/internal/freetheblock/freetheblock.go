@@ -11,7 +11,8 @@ import (
 const (
 	Width, Height = 4, 5
 	Pieces        = 10
-	MaxSteps      = 3 // the longest slide any reachable position allows (exhaustive search)
+	MaxSteps      = 3  // the longest slide any reachable position allows (exhaustive search)
+	Optimum       = 25 // fewest moves to free the idol from the start layout; TestSolveIsOptimal checks it
 )
 
 // Piece ids: 0 is the idol (2×2); 1–4 are 1×2 verticals; 5–9 are 1×1 soldiers. The start has the soldiers in
