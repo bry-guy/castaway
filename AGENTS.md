@@ -38,6 +38,6 @@ only trigger it after saying why.
 
 | Role | Can | How |
 |---|---|---|
-| castaway-developer | read the cluster (k3s view), read prod data | `~/.kube/config` is read-only; prod DB reads use `castaway_web_ro` / `castaway_discord_bot_ro` (passwords in infra's `infra-developer` vault) |
-| castaway-operator | deploy | git push; Argo CD syncs. No direct DB writes — missing capabilities go to an admin CLI request |
+| castaway-operator | read the cluster (k3s view), read prod data | `~/.kube/config` is read-only; prod DB reads use `castaway_web_ro` / `castaway_discord_bot_ro` (passwords in infra's `infra-developer` vault) |
+| castaway-developer | operator + deploy | git push; Argo CD syncs. No direct DB writes — missing capabilities go to an admin CLI request |
 | castaway-admin | secrets, migrations by hand, DB writes | Bryan only: print the exact command and wait |
