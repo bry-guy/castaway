@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Free the Block: `season apply` creates `free_the_block` games (`POST /instances/:id/free-the-block-games`) for weeks set to `type: free_the_block`; the scores post renders `games/free_the_block.md` from each solver's `moves` and `solved`; `next-game.md` shows 🧱.
+- Free the Block: `season apply` creates `free_the_block` games (`POST /instances/:id/free-the-block-games`) for weeks set to `type: free_the_block`; the scores post renders `games/free_the_block.md` from each solver's `moves` and `solved`, with place points and the +5 optimum bonus; `next-game.md` shows 🧱.
 
 - `probst track plays --episode N` prints an episode's Inside Track runs (place, score, cups, balls left, finished, points). `probst track set PLAYER --episode N --cups N [--mask M] [--balls-used K] [--yes]` corrects one run: `--cups` fills the lowest N cups, balls used stays unless `--balls-used` is given, and a dry run shows before → after.
 

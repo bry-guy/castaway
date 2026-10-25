@@ -426,6 +426,7 @@ func gameScore(ctx context.Context, call apiCall, path string, t templateSet, f 
 			HintPoints: int(num(m["hint_points"])), CleanPoints: int(num(m["clean_points"])),
 			Score: int(num(m["score"])), Cups: int(num(m["cups"])), BallsLeft: int(num(m["balls_left"])),
 			Guesses: int(num(m["guesses"])), Solved: m["solved"] == true, Moves: int(num(m["moves"])),
+			PlacePoints: int(num(m["place_points"])), Perfect: m["perfect"] == true,
 			RankRule: str(m["rank_rule"]), RankPoints: int(num(m["rank_points"])), VolumePoints: int(num(m["volume_points"])), StreakPoints: int(num(m["streak_points"]))})
 	}
 	for _, m := range res.Tribes {
@@ -500,9 +501,10 @@ type gameRow struct {
 	Points, Presses, StreakDays            int
 	First, Last, Solved                    bool
 	Place, Seconds, WrongChecks, Guesses   int
-	HintPoints, CleanPoints                int // Island Scramble: before-hint and fewest-wrong-checks points
-	Score, Cups, BallsLeft                 int // Inside Track: in-game score = cups + balls left once all three are in
-	Moves                                  int // Free the Block: slides to free the idol (Solved says whether it got out)
+	HintPoints, CleanPoints                int  // Island Scramble: before-hint and fewest-wrong-checks points
+	Score, Cups, BallsLeft                 int  // Inside Track: in-game score = cups + balls left once all three are in
+	Moves, PlacePoints                     int  // Free the Block: slides to free the idol (Solved says whether it got out); place points
+	Perfect                                bool // Free the Block: solved in the optimum moves (+5)
 	RankRule                               string
 	RankPoints, VolumePoints, StreakPoints int
 }

@@ -58,7 +58,7 @@ weeks:
   3: {game: {type: press_the_button}}   # most +2, 2nd -1, least +1; ties +size (max 3)
   4: {game: {type: spell_it_out, phrase_file: answers/ep4.txt, decoys: 5}}   # Island Scramble; phrase kept out of git
   5: {game: {type: inside_track}}   # Inside Track: +1 per cup, +1 per ball left
-  6: {game: TBD}
+  6: {game: {type: free_the_block}}   # Free the Block: fewest +3, second +2, +1 solving, +5 at the 25-move optimum
   7: {game: TBD}
   8: {game: TBD}
   9: {game: TBD}
