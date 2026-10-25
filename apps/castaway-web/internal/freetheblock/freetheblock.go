@@ -10,18 +10,18 @@ import (
 
 const (
 	Width, Height = 4, 5
-	Pieces        = 10
-	MaxSteps      = 4 // the longest slide on this board
+	Pieces        = 11
+	MaxSteps      = 2 // 2 cells are empty, so no slide can cover more than 2 new cells
 )
 
-// Piece ids: 0 is the idol (2×2); 1–4 are 1×2 verticals; 5 is the 2×1 horizontal; 6–9 are 1×1 soldiers.
-// The start is the classic 横刀立马 layout: the empty cells sit at the bottom centre.
+// Piece ids: 0 is the idol (2×2); 1–4 are 1×2 verticals; 5–10 are 1×1 soldiers. The start has the soldiers in
+// the centre and the two empty cells at the bottom corners.
 var (
 	shapes = [Pieces]struct {
-		code uint64 // key digit: 1 idol, 2 vertical, 3 horizontal, 4 soldier
+		code uint64 // key digit: 1 idol, 2 vertical, 4 soldier
 		w, h int
-	}{{1, 2, 2}, {2, 1, 2}, {2, 1, 2}, {2, 1, 2}, {2, 1, 2}, {3, 2, 1}, {4, 1, 1}, {4, 1, 1}, {4, 1, 1}, {4, 1, 1}}
-	start = [Pieces][2]int{{1, 0}, {0, 0}, {3, 0}, {0, 2}, {3, 2}, {1, 2}, {1, 3}, {2, 3}, {0, 4}, {3, 4}}
+	}{{1, 2, 2}, {2, 1, 2}, {2, 1, 2}, {2, 1, 2}, {2, 1, 2}, {4, 1, 1}, {4, 1, 1}, {4, 1, 1}, {4, 1, 1}, {4, 1, 1}, {4, 1, 1}}
+	start = [Pieces][2]int{{1, 0}, {0, 0}, {3, 0}, {0, 2}, {3, 2}, {1, 2}, {2, 2}, {1, 3}, {2, 3}, {1, 4}, {2, 4}}
 	// The idol must reach the bottom centre (cols 1–2, rows 3–4) and slide out through the bottom opening.
 	goal     = [2]int{1, 3}
 	dirOrder = []string{"up", "down", "left", "right"}
@@ -111,7 +111,7 @@ func Replay(moves []Move) (Result, error) {
 	return res, nil
 }
 
-// Encode packs a move list into 3 characters a move: piece letter (a–j), direction letter (u, d, l, r), steps (1–4).
+// Encode packs a move list into 3 characters a move: piece letter (a–k), direction letter (u, d, l, r), steps (1–2).
 // Call it only on a list Replay accepted.
 func Encode(moves []Move) string {
 	b := make([]byte, 0, 3*len(moves))

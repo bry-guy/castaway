@@ -8,9 +8,9 @@ A weekly Castawordle-hub game modeled on Inside Track: one scored run per player
 
 ## Rules
 
-- Klotski (Huarong Dao) on a 4-wide, 5-tall board: one 2×2 idol, four 1×2 verticals, one 2×1 horizontal, four 1×1 soldiers, two empty cells. Start is the classic 横刀立马 layout (empty cells at the bottom centre).
-- Blocks slide in any of four directions. Goal: the idol at cols 1–2, rows 3–4, out through the bottom gap.
-- Move count: consecutive slides of one block are one move (whatever their direction). The optimum is 81; `internal/freetheblock` finds it by BFS and a unit test asserts it.
+- Klotski (Huarong Dao) on a 4-wide, 5-tall board: one 2×2 idol, four 1×2 verticals, six 1×1 soldiers (11 pieces), two empty cells. No 2×1 horizontal. Start (rows top→bottom): `V I I V` / `V I I V` / `V s s V` / `V s s V` / `. s s .`, so the empty cells are the bottom corners.
+- Blocks slide in any of four directions. Two empty cells mean a slide covers at most 2 cells. Goal: the idol at cols 1–2, rows 3–4, out through the bottom gap.
+- Move count: consecutive slides of one block are one move (whatever their direction). The optimum is 30 moves (48 slides); `internal/freetheblock` finds it by BFS and a unit test asserts it.
 - Points: +1 for solving; among solvers, fewest moves +2 and second fewest +1; ties share the place (the Island Scramble rule). Non-solvers 0.
 
 ## Anti-cheat
@@ -36,6 +36,6 @@ A weekly Castawordle-hub game modeled on Inside Track: one scored run per player
 
 ## Verification
 
-- `internal/freetheblock` unit tests: optimum 81, replay rules, encoding round trip.
-- `TestFreeTheBlock` integration test: illegal and non-extending lists, finish rules, BFS solve, a tie at 81, a solve at 82, resolve once, results, ledger, profile, scheduled-games list.
-- Browser smoke test (Playwright, not committed): the BFS solution played by drags reaches MOVES 81 and the end card; a saved solved run loads locked as finished.
+- `internal/freetheblock` unit tests: optimum 30, replay rules, encoding round trip.
+- `TestFreeTheBlock` integration test: illegal and non-extending lists, finish rules, BFS solve, a tie at 30, a solve at 31, resolve once, results, ledger, profile, scheduled-games list.
+- Browser smoke test (Playwright, not committed): the BFS solution played by drags reaches MOVES 30 and the end card; a saved solved run loads locked as finished.

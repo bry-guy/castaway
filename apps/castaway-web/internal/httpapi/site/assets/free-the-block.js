@@ -3,9 +3,9 @@
 // it moves on, and a drag that lands on a cell is one slide. Consecutive slides of one block count as one move,
 // as on the server (internal/freetheblock), which replays the same list to score it.
 const COLS = 4, ROWS = 5;
-// Piece ids match internal/freetheblock: 0 idol (2×2), 1–4 verticals (1×2), 5 horizontal (2×1), 6–9 soldiers.
-// Each entry: [width, height, start x, start y]. The 横刀立马 layout: empty cells at the bottom centre.
-const START = [[2, 2, 1, 0], [1, 2, 0, 0], [1, 2, 3, 0], [1, 2, 0, 2], [1, 2, 3, 2], [2, 1, 1, 2], [1, 1, 1, 3], [1, 1, 2, 3], [1, 1, 0, 4], [1, 1, 3, 4]];
+// Piece ids match internal/freetheblock: 0 idol (2×2), 1–4 verticals (1×2), 5–10 soldiers (1×1).
+// Each entry: [width, height, start x, start y]. Soldiers fill the centre; the empty cells are the bottom corners.
+const START = [[2, 2, 1, 0], [1, 2, 0, 0], [1, 2, 3, 0], [1, 2, 0, 2], [1, 2, 3, 2], [1, 1, 1, 2], [1, 1, 2, 2], [1, 1, 1, 3], [1, 1, 2, 3], [1, 1, 1, 4], [1, 1, 2, 4]];
 const GOAL = [1, 3]; // the idol's top-left cell once it's out through the bottom gap
 const NAMES = { u: "up", d: "down", l: "left", r: "right" }; // wire codes from the saved run
 const DELTA = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
@@ -252,7 +252,7 @@ function block(p, lifted) {
   ctx.fillStyle = `rgba(20,12,4,${lifted ? 0.5 : 0.38})`; rr(X + ox, Y + oy, WW, HH, r); ctx.fill();
   const g = ctx.createLinearGradient(X, Y, X + WW, Y + HH);
   if (p === 0) { g.addColorStop(0, "#f7d77a"); g.addColorStop(0.55, "#d9a441"); g.addColorStop(1, "#9a6a1c"); }
-  else if (p >= 6) { g.addColorStop(0, "#d9a766"); g.addColorStop(0.6, "#b07a43"); g.addColorStop(1, "#7a4d22"); }
+  else if (p >= 5) { g.addColorStop(0, "#d9a766"); g.addColorStop(0.6, "#b07a43"); g.addColorStop(1, "#7a4d22"); }
   else { g.addColorStop(0, "#c4915a"); g.addColorStop(0.6, "#9a6434"); g.addColorStop(1, "#66401c"); }
   ctx.fillStyle = g; rr(X, Y, WW, HH, r); ctx.fill();
   ctx.save(); rr(X, Y, WW, HH, r); ctx.clip();
