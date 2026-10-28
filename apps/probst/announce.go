@@ -26,6 +26,10 @@ type announcement struct {
 	DueAt       time.Time  `json:"due_at"`
 	Status      string     `json:"status"`
 	MessageID   *string    `json:"message_id"`
+	// Approval gate: a gated draft waits for an admin's "yes"; NotifiedAt is when its DM reached the admins.
+	ApprovalGated      bool       `json:"approval_gated"`
+	ApprovalSendAt     *time.Time `json:"approval_send_at"`
+	ApprovalNotifiedAt *time.Time `json:"approval_notified_at"`
 }
 
 func readMessageFile(path string) (string, error) {
@@ -225,8 +229,20 @@ func addAnnouncementDraftCommands(parent *cobra.Command, call apiCall, instanceP
 }
 
 func describeStatus(a announcement) string {
+	if a.ApprovalGated && a.Status == "draft" {
+		switch {
+		case a.ApprovalNotifiedAt != nil:
+			return "awaiting approval · DM sent " + eastTime(*a.ApprovalNotifiedAt)
+		case a.ApprovalSendAt != nil:
+			return "approval DM pending (posts " + eastTime(*a.ApprovalSendAt) + ")"
+		}
+		return "approval DM pending"
+	}
 	switch a.Status {
 	case "pending":
+		if a.ApprovalGated {
+			return "approved · scheduled " + eastTime(a.DueAt)
+		}
 		return "scheduled " + a.DueAt.In(eastern()).Format("Mon 01/02 15:04 MST")
 	case "sent":
 		if a.MessageID != nil {
@@ -235,6 +251,9 @@ func describeStatus(a announcement) string {
 	}
 	return a.Status
 }
+
+// eastTime is "Oct 28 8:00am EDT".
+func eastTime(t time.Time) string { return t.In(eastern()).Format("Jan 2 3:04pm MST") }
 
 func addMessageCommand(root *cobra.Command, token *string, yes *bool, resolveChannel func(string) string) {
 	var file, replyTo string

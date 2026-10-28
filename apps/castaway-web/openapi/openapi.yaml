@@ -3728,6 +3728,9 @@ components:
         - status
         - message_id
         - notify_users
+        - approval_gated
+        - approval_send_at
+        - approval_notified_at
       properties:
         id:
           type: string
@@ -3755,6 +3758,19 @@ components:
           nullable: true
         notify_users:
           type: boolean
+        approval_gated:
+          type: boolean
+          description: Waits for an admin's "yes" before it sends (status stays draft until then).
+        approval_send_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the post sends once approved; null when not gated.
+        approval_notified_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the approval DM reached the admins; null until it's delivered.
         thread:
           allOf:
             - $ref: '#/components/schemas/AnnouncementThread'

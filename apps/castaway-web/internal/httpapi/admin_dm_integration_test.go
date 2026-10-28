@@ -54,6 +54,25 @@ func TestAdminDMActions(t *testing.T) {
 		Status      string   `json:"status"`
 		SavedPicks  string   `json:"saved_picks"`
 	}
+	// listed is the instance's announcement list, which shows the approval state.
+	type listed struct {
+		Announcements []struct {
+			Status             string  `json:"status"`
+			ApprovalGated      bool    `json:"approval_gated"`
+			ApprovalSendAt     *string `json:"approval_send_at"`
+			ApprovalNotifiedAt *string `json:"approval_notified_at"`
+		} `json:"announcements"`
+	}
+	list := func() listed {
+		t.Helper()
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, authorizedJSONRequest(http.MethodGet, path+"/announcements", "", "token", "2001"))
+		var out listed
+		if recorder.Code != http.StatusOK || json.Unmarshal(recorder.Body.Bytes(), &out) != nil || len(out.Announcements) != 1 {
+			t.Fatalf("list: %d %s", recorder.Code, recorder.Body.String())
+		}
+		return out
+	}
 	call := func(method, url, body, actor string, want int) reply {
 		t.Helper()
 		recorder := httptest.NewRecorder()
@@ -88,6 +107,9 @@ func TestAdminDMActions(t *testing.T) {
 		t.Fatalf("undelivered approval DM should be retried: %v", retry)
 	}
 	call(http.MethodPost, "/announcements/"+id+"/approval-delivered", fmt.Sprintf(`{"revision":%q}`, oldRevision), "", http.StatusOK)
+	if got := list().Announcements[0]; got.Status != "draft" || !got.ApprovalGated || got.ApprovalSendAt == nil || *got.ApprovalSendAt != "2026-10-07T16:00:00Z" || got.ApprovalNotifiedAt == nil {
+		t.Fatalf("list after the approval DM: %+v", got)
+	}
 	now = now.Add(11 * time.Minute)
 	if again := call(http.MethodPost, claimPath, claimBody, "", http.StatusOK); again.Announcement != nil {
 		t.Fatalf("delivered approval DM was offered again: %v", again)
@@ -129,6 +151,9 @@ func TestAdminDMActions(t *testing.T) {
 		t.Fatalf("approved: %v", approved)
 	}
 	approve("2001", revision, http.StatusConflict) // once
+	if got := list().Announcements[0]; got.Status != "pending" || !got.ApprovalGated {
+		t.Fatalf("list after approval: %+v", got)
+	}
 
 	// Editing after approval holds it again and re-asks.
 	call(http.MethodPut, path+"/announcements/"+id+"/body", `{"body":"Week 2 scores, fixed again"}`, "2001", http.StatusOK)

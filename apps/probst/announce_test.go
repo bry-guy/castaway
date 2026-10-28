@@ -121,3 +121,36 @@ func TestMessagePostsDirectlyWithoutMentions(t *testing.T) {
 		t.Fatalf("payload: %v", got)
 	}
 }
+
+// The list and show print each gated draft's approval state: waiting for its DM, DM sent, or approved.
+func TestAnnouncementListShowsApprovalState(t *testing.T) {
+	t.Setenv("PROBST_TOKEN", "test-secret")
+	t.Setenv("PROBST_DISCORD_USER_ID", "123")
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" || r.URL.Path != "/instances/inst/announcements" {
+			t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"announcements": []map[string]any{
+			{"id": "1", "request_key": "dm-sent", "status": "draft", "body": "a", "channel_id": "201", "due_at": "2026-10-29T00:00:00Z",
+				"approval_gated": true, "approval_send_at": "2026-10-29T00:00:00Z", "approval_notified_at": "2026-10-28T12:00:00Z"},
+			{"id": "2", "request_key": "dm-pending", "status": "draft", "body": "b", "channel_id": "201", "due_at": "2026-10-29T00:00:00Z",
+				"approval_gated": true, "approval_send_at": "2026-10-29T00:00:00Z"},
+			{"id": "3", "request_key": "approved", "status": "pending", "body": "c", "channel_id": "201", "due_at": "2026-10-29T00:00:00Z",
+				"approval_gated": true, "approval_send_at": "2026-10-29T00:00:00Z", "approval_notified_at": "2026-10-28T12:00:00Z"},
+			{"id": "4", "request_key": "plain", "status": "draft", "body": "d", "channel_id": "201", "due_at": "2026-10-29T00:00:00Z"},
+		}})
+	}))
+	defer server.Close()
+	t.Setenv("PROBST_API_URL", server.URL)
+	out, err := runProbst(t, "announcement", "list", "--instance", "inst", "--guild", "101")
+	for _, want := range []string{
+		"awaiting approval · DM sent Oct 28 8:00am EDT",
+		"approval DM pending (posts Oct 28 8:00pm EDT)",
+		"approved · scheduled Oct 28 8:00pm EDT",
+		"plain  ",
+	} {
+		if err != nil || !strings.Contains(out, want) {
+			t.Errorf("list missing %q:\n%s (%v)", want, out, err)
+		}
+	}
+}

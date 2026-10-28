@@ -897,6 +897,12 @@ model Announcement {
   status: string;
   message_id: string | null;
   notify_users: boolean;
+  /** Waits for an admin's "yes" before it sends (status stays draft until then). */
+  approval_gated: boolean;
+  /** When the post sends once approved; null when not gated. */
+  approval_send_at: utcDateTime | null;
+  /** When the approval DM reached the admins; null until it's delivered. */
+  approval_notified_at: utcDateTime | null;
   /** Post inside this shared bot thread; `id` is absent until the thread exists. */
   thread?: AnnouncementThread;
 }

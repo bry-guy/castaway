@@ -27,6 +27,11 @@ type announcementRecord struct {
 	Status      string     `json:"status"`
 	MessageID   *string    `json:"message_id"`
 	NotifyUsers bool       `json:"notify_users"`
+	// Approval gate: a gated draft waits for an admin's "yes" (status draft until then). ApprovalNotifiedAt is when
+	// the approval DM was delivered; ApprovalSendAt is the time the post sends once approved.
+	ApprovalGated      bool       `json:"approval_gated"`
+	ApprovalSendAt     *time.Time `json:"approval_send_at"`
+	ApprovalNotifiedAt *time.Time `json:"approval_notified_at"`
 	// Thread, when set, sends the body inside a shared bot thread; ID is empty until the thread exists.
 	Thread *announcementThread `json:"thread,omitempty"`
 }
@@ -46,19 +51,23 @@ func validAnnouncementID(id string) bool {
 func scanAnnouncement(row pgx.Row) (announcementRecord, error) {
 	var a announcementRecord
 	var id, instanceID pgtype.UUID
-	err := row.Scan(&id, &instanceID, &a.GuildID, &a.ChannelID, &a.RequestKey, &a.Body, &a.ScheduledAt, &a.DueAt, &a.Status, &a.MessageID, &a.NotifyUsers, &a.Thread)
+	err := row.Scan(&id, &instanceID, &a.GuildID, &a.ChannelID, &a.RequestKey, &a.Body, &a.ScheduledAt, &a.DueAt, &a.Status, &a.MessageID, &a.NotifyUsers,
+		&a.ApprovalGated, &a.ApprovalSendAt, &a.ApprovalNotifiedAt, &a.Thread)
 	if err == nil {
 		a.ID, a.InstanceID = uuid.UUID(id.Bytes), uuid.UUID(instanceID.Bytes)
 		a.DueAt = a.DueAt.UTC()
-		if a.ScheduledAt != nil {
-			utc := a.ScheduledAt.UTC()
-			a.ScheduledAt = &utc
+		for _, t := range []**time.Time{&a.ScheduledAt, &a.ApprovalSendAt, &a.ApprovalNotifiedAt} {
+			if *t != nil {
+				utc := (*t).UTC()
+				*t = &utc
+			}
 		}
 	}
 	return a, err
 }
 
 const announcementColumns = `a.id, i.public_id, a.guild_id, a.channel_id, a.request_key, a.body, a.scheduled_at, a.due_at, a.status, a.message_id, a.notify_users,
+	a.approval_gated, a.approval_send_at, a.approval_notified_at,
 	CASE WHEN a.thread IS NULL THEN NULL ELSE a.thread || jsonb_build_object('id', (SELECT t.thread_id FROM announcement_threads t
 		WHERE t.instance_id = a.instance_id AND t.channel_id = a.channel_id AND t.thread_key = a.thread->>'key')) END`
 
