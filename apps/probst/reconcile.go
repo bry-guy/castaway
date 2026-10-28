@@ -383,11 +383,16 @@ func (r *reconciler) draftWeek(week int, at time.Time, key string, bootPositions
 	return err
 }
 
-// draftReminders drafts each week's game-day reminder (reminder.md) for approval once the game is open, so
-// admins can approve it well before it sends at weekly.reminder.at. It never pings.
+// draftReminders drafts each week's game-day reminder (reminder.md) for approval approval_lead (12h) before it
+// sends at weekly.reminder.at, once the game is open, like scores posts, so the approval DM isn't days early.
+// It never pings.
 func (r *reconciler) draftReminders() error {
 	if r.f.Weekly.Reminder.At == "" {
 		return nil
+	}
+	lead, err := approvalLead(r.f)
+	if err != nil {
+		return err
 	}
 	var games struct {
 		Games []liveGame `json:"games"`
@@ -403,6 +408,9 @@ func (r *reconciler) draftReminders() error {
 		at, err := planTime(r.f.Weekly.Reminder.At, r.airs[g.Episode-1])
 		if err != nil {
 			return fmt.Errorf("weekly.reminder.at: %w", err)
+		}
+		if r.now.Before(at.Add(-lead)) {
+			continue // too early for the approval DM
 		}
 		if !at.Before(g.CutoffAt) || r.now.After(at.Add(3*time.Hour)) {
 			continue // a reminder after the game closes would be wrong; past ones have expired

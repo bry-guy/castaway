@@ -229,8 +229,9 @@ func mustTemplates(t *testing.T, dir string) templateSet {
 	return set
 }
 
-// The game-day reminder is drafted for approval once the game opens, sends at weekly.reminder.at (never
-// pinging), uses reminder.md, and isn't drafted for a game that closes before it or after it has expired.
+// The game-day reminder is drafted for approval once the game is open and approval_lead (12h) before it sends
+// at weekly.reminder.at (never pinging), uses reminder.md, and isn't drafted for a game that closes before it
+// or after it has expired.
 func TestReconcileReminder(t *testing.T) {
 	f, err := loadSeasonFile("testdata/season-brainland.yaml")
 	if err != nil {
@@ -264,7 +265,10 @@ func TestReconcileReminder(t *testing.T) {
 	if draft("2026-10-07 19:00") != nil {
 		t.Fatal("drafted before the game opened")
 	}
-	post := draft("2026-10-07 20:05")
+	if draft("2026-10-13 21:59") != nil {
+		t.Fatal("drafted more than approval_lead before the reminder")
+	}
+	post := draft("2026-10-13 22:00")
 	body, _ := post["body"].(string)
 	if post == nil || post["send_at"] != at("2026-10-14 10:00").UTC().Format(time.RFC3339) || post["notify_users"] != false || post["score_fingerprint"] != nil ||
 		!strings.Contains(body, "**Press the Button**") || !strings.Contains(body, "until 7:59pm tonight") {
@@ -274,7 +278,7 @@ func TestReconcileReminder(t *testing.T) {
 		t.Fatal("drafted after it expired")
 	}
 	fake.games[0].CutoffAt = at("2026-10-14 09:00")
-	if draft("2026-10-10 12:00") != nil {
+	if draft("2026-10-13 23:00") != nil {
 		t.Fatal("reminder after the game closes")
 	}
 }
