@@ -44,6 +44,12 @@ func (b *Bot) handlePublishRequest(ctx context.Context, m *discordgo.Message) {
 // answerPublishReply applies a reply to a publish prompt and reports the outcome in the same DM.
 func (b *Bot) answerPublishReply(ctx context.Context, m *discordgo.Message, requestID string, answer func(string)) {
 	reply, err := b.castaway.ReplyPublishRequest(ctx, requestID, m.Author.ID, b.targetServerIDs, m.Content)
+	// Server names ("podracing", "brainland") are matched here, where guild names are known, then retried as channel IDs.
+	if err == nil && reply.Status == "unknown" {
+		if ids, ok := channelsByGuildName(m.Content, reply.Targets, b.guildName); ok {
+			reply, err = b.castaway.ReplyPublishRequest(ctx, requestID, m.Author.ID, b.targetServerIDs, ids)
+		}
+	}
 	if err != nil {
 		answer(messages.Fragment("not-recorded", err.Error()))
 		return
@@ -85,4 +91,32 @@ func joinNames(targets []castaway.PublishTarget) string {
 		names = append(names, t.Name)
 	}
 	return strings.Join(names, " and ")
+}
+
+func (b *Bot) guildName(id string) string {
+	if g, err := b.session.State.Guild(id); err == nil {
+		return g.Name
+	}
+	return ""
+}
+
+// channelsByGuildName maps each "/"-separated part that is a case-insensitive piece of exactly one target's
+// server name (e.g. "podracing" for NowThisIsPodracing) to that target's channel ID; other parts pass through.
+func channelsByGuildName(reply string, targets []castaway.PublishTarget, guildName func(string) string) (string, bool) {
+	var out []string
+	changed := false
+	for _, part := range strings.Split(reply, "/") {
+		part = strings.TrimSpace(part)
+		var hits []string
+		for _, t := range targets {
+			if part != "" && strings.Contains(strings.ToLower(guildName(t.GuildID)), strings.ToLower(part)) {
+				hits = append(hits, t.ChannelID)
+			}
+		}
+		if len(hits) == 1 {
+			part, changed = hits[0], true
+		}
+		out = append(out, part)
+	}
+	return strings.Join(out, "/"), changed
 }
