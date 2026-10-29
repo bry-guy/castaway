@@ -1824,6 +1824,39 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/RenameContestantRequest'
+  /instances/{instanceID}/discord-channels:
+    get:
+      operationId: listDiscordChannelBindings
+      parameters:
+        - name: instanceID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - type: object
+                    properties:
+                      channels:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            guild_id:
+                              type: string
+                            channel_id:
+                              type: string
+                          required:
+                            - guild_id
+                            - channel_id
+                    required:
+                      - channels
+                  - $ref: '#/components/schemas/ErrorResponse'
   /instances/{instanceID}/discussion-threads/{requestKey}:
     put:
       operationId: upsertDiscussionThread

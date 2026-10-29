@@ -93,6 +93,7 @@ func (s *Server) registerAPI(protected *gin.RouterGroup) {
 	protected.GET("/admin/session", s.adminSession)
 	protected.POST("/instances/:instanceID/admins/bootstrap", s.bootstrapInstanceAdmin)
 	protected.POST("/instances/:instanceID/admins", s.addInstanceAdmin)
+	protected.GET("/instances/:instanceID/discord-channels", s.listDiscordChannelBindings)
 	protected.GET("/discord/guilds/:guildID/channels/:channelID", s.getDiscordChannelBinding)
 	protected.PUT("/discord/guilds/:guildID/channels/:channelID", s.setDiscordChannelBinding)
 	protected.DELETE("/discord/guilds/:guildID/channels/:channelID", s.deleteDiscordChannelBinding)

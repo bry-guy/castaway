@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+- `GET /instances/{instanceID}/discord-channels` lists the channels bound to an instance (instance admins only), for the bot-permission check.
+
 - Admin DM publish requests (`POST /admin-dms/publish-requests`, `POST /admin-dms/publish-requests/:id/reply`): a reply names the server(s); each named channel gets one announcement due now. Requests expire after 24 hours.
 - Episode discussion threads (`PUT /instances/:id/discussion-threads/:key`, `POST /discussion-threads/claim`, `POST /discussion-threads/:id/finish`): a thread is queued once per key and sent at most once. A claim whose lease expires fails rather than retrying, since it may already have opened a thread.
 - `GET /instances/:id/announcements` (and every announcement response) includes `approval_gated`, `approval_send_at` and `approval_notified_at`, so `probst announcement list` shows whether a gated draft's approval DM has gone out, is pending, or was approved. OpenAPI and typespec updated.

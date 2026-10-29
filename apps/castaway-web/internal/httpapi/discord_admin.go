@@ -121,6 +121,35 @@ func (s *Server) getDiscordChannelBinding(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"binding": gin.H{"guild_id": row.GuildID, "channel_id": row.ChannelID, "instance_id": pgUUIDString(row.InstanceID)}})
 }
 
+// listDiscordChannelBindings lists the channels bound to an instance (its season channels), for the bot-permission check.
+func (s *Server) listDiscordChannelBindings(c *gin.Context) {
+	instanceID, ok := parseUUIDPath(c, "instanceID")
+	if !ok || !s.requireInstanceAdminRequest(c, instanceID) {
+		return
+	}
+	rows, err := s.pool.Query(c.Request.Context(), `SELECT b.guild_id, b.channel_id FROM discord_channel_bindings b
+		JOIN instances i ON i.id = b.instance_id WHERE i.public_id = $1 ORDER BY b.guild_id, b.channel_id`, toPGUUID(instanceID))
+	if err != nil {
+		writeAnnouncementError(c, err)
+		return
+	}
+	defer rows.Close()
+	channels := []gin.H{}
+	for rows.Next() {
+		var guildID, channelID string
+		if err := rows.Scan(&guildID, &channelID); err != nil {
+			writeAnnouncementError(c, err)
+			return
+		}
+		channels = append(channels, gin.H{"guild_id": guildID, "channel_id": channelID})
+	}
+	if err := rows.Err(); err != nil {
+		writeAnnouncementError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"channels": channels})
+}
+
 func (s *Server) setDiscordChannelBinding(c *gin.Context)    { s.changeDiscordChannelBinding(c, false) }
 func (s *Server) deleteDiscordChannelBinding(c *gin.Context) { s.changeDiscordChannelBinding(c, true) }
 
