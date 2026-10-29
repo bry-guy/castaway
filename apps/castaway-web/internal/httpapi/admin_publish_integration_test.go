@@ -57,9 +57,7 @@ func TestAdminPublishRequests(t *testing.T) {
 	create := func(admin, key, text string) (string, []any) {
 		t.Helper()
 		out := call("/admin-dms/publish-requests", fmt.Sprintf(`{"admin_discord_user_id":%q,"guild_ids":["7001","7003"],"request_key":%q,"body":%q}`, admin, key, text), http.StatusOK)
-		id, _ := out["request_id"].(string)
-		targets, _ := out["targets"].([]any)
-		return id, targets
+		return stringField(out, "request_id"), listField(out, "targets")
 	}
 	reply := func(id, admin, text string) map[string]any {
 		t.Helper()
@@ -117,7 +115,7 @@ func TestAdminPublishRequests(t *testing.T) {
 	t.Run("single server", func(t *testing.T) {
 		id, _ := create("2001", "102", "Just podracing")
 		out := reply(id, "2001", " podRACING ")
-		if out["status"] != "posted" || len(out["posted"].([]any)) != 1 {
+		if out["status"] != "posted" || len(listField(out, "posted")) != 1 {
 			t.Fatalf("single: %v", out)
 		}
 		if got := queued("Just podracing"); strings.Join(got, ",") != "Podracing@7002" {
@@ -128,7 +126,7 @@ func TestAdminPublishRequests(t *testing.T) {
 	t.Run("multiple servers separated by slash", func(t *testing.T) {
 		id, _ := create("2001", "103", "Both servers")
 		out := reply(id, "2001", "Podracing/BrainLand")
-		if out["status"] != "posted" || len(out["posted"].([]any)) != 2 {
+		if out["status"] != "posted" || len(listField(out, "posted")) != 2 {
 			t.Fatalf("multi: %v", out)
 		}
 		if got := queued("Both servers"); strings.Join(got, ",") != "BrainLand@7004,Podracing@7002" {
@@ -177,8 +175,27 @@ func TestAdminPublishRequests(t *testing.T) {
 	})
 }
 
+func stringField(m map[string]any, key string) string {
+	v, ok := m[key].(string)
+	if !ok {
+		return ""
+	}
+	return v
+}
+
+func listField(m map[string]any, key string) []any {
+	items, ok := m[key].([]any)
+	if !ok {
+		return nil
+	}
+	return items
+}
+
 func toStrings(v any) []string {
-	items, _ := v.([]any)
+	items, ok := v.([]any)
+	if !ok {
+		return nil
+	}
 	var out []string
 	for _, item := range items {
 		if s, ok := item.(string); ok {
