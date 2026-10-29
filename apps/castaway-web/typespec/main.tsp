@@ -202,6 +202,18 @@ op putEpisodes(@path instanceID: string, @body body: { episodes: { episode_numbe
 @get
 op getGameResults(@path instanceID: string, @path episode: int32): { type: string; players: Record<unknown>[]; tribes: { name: string; emoji: string; value: float64; }[]; } | ErrorResponse;
 
+@route("/instances/{instanceID}/discussion-threads/{requestKey}")
+@put
+op upsertDiscussionThread(@path instanceID: string, @path requestKey: string, @body body: { guild_id: string; channel_id: string; name: string; due_at: string; }): { action: string; } | ErrorResponse;
+
+@route("/discussion-threads/claim")
+@post
+op claimDiscussionThread(@body body: { guild_ids: string[]; }): { discussion: { id: string; instance_id: string; guild_id: string; channel_id: string; name: string; due_at: string; } | null; admin_discord_user_ids?: string[]; } | ErrorResponse;
+
+@route("/discussion-threads/{discussionID}/finish")
+@post
+op finishDiscussionThread(@path discussionID: string, @body body: { thread_id?: string; line_message_id?: string; failure?: string; }): { status: string; } | ErrorResponse;
+
 @route("/admin-dms/publish-requests")
 @post
 op createPublishRequest(@body body: { admin_discord_user_id: string; guild_ids: string[]; request_key: string; body: string; }): { request_id: string | null; targets: { name: string; guild_id: string; channel_id: string; }[]; } | ErrorResponse;

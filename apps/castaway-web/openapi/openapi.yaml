@@ -826,6 +826,98 @@ paths:
               required:
                 - discord_user_id
                 - contestant
+  /discussion-threads/claim:
+    post:
+      operationId: claimDiscussionThread
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - type: object
+                    properties:
+                      discussion:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          instance_id:
+                            type: string
+                          guild_id:
+                            type: string
+                          channel_id:
+                            type: string
+                          name:
+                            type: string
+                          due_at:
+                            type: string
+                        required:
+                          - id
+                          - instance_id
+                          - guild_id
+                          - channel_id
+                          - name
+                          - due_at
+                        nullable: true
+                      admin_discord_user_ids:
+                        type: array
+                        items:
+                          type: string
+                    required:
+                      - discussion
+                  - $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                guild_ids:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - guild_ids
+  /discussion-threads/{discussionID}/finish:
+    post:
+      operationId: finishDiscussionThread
+      parameters:
+        - name: discussionID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - type: object
+                    properties:
+                      status:
+                        type: string
+                    required:
+                      - status
+                  - $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                thread_id:
+                  type: string
+                line_message_id:
+                  type: string
+                failure:
+                  type: string
   /draft-threads:
     get:
       operationId: listDraftThreads
@@ -1732,6 +1824,54 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/RenameContestantRequest'
+  /instances/{instanceID}/discussion-threads/{requestKey}:
+    put:
+      operationId: upsertDiscussionThread
+      parameters:
+        - name: instanceID
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: requestKey
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - type: object
+                    properties:
+                      action:
+                        type: string
+                    required:
+                      - action
+                  - $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                guild_id:
+                  type: string
+                channel_id:
+                  type: string
+                name:
+                  type: string
+                due_at:
+                  type: string
+              required:
+                - guild_id
+                - channel_id
+                - name
+                - due_at
   /instances/{instanceID}/draft-submissions:
     post:
       operationId: openDraftSubmissions
