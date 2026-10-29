@@ -197,3 +197,12 @@ If the bot cannot resolve secrets, `mise run run` and `mise run check-config` wi
 - Production bot-to-API traffic can be authenticated with `CASTAWAY_API_AUTH_TOKEN` as a bearer token.
 - The bot supports both `bolt` and `postgres` state backends. PostgreSQL is the intended production direction and should use its own logical database, `castaway_discord_bot`, with separate credentials from `castaway-web`.
 - BoltDB remains a valid local and compatibility backend, and `import-bolt-state` provides an explicit migration path into PostgreSQL.
+
+## Admin DM publish
+
+An instance admin's free-form DM (anything that isn't a reply to one of the bot's prompts) is a request to post its text. The bot echoes the exact text, lists the season channels that admin administers, and asks for a name: reply with one name, several separated by `/` (`Podracing/BrainLand`), a channel ID when names repeat, or `no` to cancel. Each chosen channel gets the text once, with no pings and no link previews. Requests expire after 24 hours. Non-admins get no reply.
+
+## Episode discussion threads
+
+When an episode's discussion thread is queued (probst `weekly.discussion_thread`), the bot opens a public thread with no opener, removes Discord's "started a thread" message, and posts `Survivor S<season> E<N> Discussion: <#thread>` in the season channel. It checks View Channel, Send Messages, Create Public Threads and Manage Messages first; a missing one is DM'd to the admins and nothing opens.
+

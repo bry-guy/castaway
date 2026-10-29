@@ -272,3 +272,7 @@ since Oct 7.
 **Daily reminder:** once a day from `automation.nudge_at` (ET, default `10:00`), the admins get one DM listing
 every issue still open on that run (next game unset, results missing, holds, conflicts, a waiting post).
 Fixed issues drop out; nothing open, no DM.
+
+## Episode discussion threads
+
+Set `weekly.discussion_thread: true` in a season file to open each episode's public discussion thread at its air time (the bot does it; see the castaway-discord-bot README). `probst discussion open --instance ID --season N --episode N --guild G --channel C` prints the plan; add `--yes` to open it now, which is the way to test a channel such as BrainLand. Opening a key that already exists changes nothing.
