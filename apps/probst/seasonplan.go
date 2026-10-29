@@ -41,7 +41,9 @@ type seasonFile struct {
 		MergeEpisode any            `yaml:"merge_episode"`
 	} `yaml:"scoring"`
 	Weekly struct {
-		Results struct {
+		// DiscussionThread opens each episode's public discussion thread at its air time (discussion.go).
+		DiscussionThread bool `yaml:"discussion_thread"`
+		Results          struct {
 			Due   string   `yaml:"due"`
 			Needs []string `yaml:"needs"`
 		} `yaml:"results"`

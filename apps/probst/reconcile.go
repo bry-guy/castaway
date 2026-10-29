@@ -467,7 +467,7 @@ func (r *reconciler) bootNames(positions []int) ([]string, error) {
 func (r *reconciler) run() error {
 	if !r.f.Automation.Enabled {
 		r.logf("automation is off for season %d (automation.enabled in the season file)", r.f.Season)
-		return nil
+		return r.queueDiscussions()
 	}
 	r.open = nil
 	var errs []error
@@ -495,6 +495,7 @@ func (r *reconciler) run() error {
 	}
 	errs = append(errs, r.draftScoresPosts(done))
 	errs = append(errs, r.draftReminders())
+	errs = append(errs, r.queueDiscussions())
 	errs = append(errs, r.nudge())
 	return errors.Join(errs...)
 }
