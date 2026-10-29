@@ -48,8 +48,7 @@ func TestDiscussionThreads(t *testing.T) {
 		t.Helper()
 		out := do(http.MethodPut, "/instances/"+instanceID+"/discussion-threads/"+key,
 			`{"guild_id":"7001","channel_id":"`+channel+`","name":"`+name+`","due_at":"2026-10-28T23:00:00Z"}`, http.StatusOK)
-		action, _ := out["action"].(string)
-		return action
+		return stringField(out, "action")
 	}
 	claim := func() map[string]any {
 		t.Helper()
@@ -61,9 +60,11 @@ func TestDiscussionThreads(t *testing.T) {
 	}
 	claimedID := func(out map[string]any) string {
 		t.Helper()
-		d, _ := out["discussion"].(map[string]any)
-		id, _ := d["id"].(string)
-		return id
+		d, ok := out["discussion"].(map[string]any)
+		if !ok {
+			return ""
+		}
+		return stringField(d, "id")
 	}
 
 	if got := queue("s51-ep6-discussion", "7002", "Survivor S51 E6 Discussion"); got != "created" {
