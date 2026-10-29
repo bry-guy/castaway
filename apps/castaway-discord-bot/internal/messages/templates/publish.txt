@@ -1,0 +1,7 @@
+{{define "publish-posted"}}✅ Queued for {{.Names}}. It posts within a few seconds.{{end}}
+{{define "publish-cancelled"}}Cancelled. Nothing was posted.{{end}}
+{{define "publish-closed"}}That request is already decided or has expired. Send the text again to start a new one.{{end}}
+{{define "publish-unknown"}}No server named {{.Unknown}}. Reply with one of these (or several separated by "/"), or **no** to cancel:
+{{.Options}}{{end}}
+{{define "publish-ambiguous"}}More than one channel is named that. Reply with the channel ID instead, or **no** to cancel:
+{{.Options}}{{end}}

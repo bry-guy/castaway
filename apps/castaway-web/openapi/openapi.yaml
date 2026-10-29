@@ -231,6 +231,140 @@ paths:
                     required:
                       - ok
                   - $ref: '#/components/schemas/ErrorResponse'
+  /admin-dms/publish-requests:
+    post:
+      operationId: createPublishRequest
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - type: object
+                    properties:
+                      request_id:
+                        type: string
+                        nullable: true
+                      targets:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            guild_id:
+                              type: string
+                            channel_id:
+                              type: string
+                          required:
+                            - name
+                            - guild_id
+                            - channel_id
+                    required:
+                      - request_id
+                      - targets
+                  - $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                admin_discord_user_id:
+                  type: string
+                guild_ids:
+                  type: array
+                  items:
+                    type: string
+                request_key:
+                  type: string
+                body:
+                  type: string
+              required:
+                - admin_discord_user_id
+                - guild_ids
+                - request_key
+                - body
+  /admin-dms/publish-requests/{requestID}/reply:
+    post:
+      operationId: replyPublishRequest
+      parameters:
+        - name: requestID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - type: object
+                    properties:
+                      status:
+                        type: string
+                      posted:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            guild_id:
+                              type: string
+                            channel_id:
+                              type: string
+                          required:
+                            - name
+                            - guild_id
+                            - channel_id
+                      unknown:
+                        type: array
+                        items:
+                          type: string
+                      targets:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            guild_id:
+                              type: string
+                            channel_id:
+                              type: string
+                          required:
+                            - name
+                            - guild_id
+                            - channel_id
+                    required:
+                      - status
+                      - targets
+                  - $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                admin_discord_user_id:
+                  type: string
+                guild_ids:
+                  type: array
+                  items:
+                    type: string
+                reply:
+                  type: string
+              required:
+                - admin_discord_user_id
+                - guild_ids
+                - reply
   /admin/session:
     get:
       operationId: adminSession

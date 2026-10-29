@@ -202,6 +202,14 @@ op putEpisodes(@path instanceID: string, @body body: { episodes: { episode_numbe
 @get
 op getGameResults(@path instanceID: string, @path episode: int32): { type: string; players: Record<unknown>[]; tribes: { name: string; emoji: string; value: float64; }[]; } | ErrorResponse;
 
+@route("/admin-dms/publish-requests")
+@post
+op createPublishRequest(@body body: { admin_discord_user_id: string; guild_ids: string[]; request_key: string; body: string; }): { request_id: string | null; targets: { name: string; guild_id: string; channel_id: string; }[]; } | ErrorResponse;
+
+@route("/admin-dms/publish-requests/{requestID}/reply")
+@post
+op replyPublishRequest(@path requestID: string, @body body: { admin_discord_user_id: string; guild_ids: string[]; reply: string; }): { status: string; posted?: { name: string; guild_id: string; channel_id: string; }[]; "unknown"?: string[]; targets: { name: string; guild_id: string; channel_id: string; }[]; } | ErrorResponse;
+
 @route("/admin-alerts/claim")
 @post
 op claimAdminAlert(@body body: { guild_ids: string[]; }): { alert: { id: string; body: string; revision?: string | null; } | null; admin_discord_user_ids?: string[]; } | ErrorResponse;

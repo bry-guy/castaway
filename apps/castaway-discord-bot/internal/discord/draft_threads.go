@@ -81,9 +81,13 @@ func (b *Bot) replayDraftThread(ctx context.Context, threadID string) {
 }
 
 func (b *Bot) onMessageCreate(_ *discordgo.Session, m *discordgo.MessageCreate) {
-	b.handleAdminReply(context.Background(), m.Message)
-	b.handleChampionReply(context.Background(), m.Message)
-	b.handleDraftMessage(context.Background(), m.Message)
+	ctx := context.Background()
+	if b.handleAdminReply(ctx, m.Message) {
+		return
+	}
+	b.handlePublishRequest(ctx, m.Message)
+	b.handleChampionReply(ctx, m.Message)
+	b.handleDraftMessage(ctx, m.Message)
 }
 
 func (b *Bot) onMessageUpdate(_ *discordgo.Session, m *discordgo.MessageUpdate) {

@@ -115,7 +115,8 @@ func isReplacementCopy(text string) bool {
 }
 
 // handleAdminReply acts on a DM reply to one of the bot's own admin DMs.
-func (b *Bot) handleAdminReply(ctx context.Context, m *discordgo.Message) {
+// It reports whether the message was a recognized reply; an unrecognized DM falls through to the publish path.
+func (b *Bot) handleAdminReply(ctx context.Context, m *discordgo.Message) (handled bool) {
 	if m == nil || m.GuildID != "" || m.Author == nil || m.Author.Bot || m.MessageReference == nil || b.session.State == nil || b.session.State.User == nil {
 		return
 	}
@@ -127,6 +128,11 @@ func (b *Bot) handleAdminReply(ctx context.Context, m *discordgo.Message) {
 		if _, err := b.session.ChannelMessageSendReply(m.ChannelID, text, m.Reference(), discordgo.WithContext(ctx)); err != nil {
 			b.log.Error("admin DM answer", "error", err)
 		}
+	}
+	handled = true
+	if ref := publishRef.FindStringSubmatch(asked.Content); ref != nil {
+		b.answerPublishReply(ctx, m, ref[1], answer)
+		return
 	}
 	if ref := actionRef.FindStringSubmatch(asked.Content); ref != nil {
 		if !strings.EqualFold(strings.Trim(strings.TrimSpace(m.Content), ".!"), "yes") {
@@ -164,6 +170,7 @@ func (b *Bot) handleAdminReply(ctx context.Context, m *discordgo.Message) {
 	}
 	link := draftLink.FindStringSubmatch(asked.Content)
 	if link == nil {
+		handled = false
 		return
 	}
 	original, err := b.session.ChannelMessage(link[1], link[2], discordgo.WithContext(ctx))
@@ -212,6 +219,7 @@ func (b *Bot) handleAdminReply(ctx context.Context, m *discordgo.Message) {
 	default:
 		answer(messages.Fragment("draft-unrecognized", map[string]any{"Status": result.Status}))
 	}
+	return
 }
 
 // eastern formats a send time for admins, in Eastern: "Wed Oct 21 8:00pm ET".
