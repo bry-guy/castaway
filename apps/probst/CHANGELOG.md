@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- `probst bot permissions --instance ID` reports the Discord bot's effective permissions in each channel bound to the instance: ✓/✗ for View Channel, Send Messages, Read Message History, Manage Messages, Create Public Threads, and Send Messages in Threads, the roles or overwrites behind each, and a `missing:` line. It reads Discord directly with `CASTAWAY_DISCORD_BOT_TOKEN`, is report-only (exit 0 even when something is missing), and needs admin access to the instance.
 - `weekly.discussion_thread: true` in a season file queues each episode's public discussion thread (`Survivor S<season> E<N> Discussion`) for its air time, once per episode (`s<season>-ep<N>-discussion`). The reconciler queues it from a day before through three hours after air time, independent of `automation.enabled`.
 - `probst discussion open --instance ID --season N --episode N --guild G --channel C [--yes]` opens one thread now, for testing a season channel. Without `--yes` it prints the plan only.
 

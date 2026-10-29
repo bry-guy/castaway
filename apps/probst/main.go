@@ -566,6 +566,7 @@ func newCommand() *cobra.Command {
 		return nil
 	}, &guild, &yes, resolveChannel)
 	addMessageCommand(root, &discordBotToken, &yes, resolveChannel)
+	addBotCommand(root, call, &instance, &discordBotToken)
 	add(root, "scores", 0, func(c *cobra.Command, _ []string) error {
 		p, e := instancePath()
 		if e != nil {

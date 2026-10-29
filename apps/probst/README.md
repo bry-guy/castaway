@@ -47,6 +47,7 @@ probst contestant list --instance INSTANCE
 probst channel bind CHANNEL --guild GUILD --instance INSTANCE
 probst channel show CHANNEL --guild GUILD
 probst channel unbind CHANNEL --guild GUILD --yes
+probst bot permissions --instance INSTANCE
 probst player list --instance INSTANCE
 probst player add NAME [--discord-user USER] --instance INSTANCE
 probst player link PARTICIPANT --discord-user USER --instance INSTANCE
