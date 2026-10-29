@@ -101,6 +101,7 @@ var samples = map[string]any{
 	"publish-closed":             nil,
 	"publish-unknown":            map[string]any{"Unknown": "Survivor", "Options": "- Podracing: <#7002>"},
 	"publish-ambiguous":          map[string]any{"Options": "- Podracing: <#7002>"},
+	"discussion-failed":          map[string]any{"Name": "Survivor S51 E6 Discussion", "ChannelID": "7002", "Reason": "missing permission", "ThreadID": ""},
 	"approval-missed.md":         map[string]any{"ChannelID": "c", "When": "Mon", "NotifyUsers": true, "ID": "id", "Revision": "rev"},
 	"draft-problem-dm.md":        map[string]any{"Player": "Ann", "Guild": "g", "ChannelID": "c", "MessageID": "m", "Problems": "a\n- b"},
 	"draft-conflict.md":          map[string]any{"Mention": "<@1>", "Post": "https://x", "Draft": "1. A", "SavedPicks": "fp"},

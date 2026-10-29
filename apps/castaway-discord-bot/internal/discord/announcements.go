@@ -28,6 +28,9 @@ func (b *Bot) pollAnnouncements(ctx context.Context) {
 		if err := b.notifyAdminAlert(ctx); err != nil && ctx.Err() == nil {
 			b.log.Error("admin alert DM", "error", err)
 		}
+		if err := b.deliverDiscussionThread(ctx); err != nil && ctx.Err() == nil {
+			b.log.Error("discussion thread", "error", err)
+		}
 		select {
 		case <-ctx.Done():
 			return

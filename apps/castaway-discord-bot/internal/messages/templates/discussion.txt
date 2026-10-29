@@ -1,0 +1,1 @@
+{{define "discussion-failed"}}The discussion thread for {{.Name}} didn't post in <#{{.ChannelID}}>: {{.Reason}}.{{if .ThreadID}} Its thread <#{{.ThreadID}}> was already opened; check it before anything else.{{else}} Fix that, then queue it again with `probst discussion open`.{{end}}{{end}}
