@@ -304,6 +304,7 @@ func addMessageCommand(root *cobra.Command, token *string, yes *bool, resolveCha
 	message.Flags().StringVar(&replyTo, "reply-to", "", "Discord message ID to reply to")
 	root.AddCommand(message)
 }
+
 // sendDiscordMessage posts text as the bot straight to Discord, without saving it. Mentions render but never notify.
 func mentionNote(notify bool) string {
 	if notify {
@@ -359,4 +360,3 @@ func sendDiscordMessage(ctx context.Context, token, channelID, text, replyTo str
 	}
 	return sent.ID, json.Unmarshal(body, &sent)
 }
-
