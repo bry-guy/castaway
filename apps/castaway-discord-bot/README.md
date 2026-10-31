@@ -204,5 +204,5 @@ An instance admin's free-form DM (anything that isn't a reply to one of the bot'
 
 ## Episode discussion threads
 
-When an episode's discussion thread is queued (probst `weekly.discussion_thread`), the bot opens a public thread with no opener, removes Discord's "started a thread" message, and posts `Survivor S<season> E<N> Discussion: <#thread>` in the season channel. It checks View Channel, Send Messages, Create Public Threads and Manage Messages first; a missing one is DM'd to the admins and nothing opens.
+When an episode's discussion thread is queued (probst `weekly.discussion_thread`), the bot opens a public thread with no opener, removes Discord's "started a thread" message, and posts just the thread link (`<#thread>`) in the season channel. It checks View Channel, Send Messages, Create Public Threads and Manage Messages first; a missing one is DM'd to the admins and nothing opens.
 

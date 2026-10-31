@@ -8,7 +8,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ## [Unreleased]
 
 - An instance admin's free-form DM is a publish request: the bot echoes the exact text and lists the season channels the admin administers. Reply with a server name (case-insensitive, or a channel ID when names repeat), several separated by `/`, or `no` to cancel. Unknown names keep the request open and list the options. Non-admins get no reply.
-- Episode discussion threads: the bot opens a queued thread as a public thread with no opener, deletes the "started a thread" system message, and posts `Survivor S<season> E<N> Discussion: <#thread>` in the season channel. Missing Create Public Threads, Manage Messages, View Channel, or Send Messages is reported to admins before any thread is opened.
+- Episode discussion threads: the bot opens a queued thread as a public thread with no opener, deletes the "started a thread" system message, and posts just the thread link (`<#thread>`) in the season channel. Missing Create Public Threads, Manage Messages, View Channel, or Send Messages is reported to admins before any thread is opened.
 
 - Approval DMs state the send time in Eastern, up front and bold (`posts Wed Oct 21 8:00pm ET`), on the first ask, re-asks, and "missed" DMs; "approved" replies use the same format.
 
