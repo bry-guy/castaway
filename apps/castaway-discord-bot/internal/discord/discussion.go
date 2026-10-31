@@ -60,7 +60,7 @@ func (b *Bot) deliverDiscussionThread(ctx context.Context) error {
 		return fail(err.Error())
 	}
 	line, err := b.session.ChannelMessageSendComplex(d.ChannelID, &discordgo.MessageSend{
-		Content:         fmt.Sprintf("%s: <#%s>", d.Name, threadID),
+		Content:         "<#" + threadID + ">",
 		AllowedMentions: allowedMentions(false),
 		Flags:           discordgo.MessageFlagsSuppressEmbeds,
 	}, discordgo.WithRestRetries(0))

@@ -16,3 +16,11 @@ func TestChannelsByGuildName(t *testing.T) {
 		}
 	}
 }
+
+func TestShortServer(t *testing.T) {
+	for in, want := range map[string]string{"NowThisIsPodracing": "podracing", "BrainLand": "brainland"} {
+		if got := shortServer(in); got != want {
+			t.Errorf("%q: %q", in, got)
+		}
+	}
+}

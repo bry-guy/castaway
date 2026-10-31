@@ -34,7 +34,7 @@ func (b *Bot) handlePublishRequest(ctx context.Context, m *discordgo.Message) {
 		return
 	}
 	prompt := messages.Fragment("publish-prompt.md", map[string]any{
-		"Targets": publishOptions(req.Targets), "Example": exampleNames(req.Targets), "ID": *req.RequestID,
+		"Targets": b.publishOptions(req.Targets), "Example": b.exampleNames(req.Targets), "ID": *req.RequestID,
 	})
 	if _, err := b.session.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{Content: prompt, AllowedMentions: allowedMentions(false)}, discordgo.WithContext(ctx)); err != nil {
 		b.log.Error("publish prompt", "error", err)
@@ -60,27 +60,27 @@ func (b *Bot) answerPublishReply(ctx context.Context, m *discordgo.Message, requ
 	case "cancelled":
 		answer(messages.Fragment("publish-cancelled", nil))
 	case "ambiguous":
-		answer(messages.Fragment("publish-ambiguous", map[string]any{"Options": publishOptions(reply.Targets)}))
+		answer(messages.Fragment("publish-ambiguous", map[string]any{"Options": b.publishOptions(reply.Targets)}))
 	case "unknown":
-		answer(messages.Fragment("publish-unknown", map[string]any{"Unknown": strings.Join(reply.Unknown, ", "), "Options": publishOptions(reply.Targets)}))
+		answer(messages.Fragment("publish-unknown", map[string]any{"Unknown": strings.Join(reply.Unknown, ", "), "Options": b.publishOptions(reply.Targets)}))
 	default:
 		answer(messages.Fragment("publish-closed", nil))
 	}
 }
 
 // publishOptions lists each target as "- Name: <#channel>" for admins to read and reply with.
-func publishOptions(targets []castaway.PublishTarget) string {
+func (b *Bot) publishOptions(targets []castaway.PublishTarget) string {
 	var lines []string
 	for _, t := range targets {
-		lines = append(lines, fmt.Sprintf("- %s: <#%s>", t.Name, t.ChannelID))
+		lines = append(lines, fmt.Sprintf("- **%s**: <#%s>", shortServer(b.guildName(t.GuildID)), t.ChannelID))
 	}
 	return strings.Join(lines, "\n")
 }
 
-func exampleNames(targets []castaway.PublishTarget) string {
+func (b *Bot) exampleNames(targets []castaway.PublishTarget) string {
 	var names []string
 	for _, t := range targets {
-		names = append(names, t.Name)
+		names = append(names, shortServer(b.guildName(t.GuildID)))
 	}
 	return strings.Join(names, "/")
 }
@@ -119,4 +119,17 @@ func channelsByGuildName(reply string, targets []castaway.PublishTarget, guildNa
 		out = append(out, part)
 	}
 	return strings.Join(out, "/"), changed
+}
+
+// shortServer is the reply name for a server: lower case, with a leading "NowThisIs"-style prefix dropped
+// ("NowThisIsPodracing" → "podracing", "BrainLand" → "brainland"). Replies match any piece of the full name.
+func shortServer(name string) string {
+	n := strings.ToLower(name)
+	if i := strings.LastIndex(n, "is"); strings.HasPrefix(n, "nowthisis") && i >= 0 {
+		n = n[i+2:]
+	}
+	if n == "" {
+		return strings.ToLower(name)
+	}
+	return n
 }

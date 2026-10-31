@@ -101,7 +101,7 @@ func TestDiscussionThreadDelivery(t *testing.T) {
 					if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 						t.Error(err)
 					}
-					if body.Content != "Survivor S51 E6 Discussion: <#9001>" || len(body.AllowedMentions.Parse) != 0 {
+					if body.Content != "<#9001>" || len(body.AllowedMentions.Parse) != 0 {
 						t.Errorf("line must be plain and ping nobody: %+v", body)
 					}
 					return discordResponse(r, 200, `{"id":"9002","channel_id":"7002","content":"x"}`), nil
