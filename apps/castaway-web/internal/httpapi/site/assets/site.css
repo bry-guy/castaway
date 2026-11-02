@@ -104,7 +104,9 @@ castawordle-game { display: block; } .game-help { margin-top: 1.5rem; font-size:
 .button-hint { min-height: 1.5em; margin: .5rem 0 0; text-align: center; font-style: italic; opacity: 0; transition: opacity .8s ease; }
 .button-hint.shown { opacity: 1; }
 .tribe-presses { text-align: center; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
-.game-episode h2 { margin-top: 1.5rem; }
+.game-episode h2, .game-episode h3:first-child { margin-top: 1.5rem; }
+.games-section { margin-top: 2rem; }
+.games-section > h2 { border-bottom: 1px solid currentColor; padding-bottom: .25rem; }
 .game-card h3 { margin: .25rem 0; }
 .answer { letter-spacing: .2em; font-weight: 700; }
 /* Spell It Out: slots grouped by word (long words wrap, marked ↵), a tray of tiles, and tools. Tiles are at

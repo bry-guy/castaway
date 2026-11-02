@@ -1,8 +1,9 @@
 {{template "header" .}}
-<p class="eyebrow">{{if .SeasonName}}<a href="/seasons/{{.SeasonID}}">{{.SeasonName}}</a>{{else}}Play{{end}}</p><h1>Games</h1>
-{{range .GameEpisodes}}<section class="game-episode"><h2>Episode {{.Number}}</h2><div class="game-list">{{range .Games}}<a class="game-card" href="{{.URL}}"><span class="badge">{{.Badge}}</span><h3>{{.Name}}</h3><p class="muted">{{.Status}}</p></a>{{end}}</div></section>
-{{else}}<p>No games yet. Your host will set the first challenge.</p>{{end}}
-<section class="game-episode"><h2>Free play</h2><div class="game-list"><a class="game-card" href="/games/inside-track?practice=1"><span class="badge">🎯</span><h3>Inside Track</h3><p class="muted">Play any time · not scored</p></a></div></section>
+<h1>Games</h1>
+<section class="games-section"><h2>Free play</h2><div class="game-list"><a class="game-card" href="/games/inside-track?practice=1"><span class="badge">🎯</span><h3>Inside Track</h3><p class="muted">Play any time · not scored</p></a></div></section>
+<section class="games-section"><h2>{{if .SeasonName}}<a href="/seasons/{{.SeasonID}}">{{.SeasonName}}</a>{{else}}Season{{end}}</h2>
+{{range .GameEpisodes}}<section class="game-episode"><h3>Episode {{.Number}}</h3><div class="game-list">{{range .Games}}<a class="game-card" href="{{.URL}}"><span class="badge">{{.Badge}}</span><h3>{{.Name}}</h3><p class="muted">{{.Status}}</p></a>{{end}}</div></section>
+{{else}}<p>No games yet. Your host will set the first challenge.</p>{{end}}</section>
 {{if .Admin}}{{if .TestGames}}<section class="game-episode"><h2>Admin-only tests</h2><div class="game-list">{{range .TestGames}}<a class="game-card" href="{{.URL}}"><span class="badge">{{.Badge}}</span><h3>{{.Name}}</h3><p class="muted">{{.Kind}} · {{.Status}}</p></a>{{end}}</div></section>{{end}}
 <section class="admin-panel"><h2>Test Island Scramble</h2><form method="post" action="/games/scramble/tests"><label>Phrase<input name="phrase" required maxlength="60" placeholder="The tribe has spoken" autocomplete="off" spellcheck="false"></label><label>Decoy letters<input name="decoys" type="number" min="0" max="10" value="4"></label><button type="submit">Start a one-hour test</button></form><p class="muted">Admin-only and unscored. Letters and spaces, up to 30 letters and 10 decoys.</p></section>
 <section class="admin-panel"><h2>Test Free the Block</h2><p><a class="button" href="/games/free-the-block?practice=1">Play the prototype</a></p><p class="muted">Unscored practice board; never saves a score.</p></section>

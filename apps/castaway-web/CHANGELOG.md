@@ -7,6 +7,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 - Inside Track free play: every signed-in player can play an unscored board at `/games/inside-track?practice=1`, linked from a Free play section on /games.
+- Games page: Free play and the season are separate sections, with episodes listed under the season.
 
 - `GET /instances/{instanceID}/discord-channels` lists the channels bound to an instance (instance admins only), for the bot-permission check.
 
