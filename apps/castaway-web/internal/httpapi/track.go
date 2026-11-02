@@ -321,7 +321,7 @@ func (s *Server) insideTrackPage(c *gin.Context) {
 		renderSite(c, "home.html", data)
 		return
 	}
-	if data.Admin && c.Param("gameID") == "" && c.Query("practice") == "1" { // unscored board even while a game is open
+	if c.Param("gameID") == "" && c.Query("practice") == "1" { // free play: an unscored board for every player, even while a game is open
 		s.serveTrackBoard(c, "")
 		return
 	}
