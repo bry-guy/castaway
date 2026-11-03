@@ -19,6 +19,15 @@ spec:
         app.kubernetes.io/name: cloudflared
         app.kubernetes.io/part-of: castaway
     spec:
+      # One replica per worker so a single node outage cannot take the tunnel down.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          nodeTaintsPolicy: Honor
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: cloudflared
       securityContext:
         runAsNonRoot: true
         runAsUser: 65532
