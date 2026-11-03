@@ -25,6 +25,8 @@ spec:
           topologyKey: kubernetes.io/hostname
           whenUnsatisfiable: DoNotSchedule
           nodeTaintsPolicy: Honor
+          # Count only the current ReplicaSet, so a rollout spreads instead of piling onto one node.
+          matchLabelKeys: [pod-template-hash]
           labelSelector:
             matchLabels:
               app.kubernetes.io/name: cloudflared
