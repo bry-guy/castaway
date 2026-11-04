@@ -15,3 +15,4 @@ control?.addEventListener('change', () => {
 window.addEventListener('storage', event => {
   if (event.key === 'castaway-theme') applyTheme(['light', 'dark'].includes(event.newValue) ? event.newValue : 'auto');
 });
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});

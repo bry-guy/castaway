@@ -141,6 +141,20 @@ func serveSiteAsset(c *gin.Context) {
 	c.Data(http.StatusOK, mime.TypeByExtension(path.Ext(name)), data)
 }
 
+// servePWAFile serves the service worker and web app manifest from the site root: a worker only controls
+// pages under its own path, so /sw.js can't live in /assets. Both are public, like /assets.
+func servePWAFile(name, contentType string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		data, err := siteFiles.ReadFile("site/assets/" + name)
+		if err != nil {
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.Header("Cache-Control", "no-cache")
+		c.Data(http.StatusOK, contentType, data)
+	}
+}
+
 // tribeColors maps an instance's tribe names to their stored colors.
 func (s *Server) tribeColors(ctx context.Context, instanceID uuid.UUID) (map[string]string, error) {
 	rows, err := s.pool.Query(ctx, `SELECT g.name, g.color FROM participant_groups g JOIN instances i ON i.id = g.instance_id
