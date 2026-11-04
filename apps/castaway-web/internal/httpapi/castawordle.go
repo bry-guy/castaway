@@ -759,6 +759,10 @@ func (s *Server) gamesPage(c *gin.Context) {
 		castawordleError(c, err)
 		return
 	}
+	if err := s.addTiltGames(c.Request.Context(), &data, id.String()); err != nil {
+		castawordleError(c, err)
+		return
+	}
 	if err := s.addChampionGame(c.Request.Context(), &data, id); err != nil {
 		castawordleError(c, err)
 		return

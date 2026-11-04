@@ -14,6 +14,8 @@
 
 - require Discord browser sessions for all content pages, with access requests for accounts not linked to the configured season; keep OAuth, non-sensitive assets, and health checks reachable
 - provide responsive scores and game pages with system-following light/dark appearance and a saved manual override
+- install as a PWA (web app manifest, root service worker, icons) without caching signed-in pages
+- offer Tilt Table on phones (scored weekly; free play after a game closes): tilt-sensor input, grab-and-place balls, gutter rollbacks, timed run after up to three minutes of practice
 - persist instance-owned, unscored Castawordle games and own-player progress; validate 4–8-letter SCOWL size 70 US/UK words and inflections, return duplicate-aware tile feedback, enforce six guesses and cutoff, and resume across devices
 - automatically submit full guesses; show `invalid word, try again` without consuming a turn and clear transient feedback on edits; show total/bonus scores without a Draft column
 - restrict test games, including existing previews, to instance admins on lists, detail pages, play reads, and guess writes; preserve their answers and saved progress

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1f3a24">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/assets/icon-180.png">
+<title>Tilt Table · Castaway</title>
+<link rel="stylesheet" href="/assets/tilt-table.css?v=3">
+</head>
+<body>
+<canvas id="c" aria-label="Tilt Table board"></canvas>
+<div class="hud"><span>TIME <b id="time">0:00.0</b></span><span>IN <b id="in">0/3</b></span><span>ROLLBACKS <b id="rollbacks">0</b></span></div>
+<div class="banner hidden" id="practicing">Practice <b id="clock">3:00</b></div>
+<div class="pop" id="pop"></div>
+<div class="count hidden" id="count"></div>
+<div class="bar">
+  <button id="level" class="quiet" type="button" aria-label="Level the table here">Level</button>
+  <button id="ready" class="primary hidden" type="button">Ready</button>
+  <span class="bubble" aria-hidden="true"><i id="bubble"></i></span>
+</div>
+<div class="overlay" id="intro">
+  <div class="card">
+    <p class="eyebrow">Castaway challenge</p>
+    <h1>Tilt Table</h1>
+    <p id="how">Tilt your phone to roll 3 balls past the barriers and into the 3 cups at the far end. Grab each ball and set it on the mat. Come in slow or it lips out; fall off and you roll it back. Fastest wins.</p>
+    <p class="flat"><b>Hold your phone flat</b> before you start, and turn on rotation lock.</p>
+    <p class="muted" id="hint"></p>
+    <button id="go" class="primary" type="button">Let's go</button>
+  </div>
+</div>
+<div class="overlay hidden" id="done">
+  <div class="card">
+    <p class="eyebrow">Challenge complete</p>
+    <h1 id="final">0:00.0</h1>
+    <div class="stamps" id="stamps"></div>
+    <p id="summary"></p>
+    <button id="again" class="primary" type="button">Play again</button>
+  </div>
+</div>
+<script src="/assets/tilt-table.js?v=3" defer></script>
+</body>
+</html>

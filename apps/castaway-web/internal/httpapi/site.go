@@ -37,6 +37,8 @@ type sitePageData struct {
 	Scramble           *scrambleView
 	Track              *trackView
 	FreeTheBlock       *freeTheBlockView
+	Tilt               *tiltView
+	TiltFreePlay       bool // a Tilt Table game has closed: free play is open
 	Champion           *championView
 	GameEpisodes       []gameEpisode
 	TestGames          []gameEntry
@@ -49,10 +51,10 @@ type sitePageData struct {
 
 func loginReturnTo(candidate string) string {
 	// Old /castawordle links still return there (it redirects to /games).
-	if candidate == "/games" || candidate == "/me" || candidate == "/games/button" || candidate == "/games/scramble" || candidate == "/games/champion" || candidate == "/castawordle" || candidate == "/button" {
+	if candidate == "/games" || candidate == "/me" || candidate == "/games/button" || candidate == "/games/scramble" || candidate == "/games/champion" || candidate == "/games/tilt-table" || candidate == "/castawordle" || candidate == "/button" {
 		return candidate
 	}
-	for _, prefix := range []string{"/games/castawordle/", "/games/button/", "/games/scramble/", "/castawordle/", "/button/", "/players/"} {
+	for _, prefix := range []string{"/games/castawordle/", "/games/button/", "/games/scramble/", "/games/tilt-table/", "/castawordle/", "/button/", "/players/"} {
 		if suffix, ok := strings.CutPrefix(candidate, prefix); ok {
 			if id, err := uuid.Parse(suffix); err == nil {
 				return prefix + id.String()
@@ -139,6 +141,20 @@ func serveSiteAsset(c *gin.Context) {
 	}
 	c.Header("Cache-Control", "public, max-age=300")
 	c.Data(http.StatusOK, mime.TypeByExtension(path.Ext(name)), data)
+}
+
+// servePWAFile serves the service worker and web app manifest from the site root: a worker only controls
+// pages under its own path, so /sw.js can't live in /assets. Both are public, like /assets.
+func servePWAFile(name, contentType string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		data, err := siteFiles.ReadFile("site/assets/" + name)
+		if err != nil {
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.Header("Cache-Control", "no-cache")
+		c.Data(http.StatusOK, contentType, data)
+	}
 }
 
 // tribeColors maps an instance's tribe names to their stored colors.
