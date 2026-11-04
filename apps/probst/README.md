@@ -37,6 +37,7 @@ probst logout
 probst admin add DISCORD_USER --instance INSTANCE
 probst access list                # website access requests (the bot also DMs you)
 probst access approve DISCORD_USER NAME --instance INSTANCE   # = player add NAME --discord-user USER
+probst access view DISCORD_USER --instance INSTANCE            # view-only: scores, seasons, players
 probst access deny DISCORD_USER
 probst auth status
 probst instance list

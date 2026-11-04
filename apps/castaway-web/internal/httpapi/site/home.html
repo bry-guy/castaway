@@ -1,5 +1,5 @@
 {{template "header" .}}
-{{if not .Allowed}}
+{{if not (or .Allowed .Viewer)}}
 <h1>Welcome to Castaway</h1><p>Your Discord account isn't linked to a Castaway player in this season yet.</p>
 {{if .Requested}}<p class="notice">Access requested. Jeff will be in touch.</p>{{else}}<form method="post" action="/access-request"><button>Request access</button></form>{{end}}
 {{else}}

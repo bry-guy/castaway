@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `probst access view DISCORD_USER --instance INSTANCE` approves a website access request as view-only (scores, seasons, players; no games).
+
 - Tilt Table: `season apply` creates `tilt_table` games (`POST /instances/:id/tilt-games`) for weeks set to `type: tilt_table`; the scores post renders `games/tilt_table.md` from each player's `finished`, `time_ms`, `holes`, `aces` and `place_points`; `next-game.md` shows 🌴.
 
 - `probst bot permissions --instance ID` reports the Discord bot's effective permissions in each channel bound to the instance: ✓/✗ for View Channel, Send Messages, Read Message History, Manage Messages, Create Public Threads, and Send Messages in Threads, the roles or overwrites behind each, and a `missing:` line. It reads Discord directly with `CASTAWAY_DISCORD_BOT_TOKEN`, is report-only (exit 0 even when something is missing), and needs admin access to the instance.

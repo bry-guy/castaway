@@ -983,6 +983,10 @@ model AddInstanceAdminResponse { instance_id: string; discord_user_id: string; }
 @post
 op addInstanceAdmin(@path instanceID: string, @body body: AddInstanceAdminRequest): AddInstanceAdminResponse;
 
+@route("/instances/{instanceID}/viewers")
+@post
+op addInstanceViewer(@path instanceID: string, @body body: AddInstanceAdminRequest): AddInstanceAdminResponse;
+
 model AccessRequest { discord_user_id: string; discord_username: string; requested_at: utcDateTime; }
 model ClaimAccessRequestResponse { access_request: AccessRequest | null; }
 model ListAccessRequestsResponse { access_requests: AccessRequest[]; }

@@ -617,6 +617,13 @@ func newCommand() *cobra.Command {
 		_, err := fmt.Fprintln(c.OutOrStdout(), "Denied; the request is removed.")
 		return err
 	})
+	add(access, "view DISCORD_USER", 1, func(c *cobra.Command, a []string) error {
+		p, e := instancePath()
+		if e != nil {
+			return e
+		}
+		return request(c, "POST", p+"/viewers", map[string]string{"discord_user_id": a[0]})
+	})
 	// approve = `player add NAME --discord-user USER` (reuses a same-name player); the request then drops off the list.
 	add(access, "approve DISCORD_USER NAME", 2, func(c *cobra.Command, a []string) error {
 		discordUser = a[0]

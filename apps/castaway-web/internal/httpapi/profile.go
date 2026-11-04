@@ -119,7 +119,7 @@ func (s *Server) playerPage(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if !data.Allowed {
+	if !data.Allowed && !data.Viewer {
 		c.Redirect(http.StatusFound, "/")
 		return
 	}
@@ -294,7 +294,7 @@ func (s *Server) seasonsPage(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if !data.Allowed {
+	if !data.Allowed && !data.Viewer {
 		c.Redirect(http.StatusFound, "/")
 		return
 	}
@@ -338,7 +338,7 @@ func (s *Server) seasonPage(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if !data.Allowed {
+	if !data.Allowed && !data.Viewer {
 		c.Redirect(http.StatusFound, "/")
 		return
 	}

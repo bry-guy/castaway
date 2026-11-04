@@ -212,4 +212,19 @@ func TestPublicListener(t *testing.T) {
 	if loc := parse(login("/auth/cli?port=45678&state=s", stranger).Header().Get("Location")); loc.Query().Get("error") != "not_linked" {
 		t.Fatalf("stranger cli login: %s", loc)
 	}
+
+	// A viewer sees scores, seasons and players, but no games and no API.
+	want(serve("POST", "/access-request", map[string]string{"Origin": base}, strangerCookie), 303)
+	viewers := "/instances/" + instanceID + "/viewers"
+	want(wordleServe(internal, "POST", viewers, `{"discord_user_id":"`+stranger+`"}`, "svc", player), 403)
+	want(wordleServe(internal, "POST", viewers, `{"discord_user_id":"`+stranger+`"}`, "svc", admin), 200)
+	if b := serve("GET", "/", nil, strangerCookie).Body.String(); !strings.Contains(b, "<h1>Scores</h1>") || strings.Contains(b, "Request access") || strings.Contains(b, `href="/games"`) {
+		t.Fatalf("viewer home: %s", b)
+	}
+	if list := serve("GET", "/api/access-requests", nil, adminCookie); strings.Contains(list.Body.String(), stranger) {
+		t.Fatalf("viewer request not cleared: %s", list.Body)
+	}
+	want(serve("GET", "/seasons", nil, strangerCookie), 200)
+	want(serve("GET", "/games", nil, strangerCookie), 302)
+	want(serve("GET", leaderboard, nil, strangerCookie), 403)
 }

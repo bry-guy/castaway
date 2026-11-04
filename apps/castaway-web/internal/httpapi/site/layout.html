@@ -7,7 +7,7 @@
 {{if .Admin}}<script src="/assets/game-admin.js?v=4" defer></script>{{end}}
 </head><body><a class="skip-link" href="#main">Skip to content</a>
 <header class="site-header"><a class="brand" href="/"><span aria-hidden="true">🔥</span> Castaway</a>
-{{if .Allowed}}<nav aria-label="Main"><a href="/me">Me</a><a href="/">Scores</a><a href="/seasons">Seasons</a><a href="/games">Games</a></nav>{{end}}
+{{if .Allowed}}<nav aria-label="Main"><a href="/me">Me</a><a href="/">Scores</a><a href="/seasons">Seasons</a><a href="/games">Games</a></nav>{{else if .Viewer}}<nav aria-label="Main"><a href="/">Scores</a><a href="/seasons">Seasons</a></nav>{{end}}
 <label class="theme-control">Theme <select id="theme"><option value="auto">Auto</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
 </header><main id="main" class="page">{{end}}
 {{define "footer"}}</main><footer class="site-footer"><span>Hi {{.User.Username}}.</span><form method="post" action="/auth/logout"><button class="quiet">Log out</button></form></footer></body></html>{{end}}

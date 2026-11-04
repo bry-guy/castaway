@@ -22,6 +22,7 @@ var siteTemplates = template.Must(template.New("site").ParseFS(siteFiles, "site/
 type sitePageData struct {
 	User               *webSession
 	Allowed, Requested bool
+	Viewer             bool // may see scores, seasons and players but not play
 	Admin              bool
 	InstanceID         string
 	Rows               []homeRow
@@ -114,7 +115,17 @@ func (s *Server) siteData(c *gin.Context) (sitePageData, bool) {
 		c.String(http.StatusInternalServerError, "access check failed")
 		return data, false
 	}
-	if !data.Allowed {
+	if !data.Allowed && err == nil {
+		err = s.pool.QueryRow(c.Request.Context(), `SELECT EXISTS (
+			SELECT 1 FROM instance_viewers v JOIN instances i ON i.id = v.instance_id
+			WHERE i.public_id = $1 AND v.discord_user_id = $2
+		)`, id, data.User.DiscordUserID).Scan(&data.Viewer)
+	}
+	if err != nil {
+		c.String(http.StatusInternalServerError, "access check failed")
+		return data, false
+	}
+	if !data.Allowed && !data.Viewer {
 		err = s.pool.QueryRow(c.Request.Context(), `SELECT EXISTS (SELECT 1 FROM access_requests WHERE discord_user_id = $1)`, data.User.DiscordUserID).Scan(&data.Requested)
 		if err != nil {
 			c.String(http.StatusInternalServerError, "access check failed")
@@ -125,6 +136,10 @@ func (s *Server) siteData(c *gin.Context) (sitePageData, bool) {
 }
 
 func renderSite(c *gin.Context, page string, data sitePageData) {
+	if page == "home.html" && data.Viewer && !data.Allowed && c.Request.URL.Path != "/" {
+		c.Redirect(http.StatusFound, "/") // a player-only page fell back to home: viewers get their scores
+		return
+	}
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.Header("Cache-Control", "no-store")
 	if err := siteTemplates.ExecuteTemplate(c.Writer, page, data); err != nil {

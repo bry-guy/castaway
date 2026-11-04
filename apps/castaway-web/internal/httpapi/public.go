@@ -543,7 +543,7 @@ func (s *Server) home(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if data.Allowed {
+	if data.Allowed || data.Viewer {
 		rows, err := s.homeLeaderboard(c)
 		if err != nil {
 			c.String(http.StatusInternalServerError, "could not load the page")

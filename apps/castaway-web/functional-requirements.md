@@ -13,6 +13,7 @@
 ## Required capabilities
 
 - require Discord browser sessions for all content pages, with access requests for accounts not linked to the configured season; keep OAuth, non-sensitive assets, and health checks reachable
+- let admins approve an access request as a viewer: viewers see scores, seasons and player pages but cannot play games or use the API
 - provide responsive scores and game pages with system-following light/dark appearance and a saved manual override
 - install as a PWA (web app manifest, root service worker, icons) without caching signed-in pages
 - offer Tilt Table on phones (scored weekly; free play after a game closes): tilt-sensor input, grab-and-place balls, gutter rollbacks, timed run after up to three minutes of practice

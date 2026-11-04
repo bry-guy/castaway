@@ -80,6 +80,29 @@ func (s *Server) deleteAccessRequest(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// addInstanceViewer lets a Discord user view the instance's site without playing, and clears their access request.
+func (s *Server) addInstanceViewer(c *gin.Context) {
+	instanceID, ok := parseUUIDPath(c, "instanceID")
+	if !ok || !s.requireInstanceAdminRequest(c, instanceID) {
+		return
+	}
+	var req struct {
+		DiscordUserID string `json:"discord_user_id" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, errorResponse{Error: err.Error()})
+		return
+	}
+	_, err := s.pool.Exec(c.Request.Context(), `WITH v AS (
+		INSERT INTO instance_viewers (instance_id, discord_user_id) SELECT id, $2 FROM instances WHERE public_id = $1 ON CONFLICT DO NOTHING
+	) DELETE FROM access_requests WHERE discord_user_id = $2`, toPGUUID(instanceID), req.DiscordUserID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errorResponse{Error: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"instance_id": instanceID.String(), "discord_user_id": req.DiscordUserID})
+}
+
 // addInstanceAdmin lets an existing instance admin make another Discord user an admin of that instance.
 func (s *Server) addInstanceAdmin(c *gin.Context) {
 	instanceID, ok := parseUUIDPath(c, "instanceID")
