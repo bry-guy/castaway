@@ -50,6 +50,12 @@ func TestGameSectionsRender(t *testing.T) {
 			{"name":"Bo","tribe_emoji":"🟡","points":3,"moves":83,"solved":true,"place_points":2},
 			{"name":"Cy","tribe_emoji":"🟣","points":0,"moves":40}]}`,
 			[]string{"🧱 **Free the Block**:", "🟣 Ann (+9) · 25 moves 🥇 +3 🎯 optimum +5\n🟡 Bo (+3) · 83 moves 🥇 +2"}},
+		"tilt_table": {`{"players":[
+			{"name":"Ann","tribe_emoji":"🟣","points":7,"place":1,"place_points":3,"finished":true,"time_ms":30090,"holes":3,"aces":3},
+			{"name":"Bo","tribe_emoji":"🟡","points":3,"place":2,"place_points":2,"finished":true,"time_ms":83460,"holes":3,"rollbacks":4},
+			{"name":"Cy","tribe_emoji":"🟣","points":2,"finished":false,"holes":2,"aces":2},
+			{"name":"Di","tribe_emoji":"🟡","points":0,"holes":0}]}`,
+			[]string{"🌴 **Tilt Table**:", "🟣 Ann (+7) · 0:30.0 🥇 +3 🎯 3 aces\n🟡 Bo (+3) · 1:23.4 🥇 +2\n🟣 Cy (+2) · 2/3 in 🎯 2 aces\n"}},
 	}
 	for game, c := range cases {
 		var f seasonFile
