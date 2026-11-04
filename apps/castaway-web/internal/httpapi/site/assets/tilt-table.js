@@ -1,23 +1,34 @@
 { // own block: page scripts share one global scope
-// Tilt Table, top-down. Tilt the phone to roll three balls, one at a time, into three holes. Grab a ball from
+// Tilt Table, top-down. Tilt the phone to roll three balls, one at a time, through the barriers and into the
+// three cups at the far end. Grab a ball from
 // the rack and set it on the mat; a ball that rolls off the table drops into the bamboo gutter and has to be
 // tilted back down to the return at the bottom, then grabbed and set on the mat again (a rollback).
 // Physics and drawing follow Inside Track (inside-track.js): 240 Hz fixed step, one sun, flat matte shapes.
-const TABLE = { x0: -0.55, x1: 0.55, y0: 0, y1: 1.5 };
+const TABLE = { x0: -0.5, x1: 0.5, y0: 0, y1: 1.875 };
 const GW = 0.15, OUT = { x0: TABLE.x0 - GW, x1: TABLE.x1 + GW, y0: 0, y1: TABLE.y1 + GW }; // gutter round three sides
-const BOARD = { x0: OUT.x0 - 0.04, x1: OUT.x1 + 0.04, y0: -0.27, y1: OUT.y1 + 0.04 };
-const R = 0.05, HOLE_R = 0.074, RAIL = 0.018;
-const PAD = { x0: -0.18, x1: 0.18, y0: 0.03, y1: 0.29 };
-const RETURN_Y = 0.36;                   // gutter below this is the return: a ball there can be grabbed
-const RACK = [-0.13, 0, 0.13].map((x) => [x, -0.135]);
+const BOARD = { x0: OUT.x0 - 0.04, x1: OUT.x1 + 0.04, y0: -0.19, y1: OUT.y1 + 0.04 };
+// Cups as in Inside Track: smaller than the ball, so it sits in the lip and only its bottom drops in. It stays
+// only if it's slow and near the middle; anything else rolls across and lips out.
+const R = 0.05, CUP_R = 0.85 * R, RAIL = 0.018;
+const PAD = { x0: -0.16, x1: 0.16, y0: 0.03, y1: 0.25 };
+const RETURN_Y = 0.34;                   // gutter below this is the return: a ball there can be grabbed
+const RACK = [-0.12, 0, 0.12].map((x) => [x, -0.1]);
 const COLORS = ["#c8372d", "#e8b923", "#2f5fa8"];
-const HOLES = [[-0.33, 0.64], [0.33, 1.0], [0, 1.33]];
-const RAILS = [[-0.02, 0.46, 0.4, 0.46], [-0.4, 0.82, 0.06, 0.82], [0.1, 1.16, 0.42, 1.16]];
+// The scored table: zig-zag rails with short vertical blockers, then three cups in bays along the far edge.
+// Practice: one ball, one cup, one rail.
+const SCORED = {
+  cups: [[-0.33, 1.72], [0, 1.72], [0.33, 1.72]],
+  rails: [[-0.18, 0.45, 0.5, 0.45], [0.1, 0.45, 0.1, 0.58], [-0.5, 0.8, 0.2, 0.8], [-0.05, 1.02, -0.05, 1.15],
+    [-0.2, 1.15, 0.5, 1.15], [-0.28, 1.4, 0.12, 1.4], [-0.165, 1.58, -0.165, 1.875], [0.165, 1.58, 0.165, 1.875]],
+  colors: COLORS,
+};
+const PRACTICE = { cups: [[0, 1.72]], rails: [[-0.25, 0.95, 0.25, 0.95]], colors: ["#ece6d6"] };
+let L = PRACTICE;
 const DROP = 0.07, G = 9.8, ROLL_G = 7;  // (5/7)·g: gravity along a slope for a rolling ball
 const MAX_TILT = 22, DEAD = 1.2, GAIN = 0.75; // phone degrees → table tilt
 const ROLL = (v) => 0.12 + 0.05 * v;     // rolling resistance on the table
 const GUTTER_ROLL = (v) => 0.2 + 0.08 * v;
-const WALL_E = 0.35, MAX_V = 3, SKIM = 0.9, CAPTURE_V = 1.25, GRAB = 0.12;
+const WALL_E = 0.35, MAX_V = 3, CAPTURE_V = 0.12, GRAB = 0.12;
 const PRACTICE_S = 180, DEG = Math.PI / 180;
 const DEBUG = location.search.includes("debug");
 // Scored runs: the server puts data-action on <body>, and data-resume (holes, rollbacks, aces, elapsed ms, and
@@ -65,20 +76,29 @@ function readTilt() { // degrees of downhill on the table, x right and y up the 
 const slope = (deg) => Math.sin(clamp(deg * GAIN, -MAX_TILT, MAX_TILT) * DEG);
 
 // ---- game state ----
-// Ball: { x, y, vx, vy, z (height: table 0, gutter −DROP), vz, level: rack|held|table|air|gutter|hole, spin, ang, falls, practice }
+// Ball: { x, y, vx, vy, z (height: table 0, gutter −DROP), vz, level: rack|held|table|air|gutter|hole (in a cup), spin, ang, falls, practice }
 let balls, active, holes, phase = "intro", rollbacks, aces, runStart = 0, runEnd = 0, practiceEnd = 0, held = null, finishedAt = 0;
 function setup(practice) {
-  holes = [null, null, null]; active = null; held = null; rollbacks = 0; aces = 0;
-  balls = RACK.map(([x, y], i) => ({ x, y, vx: 0, vy: 0, z: -0.02, vz: 0, level: "rack", slot: i, spin: 0, ang: 0, falls: 0, practice }));
+  L = practice ? PRACTICE : SCORED;
+  holes = L.cups.map(() => null); active = null; held = null; rollbacks = 0; aces = 0;
+  balls = (practice ? [RACK[1]] : RACK).map(([x, y], i) => ({ x, y, vx: 0, vy: 0, z: -0.02, vz: 0, level: "rack", slot: i, spin: 0, ang: 0, falls: 0, practice }));
   hud();
 }
 function startPractice() {
   phase = "practice"; setup(true); practiceEnd = performance.now() + PRACTICE_S * 1000;
   $("practicing").classList.remove("hidden"); $("ready").classList.remove("hidden"); pop("Practice!");
 }
+// The table levels to however the phone is held, so ask for flat first and level after a beat.
+function holdFlat(then) {
+  const el = $("count"); el.classList.add("msg"); el.classList.remove("hidden"); el.textContent = "Hold your phone flat";
+  setTimeout(() => { el.classList.remove("msg"); el.classList.add("hidden"); level(); then(); }, 1400);
+}
 function startCountdown() {
   phase = "countdown"; $("practicing").classList.add("hidden"); $("ready").classList.add("hidden");
-  setup(false); let n = 3;
+  setup(false); holdFlat(() => countdown());
+}
+function countdown() {
+  let n = 3;
   const el = $("count"); el.classList.remove("hidden"); el.textContent = n;
   const tick = setInterval(() => {
     n--;
@@ -99,7 +119,7 @@ function resumeRun() { // a reload mid-run: filled holes stay filled and the clo
   phase = "run"; setup(false);
   holes.forEach((_, i) => {
     if (!(+DATA.holes & (1 << i))) return;
-    const b = balls.find((x) => x.level === "rack"), [hx, hy] = HOLES[i];
+    const b = balls.find((x) => x.level === "rack"), [hx, hy] = L.cups[i];
     holes[i] = Object.assign(b, { level: "hole", x: hx, y: hy, hx, hy, sink: 1 });
   });
   rollbacks = +DATA.rollbacks || 0; aces = +DATA.aces || 0;
@@ -182,7 +202,7 @@ function roll(b, decel, dt) {
   if (ns > 0.02) { b.spin += ns * dt / R; b.ang = Math.atan2(b.vy, b.vx); }
 }
 function sink(b, i) {
-  holes[i] = b; const [hx, hy] = HOLES[i];
+  holes[i] = b; const [hx, hy] = L.cups[i];
   Object.assign(b, { level: "hole", hx, hy, sink: 0, vx: 0, vy: 0 });
   active = null; navigator.vibrate?.([30, 40, 30]);
   if (phase === "run") {
@@ -191,7 +211,7 @@ function sink(b, i) {
     if (filled() === 3) { phase = "done"; runEnd = performance.now(); finish(report()); } else report();
   } else {
     pop(b.falls === 0 ? "Ace!" : "In!");
-    if (filled() === 3) setTimeout(() => { if (phase === "practice") { setup(true); pop("Again!"); } }, 1200);
+    if (filled() === L.cups.length) setTimeout(() => { if (phase === "practice") { setup(true); pop("Again!"); } }, 1200);
   }
 }
 function fall(b) { // off the edge of the table and down into the gutter
@@ -206,17 +226,17 @@ function step(dt) {
     if (b.level === "rack" || b.level === "held") continue;
     b.vx += ax * dt; b.vy += ay * dt;
     if (b.level === "table") {
-      // Over an empty hole the ball rests on the rim, its centre lower the nearer it is to the middle, and
-      // rolls in once it is past the rim; a fast ball skips across (Inside Track's lip, a wider hole).
-      for (let i = 0; i < 3; i++) {
+      // Over an empty cup the ball rests on the lip, its centre lower the nearer it is to the middle:
+      // height = sqrt(R² − (CUP_R − d)²). Rolling down that slope is the only pull, and it is zero at the lip,
+      // so a ball keeps going (lips out) unless it is slow enough not to climb back out (Inside Track's cup).
+      for (let i = 0; i < holes.length; i++) {
         if (holes[i]) continue;
-        const [hx, hy] = HOLES[i], dx = hx - b.x, dy = hy - b.y, d = Math.hypot(dx, dy);
-        if (d >= HOLE_R) continue;
-        if (speed(b) > SKIM) { b.vx *= 1 - 0.6 * dt; b.vy *= 1 - 0.6 * dt; continue; } // too fast to drop: it skips across
-        const q = Math.min(HOLE_R - d, R * 0.97), pull = ROLL_G * q / Math.sqrt(R * R - q * q);
+        const [hx, hy] = L.cups[i], dx = hx - b.x, dy = hy - b.y, d = Math.hypot(dx, dy);
+        if (d >= CUP_R) continue;
+        const q = CUP_R - d, pull = ROLL_G * q / Math.sqrt(R * R - q * q);
         b.vx += (dx / (d || 1)) * pull * dt; b.vy += (dy / (d || 1)) * pull * dt;
-        b.vx *= 1 - 3 * dt; b.vy *= 1 - 3 * dt; // knocking on the rim
-        if (d < HOLE_R - R * 0.8 && speed(b) < CAPTURE_V) { sink(b, i); break; }
+        b.vx *= 1 - 2 * dt; b.vy *= 1 - 2 * dt; // knocking against the lip
+        if (d < CUP_R * 0.3 && speed(b) < CAPTURE_V) { sink(b, i); break; }
       }
       if (b.level !== "table") continue;
       roll(b, ROLL(speed(b)), dt);
@@ -226,7 +246,8 @@ function step(dt) {
     } else if (b.level === "gutter") roll(b, GUTTER_ROLL(speed(b)), dt);
     b.x += b.vx * dt; b.y += b.vy * dt;
     if (b.level === "table") {
-      RAILS.forEach((r) => segment(b, r, RAIL));
+      L.rails.forEach((r) => segment(b, r, RAIL));
+      holes.forEach((c) => { if (c) segment(b, [c.hx, c.hy, c.hx, c.hy], R * 0.7); }); // a ball sitting in a cup sticks up
       if (b.y < TABLE.y0 + R) { b.y = TABLE.y0 + R; if (b.vy < 0) b.vy *= -WALL_E; } // the near edge has a rail
       if (b.x < TABLE.x0 || b.x > TABLE.x1 || b.y > TABLE.y1) fall(b);
     } else { // gutter and air: the table is a block in the middle of the gutter's frame
@@ -322,7 +343,7 @@ function planks(r) { // mossy planks across the table
   }
   ctx.restore();
 }
-const TORCHES = [[OUT.x0 - 0.0, -0.17], [OUT.x1 + 0.0, -0.17]];
+const TORCHES = [[OUT.x0, -0.12], [OUT.x1, -0.12]];
 function torch([x, y], time, i) { // seen from above: a bamboo pole top with a flame
   const px = sx(x), py = sy(y), u = 0.04 * scale, ox = SUN.x * 0.5 * scale, oy = SUN.y * 0.5 * scale;
   ctx.strokeStyle = "rgba(10,20,8,.35)"; ctx.lineWidth = u * 0.9; ctx.lineCap = "round";
@@ -365,24 +386,25 @@ function drawTable(time) {
   ctx.strokeStyle = "rgba(120,90,30,.45)"; ctx.lineWidth = 2;
   for (let v = PAD.x0 - 0.3; v < PAD.x1 + 0.3; v += 0.035) { ctx.beginPath(); ctx.moveTo(sx(v), sy(PAD.y0)); ctx.lineTo(sx(v + 0.3), sy(PAD.y1)); ctx.stroke(); ctx.beginPath(); ctx.moveTo(sx(v + 0.3), sy(PAD.y0)); ctx.lineTo(sx(v), sy(PAD.y1)); ctx.stroke(); }
   ctx.restore(); ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.beginPath(); rect(PAD); ctx.stroke();
-  HOLES.forEach(([x, y], i) => { // holes: a colored ring round a dark well
-    const r = HOLE_R * k;
-    ctx.fillStyle = COLORS[i]; ctx.beginPath(); ctx.arc(sx(x), sy(y), r + 0.018 * k, 0, 7); ctx.fill();
-    ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.stroke();
-    const g = ctx.createRadialGradient(sx(x) + r * 0.3, sy(y) + r * 0.35, r * 0.1, sx(x), sy(y), r);
-    g.addColorStop(0, "#2a1a0c"); g.addColorStop(1, "#0d0804");
+  L.cups.forEach(([x, y], i) => { // cups: a shallow dimple with a thin colored ring just outside it
+    const r = CUP_R * k;
+    ctx.strokeStyle = L.colors[i]; ctx.lineWidth = Math.max(2, 0.008 * k);
+    ctx.beginPath(); ctx.arc(sx(x), sy(y), r + 0.009 * k, 0, 7); ctx.stroke();
+    const g = ctx.createRadialGradient(sx(x) + r * 0.25, sy(y) + r * 0.3, r * 0.1, sx(x), sy(y), r);
+    g.addColorStop(0, "rgba(40,22,8,.35)"); g.addColorStop(0.7, "rgba(20,10,2,.6)"); g.addColorStop(1, "rgba(10,5,0,.75)");
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx(x), sy(y), r, 0, 7); ctx.fill();
+    ctx.strokeStyle = "rgba(255,235,200,.35)"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(sx(x), sy(y), r, Math.PI * 0.15, Math.PI * 0.85); ctx.stroke();
   });
   // rails: bamboo, and one along the near edge
-  RAILS.forEach(([x0, y0, x1, y1]) => {
+  L.rails.forEach(([x0, y0, x1, y1]) => {
     ctx.fillStyle = "rgba(20,15,5,.35)"; ctx.beginPath(); ctx.ellipse(sx((x0 + x1) / 2) + 3, sy((y0 + y1) / 2) + 4, Math.hypot(x1 - x0, y1 - y0) * k / 2, RAIL * k, Math.atan2(-(y1 - y0), x1 - x0), 0, 7); ctx.fill();
     bamboo(sx(x0), sy(y0), sx(x1), sy(y1), RAIL * 2 * k);
   });
   bamboo(sx(OUT.x0), sy(0) + RAIL * k * 0.5, sx(OUT.x1), sy(0) + RAIL * k * 0.5, RAIL * 1.8 * k, "#b59c4c");
   // the rack: a bamboo tray below the table
-  ctx.fillStyle = "rgba(10,20,8,.35)"; ctx.beginPath(); ctx.roundRect(sx(-0.22) + 4, sy(-0.075) + 5, 0.44 * k, 0.12 * k, 0.06 * k); ctx.fill();
-  ctx.fillStyle = "#b59c4c"; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.roundRect(sx(-0.22), sy(-0.075), 0.44 * k, 0.12 * k, 0.06 * k); ctx.fill(); ctx.stroke();
-  RACK.forEach(([x, y]) => { ctx.fillStyle = "rgba(60,45,10,.45)"; ctx.beginPath(); ctx.arc(sx(x), sy(y), R * k * 1.05, 0, 7); ctx.fill(); });
+  ctx.fillStyle = "rgba(10,20,8,.35)"; ctx.beginPath(); ctx.roundRect(sx(-0.2) + 4, sy(-0.04) + 5, 0.4 * k, 0.12 * k, 0.06 * k); ctx.fill();
+  ctx.fillStyle = "#b59c4c"; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.roundRect(sx(-0.2), sy(-0.04), 0.4 * k, 0.12 * k, 0.06 * k); ctx.fill(); ctx.stroke();
+  (L === PRACTICE ? [RACK[1]] : RACK).forEach(([x, y]) => { ctx.fillStyle = "rgba(60,45,10,.45)"; ctx.beginPath(); ctx.arc(sx(x), sy(y), R * k * 1.05, 0, 7); ctx.fill(); });
   TORCHES.forEach((t, i) => torch(t, time, i));
 }
 function drawBall(b) {
@@ -401,7 +423,7 @@ function drawBall(b) {
   for (let k = -2; k <= 2; k++) { ctx.beginPath(); ctx.ellipse(0, o + k * r * 0.35, r * 1.1, r * 0.18, 0, 0, 7); ctx.stroke(); }
   ctx.restore();
   ctx.strokeStyle = "rgba(43,24,10,.7)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(px, py, r, 0, 7); ctx.stroke();
-  if (b.level === "hole") { ctx.fillStyle = `rgba(0,0,0,${0.35 * b.sink})`; ctx.beginPath(); ctx.arc(px, py, r, 0, 7); ctx.fill(); }
+  if (b.level === "hole") { ctx.fillStyle = `rgba(0,0,0,${0.15 * b.sink})`; ctx.beginPath(); ctx.arc(px, py, r, 0, 7); ctx.fill(); }
   if (grabbable(b) && !held && (phase === "practice" || phase === "run") && b.level !== "rack") { // a pulse: grab me
     ctx.strokeStyle = `rgba(232,185,35,${0.5 + 0.4 * Math.sin(performance.now() / 180)})`; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.arc(px, py, r + 5, 0, 7); ctx.stroke();
@@ -442,7 +464,7 @@ function frame(now) {
 
 // ---- start: phones only. iOS asks for motion access on a tap; no tilt events at all means no sensor. ----
 const phone = matchMedia("(pointer: coarse)").matches && "DeviceOrientationEvent" in window;
-function noGo(text) { $("how").textContent = text; $("hint").textContent = ""; $("go").classList.add("hidden"); }
+function noGo(text) { $("how").textContent = text; document.querySelector(".flat").style.display = "none"; $("hint").textContent = ""; $("go").classList.add("hidden"); }
 async function wake() { try { await navigator.wakeLock?.request("screen"); } catch {} }
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && phase !== "intro") wake(); });
 if (!phone && !DEBUG) noGo("Tilt Table needs a phone. Open this page on your phone to play.");
@@ -456,17 +478,17 @@ $("go").onclick = async () => {
     if (!sensed) return noGo("No tilt readings. Tilt Table needs a phone with motion access allowed.");
   }
   screen.orientation?.lock?.("portrait").catch(() => {});
-  wake(); level();
+  wake();
   $("intro").classList.add("hidden");
-  if (RESUME) resumeRun(); else startPractice();
+  holdFlat(() => (RESUME ? resumeRun() : startPractice()));
 };
-$("ready").onclick = () => { level(); startCountdown(); };
+$("ready").onclick = () => startCountdown();
 $("level").onclick = () => { level(); pop("Level"); };
 $("again").onclick = () => { $("done").classList.add("hidden"); startPractice(); };
 if (ACTION) {
   $("again").textContent = "See results"; $("again").onclick = () => location.reload();
   $("hint").textContent = RESUME ? "Your run is under way: the clock kept running. Let's go picks it back up."
-    : "Scored, one run. Practice up to 3 minutes, then the clock runs until all three are in, even if you leave.";
+    : "Scored, one run: practice up to 3 minutes, then the clock runs until all three are in, even if you leave.";
 }
 
 if (DEBUG) {
@@ -480,10 +502,10 @@ if (DEBUG) {
     state: () => ({ phase, rollbacks, aces, filled: filled(), time: phase === "done" ? runEnd - runStart : 0,
       balls: balls.map((b) => ({ level: b.level, x: +b.x.toFixed(3), y: +b.y.toFixed(3), v: +speed(b).toFixed(3), falls: b.falls })) }),
     screen: (x, y) => ({ x: sx(x), y: sy(y) }),
-    holes: HOLES, pad: PAD,
+    cups: () => L.cups, pad: PAD,
     sim: (x, y, vx, vy, secs = 2) => { // roll a lone ball on a level table, synchronously; where does it end up?
       const keep = [balls, holes, active, tilt], b = { x, y, vx, vy, z: 0, vz: 0, level: "table", spin: 0, ang: 0, falls: 0, practice: true };
-      balls = [b]; holes = [null, null, null]; active = b; tilt = { x: 0, y: 0 };
+      balls = [b]; holes = L.cups.map(() => null); active = b; tilt = { x: 0, y: 0 };
       for (let i = 0; i < secs * 240 && b.level === "table"; i++) step(STEP);
       [balls, holes, active, tilt] = keep; return { level: b.level, x: +b.x.toFixed(3), y: +b.y.toFixed(3) };
     },
