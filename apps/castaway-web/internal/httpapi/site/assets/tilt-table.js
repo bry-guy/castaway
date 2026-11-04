@@ -20,7 +20,9 @@ const GUTTER_ROLL = (v) => 0.2 + 0.08 * v;
 const WALL_E = 0.35, MAX_V = 3, SKIM = 0.9, CAPTURE_V = 1.25, GRAB = 0.12;
 const PRACTICE_S = 180, DEG = Math.PI / 180;
 const DEBUG = location.search.includes("debug");
-const ACTION = document.body.dataset.action || "";
+// Scored runs: the server puts data-action on <body>, and data-resume (holes, rollbacks, aces, elapsed ms, and
+// whether the ball in play already fell) when the player already started. The clock is the server's.
+const DATA = document.body.dataset, ACTION = DATA.action || "", RESUME = DATA.resume === "1";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("c"), ctx = canvas.getContext("2d");
@@ -93,12 +95,24 @@ function hud() {
 }
 function pop(text) { const el = $("pop"); el.textContent = text; el.classList.remove("go"); void el.offsetWidth; el.classList.add("go"); }
 
-// Scored runs (when the server sets data-action): progress after every rollback and every sink.
-function report(finished = false) {
-  if (!ACTION || phase === "practice") return;
+function resumeRun() { // a reload mid-run: filled holes stay filled and the clock kept going
+  phase = "run"; setup(false);
+  holes.forEach((_, i) => {
+    if (!(+DATA.holes & (1 << i))) return;
+    const b = balls.find((x) => x.level === "rack"), [hx, hy] = HOLES[i];
+    holes[i] = Object.assign(b, { level: "hole", x: hx, y: hy, hx, hy, sink: 1 });
+  });
+  rollbacks = +DATA.rollbacks || 0; aces = +DATA.aces || 0;
+  const next = balls.find((x) => x.level === "rack"); if (next) next.falls = +DATA.fell || 0;
+  runStart = performance.now() - (+DATA.elapsed || 0); hud(); pop("Clock's running!");
+}
+
+// Scored runs: progress at "Go" (which starts the server's clock), after every rollback and every sink.
+function report() {
+  if (!ACTION || phase === "practice") return Promise.resolve(null);
   const mask = holes.reduce((m, b, i) => (b ? m | (1 << i) : m), 0);
-  fetch(ACTION + "/progress", { method: "POST", keepalive: true, headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ holes_mask: mask, rollbacks, finished }) }).catch(() => {});
+  return fetch(ACTION + "/progress", { method: "POST", keepalive: true, headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ holes_mask: mask, rollbacks }) }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
 }
 
 // ---- input: grab a ball from the rack, the mat, or the return, and set it on the mat ----
@@ -174,7 +188,7 @@ function sink(b, i) {
   if (phase === "run") {
     const ace = b.falls === 0; if (ace) aces++;
     pop(ace ? "Ace!" : "In!"); hud();
-    if (filled() === 3) { phase = "done"; runEnd = performance.now(); report(true); finish(); } else report();
+    if (filled() === 3) { phase = "done"; runEnd = performance.now(); finish(report()); } else report();
   } else {
     pop(b.falls === 0 ? "Ace!" : "In!");
     if (filled() === 3) setTimeout(() => { if (phase === "practice") { setup(true); pop("Again!"); } }, 1200);
@@ -222,11 +236,13 @@ function step(dt) {
   }
 }
 
-function finish() {
+function finish(saved) {
   const time = runEnd - runStart;
   hud(); $("time").textContent = fmt(time);
+  let official = null; // the server's clock is the one that counts
+  saved.then((res) => { if (res?.time) { official = res.time; $("final").textContent = $("time").textContent = res.time; } });
   setTimeout(() => {
-    $("final").textContent = fmt(time); $("summary").textContent = "";
+    $("final").textContent = official ?? fmt(time); $("summary").textContent = "";
     const row = $("stamps"); row.textContent = "";
     const stamps = [["Done +1", ""], ...Array.from({ length: aces }, () => ["Ace +1", "ace"])];
     $("done").classList.remove("hidden");
@@ -441,12 +457,17 @@ $("go").onclick = async () => {
   }
   screen.orientation?.lock?.("portrait").catch(() => {});
   wake(); level();
-  $("intro").classList.add("hidden"); startPractice();
+  $("intro").classList.add("hidden");
+  if (RESUME) resumeRun(); else startPractice();
 };
 $("ready").onclick = () => { level(); startCountdown(); };
 $("level").onclick = () => { level(); pop("Level"); };
 $("again").onclick = () => { $("done").classList.add("hidden"); startPractice(); };
-if (ACTION) { $("again").textContent = "See results"; $("again").onclick = () => location.reload(); }
+if (ACTION) {
+  $("again").textContent = "See results"; $("again").onclick = () => location.reload();
+  $("hint").textContent = RESUME ? "Your run is under way: the clock kept running. Let's go picks it back up."
+    : "Scored, one run. Practice up to 3 minutes, then the clock runs until all three are in, even if you leave.";
+}
 
 if (DEBUG) {
   addEventListener("keydown", (e) => {

@@ -37,6 +37,7 @@ type sitePageData struct {
 	Scramble           *scrambleView
 	Track              *trackView
 	FreeTheBlock       *freeTheBlockView
+	Tilt               *tiltView
 	Champion           *championView
 	GameEpisodes       []gameEpisode
 	TestGames          []gameEntry
@@ -52,7 +53,7 @@ func loginReturnTo(candidate string) string {
 	if candidate == "/games" || candidate == "/me" || candidate == "/games/button" || candidate == "/games/scramble" || candidate == "/games/champion" || candidate == "/games/tilt-table" || candidate == "/castawordle" || candidate == "/button" {
 		return candidate
 	}
-	for _, prefix := range []string{"/games/castawordle/", "/games/button/", "/games/scramble/", "/castawordle/", "/button/", "/players/"} {
+	for _, prefix := range []string{"/games/castawordle/", "/games/button/", "/games/scramble/", "/games/tilt-table/", "/castawordle/", "/button/", "/players/"} {
 		if suffix, ok := strings.CutPrefix(candidate, prefix); ok {
 			if id, err := uuid.Parse(suffix); err == nil {
 				return prefix + id.String()
