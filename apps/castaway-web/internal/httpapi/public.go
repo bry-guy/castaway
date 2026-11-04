@@ -110,6 +110,8 @@ func (s *Server) PublicRouter() *gin.Engine {
 	pages.GET("/games/inside-track/:gameID", s.insideTrackPage)
 	pages.POST("/games/inside-track/:gameID/progress", s.requireSameOrigin(), s.trackProgress)
 	pages.GET("/games/tilt-table", s.tiltTablePage)
+	pages.GET("/games/tilt-table/:gameID", s.tiltTablePage)
+	pages.POST("/games/tilt-table/:gameID/progress", s.requireSameOrigin(), s.tiltProgress)
 	pages.GET("/games/free-the-block", s.freeTheBlockPage)
 	pages.GET("/games/free-the-block/:gameID", s.freeTheBlockPage)
 	pages.POST("/games/free-the-block/:gameID/progress", s.requireSameOrigin(), s.freeTheBlockProgress)

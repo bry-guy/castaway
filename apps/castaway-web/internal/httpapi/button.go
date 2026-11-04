@@ -263,6 +263,9 @@ func (s *Server) ResolveDueGames(ctx context.Context) error {
 	if err := s.resolveDueFreeTheBlockGames(ctx); err != nil {
 		return err
 	}
+	if err := s.resolveDueTiltGames(ctx); err != nil {
+		return err
+	}
 	return s.resolveDueCastawordleGames(ctx)
 }
 
@@ -306,6 +309,9 @@ func (s *Server) RunButtonResolver(ctx context.Context) {
 		}
 		if err := s.resolveDueFreeTheBlockGames(ctx); err != nil && ctx.Err() == nil {
 			requestLogger.Error("resolve free the block games", "error", err)
+		}
+		if err := s.resolveDueTiltGames(ctx); err != nil && ctx.Err() == nil {
+			requestLogger.Error("resolve tilt table games", "error", err)
 		}
 		if err := s.resolveDueCastawordleGames(ctx); err != nil && ctx.Err() == nil {
 			requestLogger.Error("resolve castawordle games", "error", err)

@@ -228,6 +228,7 @@ func (s *Server) listScheduledGames(c *gin.Context) {
 			UNION ALL SELECT 'spell_it_out', public_id, episode_number, opens_at, cutoff_at, instance_id, resolved_at IS NOT NULL FROM scramble_games WHERE episode_number IS NOT NULL
 			UNION ALL SELECT 'inside_track', public_id, episode_number, opens_at, cutoff_at, instance_id, resolved_at IS NOT NULL FROM track_games
 			UNION ALL SELECT 'free_the_block', public_id, episode_number, opens_at, cutoff_at, instance_id, resolved_at IS NOT NULL FROM free_the_block_games
+			UNION ALL SELECT 'tilt_table', public_id, episode_number, opens_at, cutoff_at, instance_id, resolved_at IS NOT NULL FROM tilt_games
 		) g JOIN instances i ON i.id = g.instance_id WHERE i.public_id = $1 ORDER BY g.episode_number, g.type`, toPGUUID(instanceID))
 	if err != nil {
 		writeAnnouncementError(c, err)
