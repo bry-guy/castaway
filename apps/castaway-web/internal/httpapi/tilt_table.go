@@ -354,7 +354,8 @@ func (s *Server) loadTiltPlay(ctx context.Context, q rowQuerier, dbID int64, dis
 }
 
 // tiltTablePage: the scored board while a game is open and the player hasn't finished, otherwise their run or the
-// results. Free play (?practice=1) opens only once a game has closed, so nobody practises the scored table first.
+// results. Free play (?practice=1) opens to players only once a game has closed, so nobody practises the scored
+// table first; admins can always use it to test.
 func (s *Server) tiltTablePage(c *gin.Context) {
 	data, ok := s.siteData(c)
 	if !ok {
@@ -366,7 +367,10 @@ func (s *Server) tiltTablePage(c *gin.Context) {
 	}
 	ctx := c.Request.Context()
 	if c.Param("gameID") == "" && c.Query("practice") == "1" {
-		free, err := s.tiltFreePlay(ctx)
+		free, err := data.Admin, error(nil)
+		if !free {
+			free, err = s.tiltFreePlay(ctx)
+		}
 		if err != nil {
 			c.String(http.StatusInternalServerError, "could not load the page")
 			return
