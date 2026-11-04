@@ -98,6 +98,17 @@ op createFreeTheBlockGame(
 @post
 op resolveFreeTheBlockGame(@path gameID: string): { awards: Record<int32>; } | ErrorResponse;
 
+@route("/instances/{instanceID}/tilt-games")
+@post
+op createTiltGame(
+  @path instanceID: string,
+  @body body: { episode_number: int32; opens_at: utcDateTime; cutoff_at: utcDateTime; },
+): ButtonGame | ErrorResponse;
+
+@route("/tilt-games/{gameID}/resolve")
+@post
+op resolveTiltGame(@path gameID: string): { awards: Record<int32>; } | ErrorResponse;
+
 model TrackPlay {
   participant_id: string;
   name: string;
