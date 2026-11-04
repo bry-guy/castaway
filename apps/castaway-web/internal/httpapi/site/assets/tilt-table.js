@@ -4,7 +4,7 @@
 // the rack and set it on the mat; a ball that rolls off the table drops into the bamboo gutter and has to be
 // tilted back down to the return at the bottom, then grabbed and set on the mat again (a rollback).
 // Physics and drawing follow Inside Track (inside-track.js): 240 Hz fixed step, one sun, flat matte shapes.
-const TABLE = { x0: -0.5, x1: 0.5, y0: 0, y1: 1.875 };
+const TABLE = { x0: -0.4, x1: 0.4, y0: 0, y1: 1.875 };
 const GW = 0.15, OUT = { x0: TABLE.x0 - GW, x1: TABLE.x1 + GW, y0: 0, y1: TABLE.y1 + GW }; // gutter round three sides
 const BOARD = { x0: OUT.x0 - 0.04, x1: OUT.x1 + 0.04, y0: -0.19, y1: OUT.y1 + 0.04 };
 // Cups as in Inside Track: smaller than the ball, so it sits in the lip and only its bottom drops in. It stays
@@ -14,15 +14,28 @@ const PAD = { x0: -0.16, x1: 0.16, y0: 0.03, y1: 0.25 };
 const RETURN_Y = 0.34;                   // gutter below this is the return: a ball there can be grabbed
 const RACK = [-0.12, 0, 0.12].map((x) => [x, -0.1]);
 const COLORS = ["#c8372d", "#e8b923", "#2f5fa8"];
-// The scored table: zig-zag rails with short vertical blockers, then three cups in bays along the far edge.
-// Practice: one ball, one cup, one rail.
+// The scored table. Every gap in a rail sits against an open edge, so each turn is taken right beside the drop.
+// The first and second gaps have fins that make them chutes: the ball runs up the edge before it can turn back
+// in. The straight line between those chutes crosses a mound, and a second mound sits in front of the cups.
+// Last, three cups in bays along the far edge. Practice: one ball, one cup, one rail.
 const SCORED = {
-  cups: [[-0.33, 1.72], [0, 1.72], [0.33, 1.72]],
-  rails: [[-0.18, 0.45, 0.5, 0.45], [0.1, 0.45, 0.1, 0.58], [-0.5, 0.8, 0.2, 0.8], [-0.05, 1.02, -0.05, 1.15],
-    [-0.2, 1.15, 0.5, 1.15], [-0.28, 1.4, 0.12, 1.4], [-0.165, 1.58, -0.165, 1.875], [0.165, 1.58, 0.165, 1.875]],
+  cups: [[-0.26, 1.72], [0, 1.72], [0.26, 1.72]],
+  rails: [[-0.21, 0.48, 0.4, 0.48], [-0.21, 0.48, -0.21, 0.62], [-0.4, 0.98, 0.21, 0.98], [0.21, 0.98, 0.21, 0.84],
+    [-0.21, 1.26, 0.4, 1.26], [-0.13, 1.58, -0.13, 1.875], [0.13, 1.58, 0.13, 1.875]],
+  mounds: [[0, 0.73, 0.03, 0.09], [0.02, 1.43, 0.025, 0.08]], // x, y, height, spread (m)
   colors: COLORS,
 };
-const PRACTICE = { cups: [[0, 1.72]], rails: [[-0.25, 0.95, 0.25, 0.95]], colors: ["#ece6d6"] };
+const PRACTICE = { cups: [[0, 1.72]], rails: [[-0.22, 0.95, 0.22, 0.95]], mounds: [], colors: ["#ece6d6"] };
+// A mound is a smooth bump: height a·exp(−d²/2s²). It pushes a slow ball round it and bends a fast one's line.
+function moundSlope(x, y) {
+  let gx = 0, gy = 0;
+  for (const [mx, my, a, s] of L.mounds) {
+    const dx = x - mx, dy = y - my, h = a * Math.exp(-(dx * dx + dy * dy) / (2 * s * s));
+    gx -= h * dx / (s * s); gy -= h * dy / (s * s);
+  }
+  return [gx, gy];
+}
+const moundHeight = (x, y) => L.mounds.reduce((h, [mx, my, a, s]) => h + a * Math.exp(-((x - mx) ** 2 + (y - my) ** 2) / (2 * s * s)), 0);
 let L = PRACTICE;
 const DROP = 0.07, G = 9.8, ROLL_G = 7;  // (5/7)·g: gravity along a slope for a rolling ball
 const MAX_TILT = 22, DEAD = 0.6, GAIN = 0.9; // phone degrees → table tilt
@@ -226,6 +239,7 @@ function step(dt) {
     if (b.level === "rack" || b.level === "held") continue;
     b.vx += ax * dt; b.vy += ay * dt;
     if (b.level === "table") {
+      const [gx, gy] = moundSlope(b.x, b.y); b.vx -= ROLL_G * gx * dt; b.vy -= ROLL_G * gy * dt;
       // Over an empty cup the ball rests on the lip, its centre lower the nearer it is to the middle:
       // height = sqrt(R² − (CUP_R − d)²). Rolling down that slope is the only pull, and it is zero at the lip,
       // so a ball keeps going (lips out) unless it is slow enough not to climb back out (Inside Track's cup).
@@ -381,6 +395,16 @@ function drawTable(time) {
   ctx.fillStyle = "#8a5d34"; ctx.beginPath(); rect(TABLE); ctx.fill();
   planks(TABLE);
   ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.beginPath(); rect(TABLE); ctx.stroke();
+  L.mounds.forEach(([x, y, a, s]) => { // mounds: lit on the upper left, shaded lower right, with faint contours
+    const px = sx(x), py = sy(y), u = s * k, r = 2.8 * u;
+    for (const [ox, c] of [[-0.6, "255,228,180"], [0.7, "45,22,6"]]) {
+      const g = ctx.createRadialGradient(px + ox * u, py + ox * u, 0, px, py, r);
+      g.addColorStop(0, `rgba(${c},.42)`); g.addColorStop(0.45, `rgba(${c},.14)`); g.addColorStop(1, `rgba(${c},0)`);
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px, py, r, 0, 7); ctx.fill();
+    }
+    ctx.strokeStyle = "rgba(60,35,12,.28)"; ctx.lineWidth = 1;
+    [0.2, 0.5, 0.8].forEach((f) => { ctx.beginPath(); ctx.arc(px, py, u * Math.sqrt(-2 * Math.log(f)), 0, 7); ctx.stroke(); });
+  });
   // the mat
   ctx.save(); ctx.beginPath(); rect(PAD); ctx.fillStyle = "#d9c27e"; ctx.fill(); ctx.clip();
   ctx.strokeStyle = "rgba(120,90,30,.45)"; ctx.lineWidth = 2;
@@ -408,7 +432,7 @@ function drawTable(time) {
   TORCHES.forEach((t, i) => torch(t, time, i));
 }
 function drawBall(b) {
-  const z = b.level === "hole" ? -0.02 * b.sink : b.z, r = R * scale * (1 + z * 1.6), px = sx(b.x), py = sy(b.y);
+  const z = b.level === "hole" ? -0.02 * b.sink : b.level === "table" ? moundHeight(b.x, b.y) : b.z, r = R * scale * (1 + z * 1.6), px = sx(b.x), py = sy(b.y);
   const sh = (z + (b.level === "gutter" || b.level === "air" ? DROP : 0) + R * 0.6) * scale;
   ctx.fillStyle = `rgba(20,12,4,${b.level === "held" ? 0.22 : 0.38})`;
   ctx.beginPath(); ctx.ellipse(px + SUN.x * sh, py + SUN.y * sh, r, r * 0.9, 0.6, 0, 7); ctx.fill();
