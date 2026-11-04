@@ -38,6 +38,7 @@ type sitePageData struct {
 	Track              *trackView
 	FreeTheBlock       *freeTheBlockView
 	Tilt               *tiltView
+	TiltFreePlay       bool // a Tilt Table game has closed: free play is open
 	Champion           *championView
 	GameEpisodes       []gameEpisode
 	TestGames          []gameEntry
