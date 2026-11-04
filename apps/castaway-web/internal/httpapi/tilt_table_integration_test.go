@@ -64,6 +64,12 @@ func TestTiltTable(t *testing.T) {
 	// No game yet, and no free play until one closes.
 	serve("GET", "/games/tilt-table", "", "fast", 303)
 	serve("GET", "/games/tilt-table?practice=1", "", "fast", 303)
+	if page := serve("GET", "/games/tilt-table?practice=1", "", "admin", 200); !strings.Contains(page, "tilt-table.js") || strings.Contains(page, "data-action") {
+		t.Fatalf("admin test board: %s", page) // admins can always test, unscored
+	}
+	if hub := serve("GET", "/games", "", "admin", 200); !strings.Contains(hub, "Test Tilt Table") {
+		t.Fatal("admin test panel missing")
+	}
 
 	create := "/api/instances/" + instanceID + "/tilt-games"
 	window := fmt.Sprintf(`{"episode_number":7,"opens_at":%q,"cutoff_at":"2026-11-11T23:59:00Z"}`, opens.Format(time.RFC3339))
