@@ -4,19 +4,24 @@ Status: in-progress
 
 ## Goal
 
-A phone-only Survivor tilt table, built on Inside Track's physics and look, in a jungle setting. Free play first
-(on preview), then a scored weekly game like Free the Block.
+A phone-only Survivor tilt table, built on Inside Track's physics and look, in a jungle setting: the Season 51
+week 7 scored game, like Free the Block. Free play opens only after a game closes.
 
 ## Rules
 
-- Three balls, three holes. One ball in play at a time: grab it from the rack and set it on the mat, then tilt.
+- A 1.0 × 1.875 m table: zig-zag bamboo rails with short vertical blockers, then three cups (red, yellow, blue)
+  in bays along the far edge, as on the show. Three balls, one in play at a time: grab it from the rack and set
+  it on the mat, then tilt.
 - A ball that leaves the table (left, right or far edge; the near edge has a rail) drops into the bamboo gutter.
   Tilt it down the gutter to the return at either bottom end, grab it, and set it on the mat again. Each fall is a rollback.
-- A ball over a hole drops in if it is slow enough (under about 0.9 m/s); faster balls skip across.
-- Practice until the player taps Ready, or three minutes at most. Practice balls are white and don't count.
+- Cups work like Inside Track's: smaller than the ball (0.85 R), so it sits in the lip. It stays only if it reaches
+  the middle slowly (arriving under about 0.3 m/s, within about 3 cm of centre); otherwise it lips out, and over
+  the far cups a lip-out usually means a fall. A ball sitting in a cup is an obstacle.
+- Practice until the player taps Ready, or three minutes at most: one white ball, one cup and one rail.
   Then a 3-2-1 countdown, the board resets, and the timed run lasts until all three balls are in.
 - Phones only: touch (coarse pointer) and live `deviceorientation` readings are required. iOS asks for motion
-  access on "Let's go". The table is levelled (calibrated) at start, at Ready, and with the Level button.
+  access on "Let's go". "Hold your phone flat" shows before practice and before the countdown, and the table is
+  levelled (calibrated) after it, and with the Level button.
 
 ## Scoring
 
@@ -31,7 +36,8 @@ A phone-only Survivor tilt table, built on Inside Track's physics and look, in a
 
 - Migration `044_tilt_table.sql`: `tilt_games` (instance, episode, opens/cutoff/resolved) and `tilt_plays`
   (started, holes mask, rollbacks, aces, rollbacks at the last sink, finished).
-- Page `GET /games/tilt-table[/:gameID]`: free play with `?practice=1` or when no game exists; the scored board while
+- Page `GET /games/tilt-table[/:gameID]`: free play with `?practice=1` once any game has closed (until then that and
+  the no-game page go to the scored game or /games); the scored board while
   open and unfinished (resume attributes after a reload); otherwise the player's run or the results.
 - `POST /games/tilt-table/:gameID/progress` (same-origin) `{holes_mask, rollbacks}`: holes only fill, one per save;
   rollbacks only go up; the third hole finishes and locks the run. The server decides aces.

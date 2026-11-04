@@ -353,8 +353,8 @@ func (s *Server) loadTiltPlay(ctx context.Context, q rowQuerier, dbID int64, dis
 	return p, err
 }
 
-// tiltTablePage: free play (?practice=1, or no game yet), the scored board while a game is open and the player
-// hasn't finished, otherwise their run or the results.
+// tiltTablePage: the scored board while a game is open and the player hasn't finished, otherwise their run or the
+// results. Free play (?practice=1) opens only once a game has closed, so nobody practises the scored table first.
 func (s *Server) tiltTablePage(c *gin.Context) {
 	data, ok := s.siteData(c)
 	if !ok {
@@ -364,15 +364,22 @@ func (s *Server) tiltTablePage(c *gin.Context) {
 		renderSite(c, "home.html", data)
 		return
 	}
-	if c.Param("gameID") == "" && c.Query("practice") == "1" { // free play: unscored for every player, even while a game is open
-		s.serveTiltBoard(c, "")
-		return
-	}
 	ctx := c.Request.Context()
+	if c.Param("gameID") == "" && c.Query("practice") == "1" {
+		free, err := s.tiltFreePlay(ctx)
+		if err != nil {
+			c.String(http.StatusInternalServerError, "could not load the page")
+			return
+		}
+		if free {
+			s.serveTiltBoard(c, "")
+			return
+		}
+	}
 	view, dbID, err := s.loadTilt(c)
 	if errors.Is(err, errScrambleNotFound) {
 		if c.Param("gameID") == "" {
-			s.serveTiltBoard(c, "")
+			c.Redirect(http.StatusSeeOther, "/games")
 			return
 		}
 		c.String(http.StatusNotFound, "game not found")
@@ -543,6 +550,14 @@ func (s *Server) tiltProgress(c *gin.Context) {
 }
 
 // addTiltGames lists an instance's Tilt Table games on /games.
+// tiltFreePlay says whether any Tilt Table game has closed.
+func (s *Server) tiltFreePlay(ctx context.Context) (bool, error) {
+	var free bool
+	err := s.pool.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM tilt_games g JOIN instances i ON i.id = g.instance_id
+		WHERE i.public_id = $1 AND g.cutoff_at <= $2)`, s.public.InstanceID, s.now()).Scan(&free)
+	return free, err
+}
+
 func (s *Server) addTiltGames(ctx context.Context, data *sitePageData, instanceID string) error {
 	rows, err := s.pool.Query(ctx, `SELECT g.public_id::text, g.episode_number, g.opens_at, g.cutoff_at, g.resolved_at IS NOT NULL
 		FROM tilt_games g JOIN instances i ON i.id = g.instance_id WHERE i.public_id::text = $1 ORDER BY g.opens_at`, instanceID)
@@ -560,6 +575,7 @@ func (s *Server) addTiltGames(ctx context.Context, data *sitePageData, instanceI
 			return err
 		}
 		data.addGame(&episode, gameEntry{Kind: "Tilt Table", Name: "Tilt Table", URL: "/games/tilt-table/" + id, Badge: "Scored", Status: gameStatus(now, opens, cutoff, resolved)})
+		data.TiltFreePlay = data.TiltFreePlay || !now.Before(cutoff)
 	}
 	return rows.Err()
 }

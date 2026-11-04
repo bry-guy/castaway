@@ -1,6 +1,6 @@
 {{template "header" .}}
 <h1>Games</h1>
-<section class="games-section"><h2>Free play</h2><div class="game-list"><a class="game-card" href="/games/inside-track?practice=1"><span class="badge">🎯</span><h3>Inside Track</h3><p class="muted">Play any time · not scored</p></a><a class="game-card" href="/games/tilt-table?practice=1"><span class="badge">🌴</span><h3>Tilt Table</h3><p class="muted">Phones only · not scored</p></a></div></section>
+<section class="games-section"><h2>Free play</h2><div class="game-list"><a class="game-card" href="/games/inside-track?practice=1"><span class="badge">🎯</span><h3>Inside Track</h3><p class="muted">Play any time · not scored</p></a>{{if .TiltFreePlay}}<a class="game-card" href="/games/tilt-table?practice=1"><span class="badge">🌴</span><h3>Tilt Table</h3><p class="muted">Phones only · not scored</p></a>{{end}}</div></section>
 <section class="games-section"><h2>{{if .SeasonName}}<a href="/seasons/{{.SeasonID}}">{{.SeasonName}}</a>{{else}}Season{{end}}</h2>
 {{range .GameEpisodes}}<section class="game-episode"><h3>Episode {{.Number}}</h3><div class="game-list">{{range .Games}}<a class="game-card" href="{{.URL}}"><span class="badge">{{.Badge}}</span><h3>{{.Name}}</h3><p class="muted">{{.Status}}</p></a>{{end}}</div></section>
 {{else}}<p>No games yet. Your host will set the first challenge.</p>{{end}}</section>

@@ -1,6 +1,8 @@
 html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; background: #1f3a24; color: #2b2418; font: 600 14px/1.3 Futura, "Avenir Next Condensed", "Arial Narrow", sans-serif; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 canvas { display: block; touch-action: none; position: absolute; inset: 0; width: 100%; height: 100%; }
 .hud { position: fixed; top: 0; left: 0; right: 0; padding: max(.6rem, env(safe-area-inset-top)) 1rem .5rem; display: flex; justify-content: space-between; letter-spacing: .12em; text-transform: uppercase; border-bottom: 2px solid #2b2418; background: #ece6d6; pointer-events: none; }
+.count.msg { font-size: 2.2rem; text-align: center; padding: 0 1.5rem; }
+.flat { font-size: 1.05rem; }
 .hud b { font-variant-numeric: tabular-nums; margin-left: .3rem; color: #2f6b3a; }
 .bar { position: fixed; left: 0; right: 0; bottom: 0; padding: .5rem 1rem max(.7rem, env(safe-area-inset-bottom)); display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
 .bar > * { pointer-events: auto; }

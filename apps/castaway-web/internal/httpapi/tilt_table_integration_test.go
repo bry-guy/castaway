@@ -61,10 +61,9 @@ func TestTiltTable(t *testing.T) {
 	}
 	at := func(d time.Duration) { now = opens.Add(time.Hour + d) } // everyone plays an hour after it opens
 
-	// No game yet: free play for everyone.
-	if page := serve("GET", "/games/tilt-table", "", "fast", 200); !strings.Contains(page, "tilt-table.js") || strings.Contains(page, "data-action") {
-		t.Fatalf("free play board: %s", page)
-	}
+	// No game yet, and no free play until one closes.
+	serve("GET", "/games/tilt-table", "", "fast", 303)
+	serve("GET", "/games/tilt-table?practice=1", "", "fast", 303)
 
 	create := "/api/instances/" + instanceID + "/tilt-games"
 	window := fmt.Sprintf(`{"episode_number":7,"opens_at":%q,"cutoff_at":"2026-11-11T23:59:00Z"}`, opens.Format(time.RFC3339))
@@ -89,11 +88,11 @@ func TestTiltTable(t *testing.T) {
 	if page := serve("GET", "/games/tilt-table", "", "fast", 200); !strings.Contains(page, `data-action="`+gameURL+`"`) || strings.Contains(page, "data-resume") {
 		t.Fatalf("open game: %s", page)
 	}
-	if page := serve("GET", "/games/tilt-table?practice=1", "", "fast", 200); strings.Contains(page, "data-action") {
-		t.Fatalf("free play while open must not be scored: %s", page)
+	if page := serve("GET", "/games/tilt-table?practice=1", "", "fast", 200); !strings.Contains(page, `data-action="`+gameURL+`"`) {
+		t.Fatalf("no free play while the game is open, only the scored board: %s", page)
 	}
-	if hub := serve("GET", "/games", "", "fast", 200); !strings.Contains(hub, gameURL) || !strings.Contains(hub, "/games/tilt-table?practice=1") {
-		t.Fatal("game or free play not listed on /games")
+	if hub := serve("GET", "/games", "", "fast", 200); !strings.Contains(hub, gameURL) || strings.Contains(hub, "/games/tilt-table?practice=1") {
+		t.Fatal("game must be listed on /games, free play not yet")
 	}
 
 	// fast: Go, an ace, a fall, a sink after the fall (no ace), an ace to finish in 30.04s.
@@ -146,6 +145,14 @@ func TestTiltTable(t *testing.T) {
 		t.Fatal(err)
 	}
 	serve("POST", "/api/tilt-games/"+game.ID+"/resolve", "", "admin", 200) // already resolved: no second award
+
+	// Closed: free play opens.
+	if page := serve("GET", "/games/tilt-table?practice=1", "", "fast", 200); !strings.Contains(page, "tilt-table.js") || strings.Contains(page, "data-action") {
+		t.Fatalf("free play after close: %s", page)
+	}
+	if hub := serve("GET", "/games", "", "fast", 200); !strings.Contains(hub, "/games/tilt-table?practice=1") {
+		t.Fatal("free play not listed on /games after close")
+	}
 
 	if page := serve("GET", gameURL, "", "idle", 200); !strings.Contains(page, "You didn't play this one") || !strings.Contains(page, ">fast</a>") || !strings.Contains(page, "2/3 in") {
 		t.Fatalf("results: %s", page)
