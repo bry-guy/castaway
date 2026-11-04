@@ -25,8 +25,8 @@ const SCORED = {
 const PRACTICE = { cups: [[0, 1.72]], rails: [[-0.25, 0.95, 0.25, 0.95]], colors: ["#ece6d6"] };
 let L = PRACTICE;
 const DROP = 0.07, G = 9.8, ROLL_G = 7;  // (5/7)·g: gravity along a slope for a rolling ball
-const MAX_TILT = 22, DEAD = 1.2, GAIN = 0.75; // phone degrees → table tilt
-const ROLL = (v) => 0.12 + 0.05 * v;     // rolling resistance on the table
+const MAX_TILT = 22, DEAD = 0.6, GAIN = 0.9; // phone degrees → table tilt
+const ROLL = (v) => 0.07 + 0.03 * v;     // rolling resistance on the table
 const GUTTER_ROLL = (v) => 0.2 + 0.08 * v;
 const WALL_E = 0.35, MAX_V = 3, CAPTURE_V = 0.12, GRAB = 0.12;
 const PRACTICE_S = 180, DEG = Math.PI / 180;
@@ -445,7 +445,7 @@ let last = t0, acc = 0;
 const STEP = 1 / 240;
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); acc += dt; last = now;
-  const want = readTilt(), kk = 1 - Math.exp(-dt * 14); // smooth the sensor
+  const want = readTilt(), kk = 1 - Math.exp(-dt * 20); // smooth the sensor
   tilt = { x: tilt.x + (want.x - tilt.x) * kk, y: tilt.y + (want.y - tilt.y) * kk };
   while (acc >= STEP) {
     if (held && target) { const k = 1 - Math.exp(-STEP * 25); held.x += (target.x - held.x) * k; held.y += (target.y - held.y) * k; }
