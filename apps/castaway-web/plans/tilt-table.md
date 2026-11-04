@@ -9,7 +9,9 @@ week 7 scored game, like Free the Block. Free play opens only after a game close
 
 ## Rules
 
-- A 1.0 × 1.875 m table: zig-zag bamboo rails with short vertical blockers, then three cups (red, yellow, blue)
+- A 0.8 × 1.875 m table: three bamboo rails whose gaps all sit against an open edge (left, right, left), the
+  first two with fins that make them chutes up the edge; a mound (a smooth bump that turns slow balls back and
+  bends fast ones) between the first two gaps and another in front of the cups; then three cups (red, yellow, blue)
   in bays along the far edge, as on the show. Three balls, one in play at a time: grab it from the rack and set
   it on the mat, then tilt.
 - A ball that leaves the table (left, right or far edge; the near edge has a rail) drops into the bamboo gutter.

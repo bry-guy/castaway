@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- Tilt Table is narrower (0.8 m) with a harder layout: every rail gap is against an open edge, the first two gaps are chutes that run up the edge, and two mounds bend the ball's line (one across the diagonal between the chutes, one in front of the cups). Practice keeps one rail and one cup.
 - Tilt Table is a little harder to control: smaller dead zone (0.6°), more gain (0.9), less rolling resistance and a quicker sensor response, so the ball keeps drifting unless the phone stays balanced.
 - Site viewers (migration 045: `instance_viewers`): a Discord user can be let in to see scores, seasons and player pages without being a player; game pages send viewers home and the API stays player-only. Admin API `POST /instances/:id/viewers` adds a viewer and clears their access request. The service worker no longer intercepts page loads or logins (it only caches `/assets/*`).
 - Tilt Table admin test: admins can always open the unscored board (`/games/tilt-table?practice=1`), linked from a "Test Tilt Table" panel on /games; players still get free play only after a game closes.
