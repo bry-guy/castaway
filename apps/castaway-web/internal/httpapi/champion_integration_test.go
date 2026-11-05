@@ -17,7 +17,7 @@ import (
 )
 
 // Pick Your Champion: picks change until the lock, then are fixed; only challenges after the lock award the
-// winners' pickers (+3 immunity, +1 reward); a voted-out Champion can't be picked and stops scoring.
+// winners' pickers (+3 immunity, +2 reward); a voted-out Champion can't be picked and stops scoring.
 func TestChampionPicks(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	ctx, pool := integrationPool(t)
@@ -131,20 +131,20 @@ func TestChampionPicks(t *testing.T) {
 		t.Fatalf("picks after lock = %v", picks)
 	}
 
-	// After the lock: Xena wins immunity (Bob +3), Yuri and Xena share a reward (+1 each).
+	// After the lock: Xena wins immunity (Bob +3), Yuri and Xena share a reward (+2 each).
 	ep9 := locks.Add(24 * time.Hour)
 	body := champ("survivor-ep9-c1-immunity", "immunity", ep9, id(x.ID.Bytes)) + "," + champ("survivor-ep9-c2-reward", "reward", ep9, id(y.ID.Bytes), id(x.ID.Bytes))
 	if res := imp(9, fmt.Sprintf(`{"position":2,"contestant_id":%q}`, id(x.ID.Bytes)), body, 201); res["challenge_awards"] != 3.0 {
 		t.Fatalf("ep9 awards = %v", res)
 	}
-	if got := bonus(); got["Alice"] != 1 || got["Bob"] != 4 || got["Cat"] != 0 {
+	if got := bonus(); got["Alice"] != 2 || got["Bob"] != 5 || got["Cat"] != 0 {
 		t.Fatalf("bonus after ep9 = %v", got)
 	}
 	imp(9, fmt.Sprintf(`{"position":2,"contestant_id":%q}`, id(x.ID.Bytes)), body, 200) // replay: no double award
 	imp(9, fmt.Sprintf(`{"position":2,"contestant_id":%q}`, id(x.ID.Bytes)), champ("survivor-ep9-c1-immunity", "immunity", ep9, id(y.ID.Bytes)), 409)
 	// Xena was voted out in Episode 9; she can't win again, so Bob's Champion stops scoring.
 	imp(10, "", champ("survivor-ep10-c1-immunity", "immunity", ep9.Add(7*24*time.Hour), id(y.ID.Bytes)), 201)
-	if got := bonus(); got["Alice"] != 4 || got["Bob"] != 4 {
+	if got := bonus(); got["Alice"] != 5 || got["Bob"] != 5 {
 		t.Fatalf("bonus after ep10 = %v", got)
 	}
 }

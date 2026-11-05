@@ -32,6 +32,7 @@ type scoresPost struct {
 	Last                                 rankLine
 	All                                  []rankLine // the whole board, every player mentioned
 	Site, NextGame, GameScore            string
+	Challenges                           []string // the week's tribe and Champion challenge results, e.g. "Dina, Toka won immunity (+2)"
 	Facts                                scoresFacts
 }
 
@@ -302,6 +303,9 @@ func composeScoresData(ctx context.Context, call apiCall, f seasonFile, airs []t
 	if err != nil {
 		return p, err
 	}
+	if p.Challenges, err = weekChallenges(ctx, call, path, since, airs[week-1].Add(24*time.Hour)); err != nil {
+		return p, err
+	}
 	p.GameScore, err = gameScore(ctx, call, path, tmpl, f, week)
 	if err != nil && previewUnscored && strings.Contains(err.Error(), "isn't scored yet") {
 		p.GameScore, err = gameScorePlaceholder(weekGame(f, week)), nil
@@ -540,4 +544,48 @@ type tribeRow struct {
 func fnum(v any) float64 {
 	f, _ := v.(float64)
 	return f
+}
+
+// challengePoints are what each winner's players get, by activity and kind.
+var challengePoints = map[string]map[string]int{"tribe_challenge": {"immunity": 2, "reward": 1}, "champion_challenge": {"immunity": 3, "reward": 2}}
+
+// weekChallenges lists tribe and Champion challenge results that took effect in (since, until].
+func weekChallenges(ctx context.Context, call apiCall, path string, since, until time.Time) ([]string, error) {
+	var acts struct {
+		Activities []struct {
+			ID   string `json:"id"`
+			Type string `json:"activity_type"`
+		} `json:"activities"`
+	}
+	if err := call(ctx, "GET", path+"/activities", nil, &acts); err != nil {
+		return nil, err
+	}
+	var lines []string
+	for _, a := range acts.Activities {
+		points, ok := challengePoints[a.Type]
+		if !ok {
+			continue
+		}
+		var occ struct {
+			Occurrences []struct {
+				Name   string    `json:"name"`
+				Kind   string    `json:"occurrence_type"`
+				At     time.Time `json:"effective_at"`
+				Status string    `json:"status"`
+			} `json:"occurrences"`
+		}
+		if err := call(ctx, "GET", "/activities/"+url.PathEscape(a.ID)+"/occurrences", nil, &occ); err != nil {
+			return nil, err
+		}
+		for _, o := range occ.Occurrences {
+			if o.Status != "cancelled" && o.At.After(since) && !o.At.After(until) {
+				line := o.Name
+				if a.Type == "champion_challenge" {
+					line = "Champion: " + line
+				}
+				lines = append(lines, fmt.Sprintf("%s (+%d)", line, points[o.Kind]))
+			}
+		}
+	}
+	return lines, nil
 }

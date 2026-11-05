@@ -20,8 +20,11 @@
 </div>
 {{if .Games}}<section aria-labelledby="games-heading"><h2 id="games-heading">Games</h2>
 <ul class="season-list">{{range .Games}}<li><span><a href="{{.URL}}">Episode {{.Episode}} · {{.Kind}}</a></span><span class="muted">{{.Result}}</span></li>{{end}}</ul></section>{{end}}
-<section aria-labelledby="seasons-heading"><h2 id="seasons-heading">Seasons</h2>
+{{if .Events}}<section aria-labelledby="events-heading"><h2 id="events-heading">Events</h2>
+<ul class="season-list">{{range .Events}}<li><span>{{if .URL}}<a href="{{.URL}}">{{.Name}}</a>{{else}}{{.Name}}{{end}} <span class="muted small">from Week {{.Week}}</span></span>
+<span class="muted">{{range $i, $w := .Weeks}}{{if $i}} · {{end}}Week {{$w.Week}}: +{{$w.Points}}{{else}}no points yet{{end}}</span></li>{{end}}</ul></section>{{end}}
+<details class="previous-seasons"><summary><h2 id="seasons-heading">Previous Seasons</h2></summary>
 <ul class="season-list">{{range .Seasons}}<li{{if .Selected}} aria-current="page"{{end}}><span><a href="/players/{{.ParticipantID}}">{{.InstanceName}}</a>{{if .Current}} <span class="badge">Current</span>{{end}}</span>
-<span class="muted">{{if .Scored}}Rank {{.Rank}} · {{.Total}} pts{{else}}Unavailable{{end}}</span></li>{{end}}</ul></section>
+<span class="muted">{{if .Scored}}Rank {{.Rank}} · {{.Total}} pts{{else}}Unavailable{{end}}</span></li>{{end}}</ul></details>
 {{end}}
 {{template "footer" .}}

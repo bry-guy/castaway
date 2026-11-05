@@ -293,14 +293,13 @@ type championView struct {
 	Message      string
 }
 
-// addChampionGame lists Pick Your Champion under its merge episode on /games.
+// addChampionGame lists Pick Your Champion as a season event on /games.
 func (s *Server) addChampionGame(ctx context.Context, data *sitePageData, instanceID uuid.UUID) error {
 	round, err := s.loadChampionRound(ctx, instanceID)
 	if err != nil || round == nil {
 		return err
 	}
-	ep := int32(round.MergeEpisode) // #nosec G115 -- small episode number
-	data.addGame(&ep, gameEntry{Kind: "Pick Your Champion", Name: "Pick Your Champion", URL: "/games/champion", Badge: "Rest of season",
+	data.Events = append(data.Events, gameEntry{Kind: "Season event", Name: fmt.Sprintf("Pick Your Champion (merge, Episode %d)", round.MergeEpisode), URL: "/games/champion", Badge: "🏆",
 		Status: gameStatus(s.now(), round.OpensAt, round.LocksAt, true)})
 	return nil
 }

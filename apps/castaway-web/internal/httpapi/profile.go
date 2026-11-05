@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"log/slog"
 	"context"
 	"encoding/json"
 	"errors"
@@ -44,6 +45,7 @@ type profileView struct {
 	DraftHidden            string
 	Seasons                []profileSeason
 	Games                  []profileGame
+	Events                 []profileEvent
 }
 
 type leaderboardRow struct {
@@ -190,7 +192,11 @@ func (s *Server) renderProfile(c *gin.Context, data sitePageData, participantID 
 	if err == nil {
 		view.Games, err = s.profileGames(ctx, participantID)
 	}
+	if err == nil {
+		view.Events, err = s.profileEvents(ctx, participantID)
+	}
 	if err != nil {
+		slog.Error("profile", "err", err)
 		c.String(http.StatusInternalServerError, "could not load the page")
 		return
 	}

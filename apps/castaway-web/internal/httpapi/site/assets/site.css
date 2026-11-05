@@ -129,3 +129,4 @@ castawordle-game { display: block; } .game-help { margin-top: 1.5rem; font-size:
 .scramble-tile.dragging, .scramble-slot.dragging { opacity: .35; }
 .scramble-slot.drop { border-color: var(--accent); background: var(--notice); }
 .scramble-ghost { position: fixed; z-index: 10; pointer-events: none; transform: translate(-50%, -60%) scale(1.15); box-shadow: 0 .4rem 1rem rgb(0 0 0 / .25); }
+.previous-seasons summary { cursor: pointer; } .previous-seasons summary h2 { display: inline; }

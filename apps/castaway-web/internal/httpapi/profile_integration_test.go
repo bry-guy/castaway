@@ -54,6 +54,16 @@ func TestProfiles(t *testing.T) {
 	createLedgerEntryForTest(t, ctx, q, current.ID, people["alice"].cur, occ.ID, pgtype.UUID{}, "award", 2, "public", "early", "early-alice")
 	createLedgerEntryForTest(t, ctx, q, current.ID, people["alice"].cur, occ.ID, pgtype.UUID{}, "award", 40, "secret", "idol", "secret-alice")
 
+	// Bob's tribe: an event with its challenge points by week.
+	toka := createParticipantGroupForTest(t, ctx, q, current.ID, "Toka", "tribe")
+	if _, err := pool.Exec(ctx, `INSERT INTO participant_group_membership_periods (participant_group_id, participant_id, starts_at)
+		SELECT g.id, p.id, $3 FROM participant_groups g, participants p WHERE g.public_id = $1 AND p.public_id = $2`, toka.ID, people["bob"].cur, now.Add(-72*time.Hour)); err != nil {
+		t.Fatal(err)
+	}
+	tc := createActivityForTest(t, ctx, q, current.ID, now.Add(-72*time.Hour), nil, "tribe_challenge", "Tribe challenges")
+	tcOcc := createOccurrenceForTest(t, ctx, q, tc.ID, "immunity", "Toka won immunity", now.Add(-24*time.Hour))
+	createLedgerEntryForTest(t, ctx, q, current.ID, people["bob"].cur, tcOcc.ID, pgtype.UUID{}, "award", 2, "public", "Toka won immunity", "tribe_challenge:toka")
+
 	for _, user := range []string{"alice", "bob", "carol", "dave"} {
 		hash := sha256.Sum256([]byte(user + "-profile"))
 		if _, err := pool.Exec(ctx, `INSERT INTO web_sessions (token_hash, discord_user_id, discord_username, kind, expires_at) VALUES ($1,$2,$2,'browser',$3)`, hash[:], user, now.AddDate(0, 1, 0)); err != nil {
@@ -107,6 +117,7 @@ func TestProfiles(t *testing.T) {
 		t.Fatal(err)
 	}
 	has(get("/players/"+id(people["alice"].cur), "bob", 200), "Torch Bearer")
+	has(get("/players/"+id(people["bob"].cur), "alice", 200), "Events", "Tribe Toka", "Week 1: +2", "Previous Seasons")
 	if _, err := pool.Exec(ctx, `DELETE FROM outcome_positions op USING instances i WHERE op.instance_id = i.id AND i.public_id = $1`, current.ID); err != nil {
 		t.Fatal(err)
 	}

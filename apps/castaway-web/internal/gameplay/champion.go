@@ -7,7 +7,7 @@ import "fmt"
 const ChampionChallengeActivityType = "champion_challenge"
 
 // ChampionChallengePoints is the per-picker award for each kind.
-var ChampionChallengePoints = map[string]int32{"immunity": 3, "reward": 1}
+var ChampionChallengePoints = map[string]int32{"immunity": 3, "reward": 2}
 
 type championParticipantMetadata struct {
 	ContestantID   string `json:"contestant_id"`

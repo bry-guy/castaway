@@ -10,6 +10,9 @@
 
 {{range .All}}{{.Place}}. {{.Mention}}: {{.Total}}
 {{end -}}
+{{- if .Challenges}}
+🏝️ **Challenges**: {{range $i, $c := .Challenges}}{{if $i}} · {{end}}{{$c}}{{end}}
+{{end}}
 {{- if .GameScore}}
 {{.GameScore}}{{end}}
 

@@ -1,6 +1,6 @@
 {{template "header" .}}
 {{with .Champion}}<p class="eyebrow"><a href="/games">Games</a> · Episode {{.MergeEpisode}}</p><h1>Pick Your Champion</h1>
-<p>Pick one castaway still in the game. Whenever your Champion wins individual immunity you get <b>+3</b>; reward, <b>+1</b>. If they're voted out, they stop scoring for you.</p>
+<p>A season event: pick one castaway still in the game (anyone, even if other players pick them too). Whenever your Champion wins individual immunity you get <b>+3</b>; reward, <b>+2</b>. Only challenges after picks lock count. If they're voted out, they stop scoring for you.</p>
 {{if .Message}}<p role="status"><b>{{.Message}}</b></p>{{end}}
 {{if .Locked}}<p class="muted">Picks locked {{.LocksAt.Format "Mon Jan 2 3:04pm"}} ET.{{if .Mine}} Your Champion: <b>{{.Mine}}</b>.{{else}} You didn't pick a Champion.{{end}}</p>
 <table><thead><tr><th>Player</th><th>Champion</th></tr></thead><tbody>{{range .Picks}}<tr><td>{{.Player}}</td><td>{{.Contestant}}</td></tr>{{else}}<tr><td colspan="2">No picks.</td></tr>{{end}}</tbody></table>

@@ -41,6 +41,7 @@ type sitePageData struct {
 	Tilt               *tiltView
 	TiltFreePlay       bool // a Tilt Table game has closed: free play is open
 	Champion           *championView
+	Events             []gameEntry // season events (Pick Your Champion), shown apart from games
 	GameEpisodes       []gameEpisode
 	TestGames          []gameEntry
 	SeasonID           string // /games?season=: a past season's games
