@@ -219,6 +219,9 @@ func addSeasonPostCommand(season *cobra.Command, call apiCall, guild *string, ye
 			if err != nil {
 				return err
 			}
+			if soon := time.Now().Add(10 * time.Minute); at.Before(soon) { // its slot passed: post shortly after approval
+				at = soon
+			}
 			// Saved behind the approval gate: every admin gets a DM and it sends at its time once one replies "yes".
 			if err := call(c.Context(), "PUT", path+"/announcements/"+url.PathEscape(found.ID)+"/approval", map[string]any{"send_at": at.UTC().Format(time.RFC3339)}, nil); err != nil {
 				return err
