@@ -11,7 +11,7 @@ func TestLiveTemplatesRender(t *testing.T) {
 	p := scoresPost{Season: 51, Week: 3, Intro: "Hi", Leader: "L", Gainer: "G", Slider: "S", Boots: "B",
 		All: []rankLine{{"<@1>", 9, 1}, {"<@2>", 8, 2}, {"<@3>", 7, 3}, {"Dee", 5, 4}, {"<@4>", 1, 5}}, Site: "https://x", NextGame: "NEXT", GameScore: "GAME"}
 	text, err := renderScoresPost(set, p)
-	if err != nil || !strings.Contains(text, "GAME") || !strings.Contains(text, "NEXT") || !strings.Contains(text, "🥉 <@3>: 7") {
+	if err != nil || !strings.Contains(text, "GAME") || !strings.Contains(text, "NEXT") || !strings.Contains(text, "3. <@3>: 7") {
 		t.Fatalf("scores.md: %v\n%s", err, text)
 	}
 	players := []gameRow{{Name: "Ann", TribeEmoji: "🟣", Points: 3, Presses: 20, First: true, Place: 1, Guesses: 3, Solved: true}, {Name: "Bo", Points: -1, Presses: 2, Last: true}}

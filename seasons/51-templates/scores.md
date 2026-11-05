@@ -8,7 +8,7 @@
 {{- if .Slider}}
 📉 {{.Slider}}{{end}}
 
-{{range .All}}{{if eq .Place 1}}🥇{{else if eq .Place 2}}🥈{{else if eq .Place 3}}🥉{{else}}{{.Place}}.{{end}} {{.Mention}}: {{.Total}}
+{{range .All}}{{.Place}}. {{.Mention}}: {{.Total}}
 {{end -}}
 {{- if .GameScore}}
 {{.GameScore}}{{end}}
