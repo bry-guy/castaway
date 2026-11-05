@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- Admins can correct a player's points on an existing game or challenge (`POST /instances/:id/occurrences/:id/corrections`), recorded as a correction with a reason.
 - Episode imports can come from the Survivor wiki (migration 046: source `wiki`). A survivoR import with `replace: true` replaces a wiki one (its boots and challenge awards) in one transaction and reports `changed` when any boot or points differ.
 - Tilt Table is narrower (0.8 m) with a harder layout: every rail gap is against an open edge, the first two gaps are chutes that run up the edge, and two mounds bend the ball's line (one across the diagonal between the chutes, one in front of the cups). Practice keeps one rail and one cup.
 - Tilt Table is a little harder to control: smaller dead zone (0.6°), more gain (0.9), less rolling resistance and a quicker sensor response, so the ball keeps drifting unless the phone stays balanced.

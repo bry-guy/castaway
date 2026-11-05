@@ -2624,6 +2624,52 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/RecordMergeAuctionRequest'
+  /instances/{instanceID}/occurrences/{occurrenceID}/corrections:
+    post:
+      operationId: createScoreCorrection
+      parameters:
+        - name: instanceID
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: occurrenceID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                    required:
+                      - id
+                  - $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                participant_id:
+                  type: string
+                points:
+                  type: integer
+                  format: int32
+                reason:
+                  type: string
+              required:
+                - participant_id
+                - points
+                - reason
   /instances/{instanceID}/outcomes:
     get:
       operationId: listOutcomes
