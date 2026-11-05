@@ -22,6 +22,7 @@ type fakeSeason struct {
 	posts    map[string]map[string]any
 	snapshot []scoreRow
 	imported []map[string]any
+	sources  map[int]string
 	// fingerprint is the standings' fingerprint the snapshot reports; empty means "fp".
 	fingerprint string
 }
@@ -39,7 +40,7 @@ func (s *fakeSeason) call(_ context.Context, method, path string, body, out any)
 	case method == "GET" && strings.HasSuffix(path, "/episode-imports"):
 		var list []map[string]any
 		for ep, pos := range s.imports {
-			list = append(list, map[string]any{"episode_number": ep, "boot_positions": pos})
+			list = append(list, map[string]any{"episode_number": ep, "boot_positions": pos, "source": s.sources[ep]})
 		}
 		set(map[string]any{"imports": list})
 	case method == "POST" && strings.HasSuffix(path, "/episode-imports"):
@@ -50,6 +51,14 @@ func (s *fakeSeason) call(_ context.Context, method, path string, body, out any)
 			pos = append(pos, x["position"].(int))
 		}
 		s.imports[b["episode_number"].(int)] = pos
+		if s.sources == nil {
+			s.sources = map[int]string{}
+		}
+		s.sources[b["episode_number"].(int)] = b["source"].(string)
+		if b["replace"] == true {
+			set(map[string]any{"status": "replaced", "changed": true})
+			break
+		}
 		set(map[string]any{"status": "applied"})
 	case method == "GET" && path == "/instances/x":
 		set(map[string]any{"episodes": []map[string]any{{"episode_number": 3, "airs_at": "2026-10-08T00:00:00Z"}}})
@@ -364,5 +373,63 @@ func TestApprovalLead(t *testing.T) {
 		if _, err := approvalLead(f); err == nil {
 			t.Errorf("%q accepted", bad)
 		}
+	}
+}
+
+// While survivoR is behind, a complete wiki episode is imported (admins told); survivoR later replaces it,
+// and a change DMs a score update.
+func TestReconcileWikiFallback(t *testing.T) {
+	f, err := loadSeasonFile("testdata/season-brainland.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, airs, err := expandSeason(f, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	fake := &fakeSeason{t: t, imports: map[int][]int{}, alerts: map[string]string{}, actions: map[string]map[string]any{}, posts: map[string]map[string]any{},
+		games: []liveGame{{Type: "press_the_button", Episode: 3}}}
+	survivor := episodePlan{Episode: 3, Status: "incomplete", Why: "survivoR has no challenges for the episode yet"}
+	boot := []planBoot{{Name: "Kyle Ostwald", ContestantID: "k", Position: 19, Result: "1st voted out"}}
+	wiki := episodePlan{Episode: 3, Revision: "wiki:9", Status: "ready", Boots: boot,
+		Challenges: []planChallenge{{Key: "wiki-ep3-c1-immunity", Kind: "immunity", Tribes: []string{"Toka"}, Label: "challenge 1"}}}
+	var out bytes.Buffer
+	r := &reconciler{ctx: context.Background(), call: fake.call, f: f, airs: airs, tmpl: mustTemplates(t, "testdata/templates"), out: &out, path: "/instances/x",
+		fetchPlan: func(ep int) (episodePlan, error) {
+			if ep != 3 {
+				return episodePlan{Episode: ep, Status: "absent"}, nil
+			}
+			return survivor, nil
+		},
+		fetchWiki: func(ep int) (episodePlan, error) {
+			if ep != 3 {
+				return episodePlan{Episode: ep, Status: "incomplete", Why: "no page"}, nil
+			}
+			return wiki, nil
+		}}
+	run := func(now string) {
+		t.Helper()
+		v, _ := time.ParseInLocation("2006-01-02 15:04", now, eastern())
+		r.now = v
+		if err := r.run(); err != nil {
+			t.Fatalf("%s: %v\n%s", now, err, out.String())
+		}
+	}
+	run("2026-10-08 12:00")
+	if len(fake.imported) != 1 || fake.imported[0]["source"] != "wiki" || fake.imported[0]["replace"] != nil ||
+		!strings.Contains(fake.alerts["s51-ep3-survivor-behind"], "Toka won immunity") {
+		t.Fatalf("wiki import: %v %v", fake.imported, fake.alerts)
+	}
+	// survivoR still behind: nothing more. Then it catches up with a different winner: replace + DM.
+	run("2026-10-09 12:00")
+	survivor = episodePlan{Episode: 3, Revision: "abc", Status: "ready", Boots: boot,
+		Challenges: []planChallenge{{Key: "survivor-ep3-c5-immunity", Kind: "immunity", Tribes: []string{"Savu"}, Label: "challenge 5"}}}
+	run("2026-10-09 12:05")
+	if len(fake.imported) != 2 || fake.imported[1]["replace"] != true || !strings.Contains(fake.alerts["s51-ep3-score-update"], "Savu won immunity") {
+		t.Fatalf("replace: %v %v", fake.imported, fake.alerts)
+	}
+	run("2026-10-09 12:10") // now survivoR's: never re-imported
+	if len(fake.imported) != 2 {
+		t.Fatal("re-imported a survivoR episode")
 	}
 }

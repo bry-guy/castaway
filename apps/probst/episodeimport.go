@@ -287,15 +287,22 @@ func (p episodePlan) importBody(airsAt time.Time, manual bool) map[string]any {
 			"effective_at": airsAt.Add(challengeOffset).UTC().Format(time.RFC3339)})
 	}
 	source := "survivor"
-	if manual {
+	switch {
+	case manual:
 		source = "manual"
+	case strings.HasPrefix(p.Revision, "wiki:"):
+		source = "wiki"
 	}
 	return map[string]any{"episode_number": p.Episode, "source": source, "source_revision": p.Revision, "boots": boots, "challenges": challenges, "champion_challenges": champions}
 }
 
 func (p episodePlan) describe() string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "Episode %d (survivoR %s): %s", p.Episode, shortRev(p.Revision), p.Status)
+	from := "survivoR " + shortRev(p.Revision)
+	if rev, ok := strings.CutPrefix(p.Revision, "wiki:"); ok {
+		from = "Survivor wiki rev " + rev
+	}
+	fmt.Fprintf(&b, "Episode %d (%s): %s", p.Episode, from, p.Status)
 	if p.Why != "" {
 		fmt.Fprintf(&b, " — %s", p.Why)
 	}

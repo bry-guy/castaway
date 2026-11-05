@@ -1,0 +1,85 @@
+{{Episode
+| image          = S51E07 Merge Tribe Formed.jpg
+| version        = {{Version|us}}
+| season         = {{S2|51}}
+| episodenumber  = 7/14 (746)
+| firstbroadcast = November 4, 2026
+| viewership     = 
+| share          = 
+| previous       = {{Ep|5106}}
+| next           = {{Ep|5108}}
+}}
+'''The Girl at the Prom''' is the seventh episode of {{S|51}}.
+==Story==
+===Day 13===
+===Day 14===
+==Challenges==
+<tabber>Reward=
+'''Challenge:''' ''[[Buggin' Out]]''<br />'''Reward:''' Merge feast<br />'''Winners:''' {{tribehl4|tovuto|Brady Booker}},  {{tribehl4|tovuto|Carter Krull}},  {{tribehl4|tovuto|Devin Way}},  {{tribehl4|tovuto|Eric Macksoud}},  {{tribehl4|tovuto|Jelly Loblack}},  {{tribehl4|tovuto|Danny Kilby}},  {{tribehl4|tovuto|Lewis Kelly}},  {{tribehl4|tovuto|Maggie Nestor}},  {{tribehl4|tovuto|Mike Pinsky}}, and {{tribehl4|tovuto|Thien An Nguyen}}
+|-|Immunity=
+'''Challenge:''' ''[[Over-Extended]]''<br />'''Winner:''' {{tribehl4|tovuto|Mike Pinsky}}
+</tabber>
+
+==Tribal Council==
+{| class="wikitable article-table" style="margin:auto; text-align:center; font-size:8pt; line-height:18px;" align="center"
+! colspan="2" {{tribebox3|tovuto|Tribal Council 8:<br />Tovuto}}
+|-
+! Voted<br />Against
+! Voter
+|-
+| {{tribebox3|tovuto|[[File:S51 brady t.png|60px|link=Brady Booker]]<br />Brady (9 votes)}}
+| {{tribebox3|tovuto|[[File:S51 cristian t.png|60px|link=Cristian Chavez]][[File:S51 devin t.png|60px|link=Devin Way]][[File:S51 eric t.png|60px|link=Eric Macksoud]][[File:S51 jelly t.png|60px|link=Jelly Loblack]]<br />[[File:S51 kilby t.png|60px|link=Danny Kilby]][[File:S51 kristin t.png|60px|link=Kristin Flickinger]][[File:S51 maggie t.png|60px|link=Maggie Nestor]][[File:S51 mike t.png|60px|link=Mike Pinsky]][[File:S51 sharonda t.png|60px|link=Sharonda Cox]]<br />Cristian, Devin, Eric, Jelly, Kilby, Kristin, Maggie, Mike, Sharonda}}
+|-
+| {{tribebox3|tovuto|[[File:S51 eric t.png|60px|link=Eric Macksoud]]<br />Eric (4 votes)}}
+| {{tribebox3|tovuto|[[File:S51 brady t.png|60px|link=Brady Booker]][[File:S51 carter t.png|60px|link=Carter Krull]][[File:S51 lewis t.png|60px|link=Lewis Kelly]][[File:S51 thienan t.png|60px|link=Thien An Nguyen]]<br />Brady, Carter, Lewis, Thien An}}
+|-
+! colspan="2" {{tribebox3|tovuto|VOTED OUT:<br />[[File:S51 brady bw.png|60px|link=Brady Booker]]<br />Brady Booker}}
+|}
+
+===Voting Confessionals===
+{{confessional|tovuto|(''voting against Brady'') What a freaking mess. I'm in a lot of trouble if this doesn't go my way tonight.|Mike Pinsky|Mike|S51 mike t.png}}
+{{confessional|tovuto|(''voting against Eric'') This merge thing, brodie. Unfortunately, the guy's name who I wanted to write down tonight is wearing the necklace.|Brady Booker|Brady|S51 brady t.png}}
+{{confessional|tovuto|(''voting against Brady'') Don't ever rat out when I'm trying to help you and gain your trust. You crossed the vampire: time to get bit.|Eric Macksoud|Eric|S51 eric t.png}}
+===Final Words===
+{{Confessional|none|Tonight was a bummer and I feel like I left a lot out on the table, you know. The people who said they were with me weren't and millions of dollars are great motivators. Um, I played ''Survivor'' like I wrestle in the ring. I played hard and I played with passion, maybe sometimes too much passion, you know. Definitely made some mistakes, had fun doing it. Very thankful to be a part of it.|Brady Booker|Brady|S51 brady bw.png}}
+===Still in the Running===
+{| align="center" style="font-size:10px;"
+| {{ContestantThumbnail|color=none|articlename=Aaliyah Puglia|name=Aaliyah|image=S51 aaliyah bw.png|place=21st}}
+| {{ContestantThumbnail|color=none|articlename=Ana Sani|name=Ana|image=S51 ana bw.png|place=20th}}
+| {{ContestantThumbnail|color=none|articlename=Rob Antonson|name=Rob|image=S51 rob bw.png|place=19th}}
+| {{ContestantThumbnail|color=none|articlename=Patt Cannaday|name=Patt|image=S51 patt bw.png|place=18th}}
+| {{ContestantThumbnail|color=none|articlename=Jenna Doore|name=Jenna|image=S51 jenna bw.png|place=17th}}
+| {{ContestantThumbnail|color=none|articlename=Alexis Levine|name=Alexis|image=S51 alexis bw.png|place=16th}}
+| {{ContestantThumbnail|color=none|articlename=Linnea Capobianco|name=Linnea|image=S51 linnea bw.png|place=15th}}
+|-
+| {{ContestantThumbnail|color=none|articlename=Ori Jean-Charles|name=Ori|image=S51 ori bw.png|place=14th}}
+| {{ContestantThumbnail|color=none|articlename=Brady Booker|name=Brady|image=S51 brady bw.png|place=13th}}
+| {{ContestantThumbnail|color=tovuto|articlename=Carter Krull|name=Carter|image=S51 carter t.png|place=Tovuto}}
+| {{ContestantThumbnail|color=tovuto|articlename=Cristian Chavez|name=Cristian|image=S51 cristian t.png|place=Tovuto}}
+| {{ContestantThumbnail|color=tovuto|articlename=Devin Way|name=Devin|image=S51 devin t.png|place=Tovuto}}
+| {{ContestantThumbnail|color=tovuto|articlename=Eric Macksoud|name=Eric|image=S51 eric t.png|place=Tovuto}}
+| {{ContestantThumbnail|color=tovuto|articlename=Jelly Loblack|name=Jelly|image=S51 jelly t.png|place=Tovuto}}
+|-
+| {{ContestantThumbnail|color=tovuto|articlename=Danny Kilby|name=Kilby|image=S51 kilby t.png|place=Tovuto}}
+| {{ContestantThumbnail|color=tovuto|articlename=Kristin Flickinger|name=Kristin|image=S51 kristin t.png|place=Tovuto}}
+| {{ContestantThumbnail|color=tovuto|articlename=Lewis Kelly|name=Lewis|image=S51 lewis t.png|place=Tovuto}}
+| {{ContestantThumbnail|color=tovuto|articlename=Maggie Nestor|name=Maggie|image=S51 maggie t.png|place=Tovuto}}
+| {{ContestantThumbnail|color=tovuto|articlename=Mike Pinsky|name=Mike|image=S51 mike t.png|place=Tovuto}}
+| {{ContestantThumbnail|color=tovuto|articlename=Sharonda Cox|name=Sharonda|image=S51 sharonda t.png|place=Tovuto}}
+| {{ContestantThumbnail|color=tovuto|articlename=Thien An Nguyen|name=Thien An|image=S51 thienan t.png|place=Tovuto}}
+|}
+
+==Trivia==
+===Secret Scene===
+===Behind the Scenes===
+===Other===
+*The episode title was said by [[Brady Booker]] to [[Mike Pinsky]] about how he felt betrayed by the latter.
+<!-- The episode was originally called "You Broke My Heart Like I Was a Girl at the Prom". The title was changed for unknown reasons. -->
+==References==
+{{Reflist}}
+{{S51episodes}}
+[[Category:Survivor (U.S.)]]
+[[Category:Episodes]]
+[[Category:Survivor (U.S.) Episodes|5107]]
+[[Category:Survivor 51]]
+[[Category:Survivor 51 Episodes|07]]

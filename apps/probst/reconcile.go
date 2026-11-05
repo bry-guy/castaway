@@ -54,6 +54,9 @@ type reconciler struct {
 	open []string // this run's still-open issues, for the daily nudge
 	// fetchPlan is fetchEpisodePlan; tests swap it.
 	fetchPlan func(episode int) (episodePlan, error)
+	// fetchWiki plans an episode from the Survivor wiki when survivoR is behind; nil turns that off.
+	fetchWiki func(episode int) (episodePlan, error)
+	sources   map[int]string // each imported episode's source (survivor, wiki, manual)
 }
 
 func (r *reconciler) logf(format string, args ...any) {
@@ -115,26 +118,32 @@ func (r *reconciler) rules() importRules {
 func (r *reconciler) imports() (map[int][]int, error) {
 	var res struct {
 		Imports []struct {
-			Episode   int   `json:"episode_number"`
-			Positions []int `json:"boot_positions"`
+			Episode   int    `json:"episode_number"`
+			Positions []int  `json:"boot_positions"`
+			Source    string `json:"source"`
 		} `json:"imports"`
 	}
 	if err := r.call(r.ctx, "GET", r.path+"/episode-imports", nil, &res); err != nil {
 		return nil, err
 	}
 	done := map[int][]int{}
+	r.sources = map[int]string{}
 	for _, i := range res.Imports {
 		done[i.Episode] = i.Positions
+		r.sources[i.Episode] = i.Source
 	}
 	return done, nil
 }
 
-// importResults imports each aired episode (from from_week on) once survivoR has it complete. Missing
-// results past the file's due time, holds, and conflicts become one-time admin alerts.
+// importResults imports each aired episode (from from_week on) once survivoR has it complete. While
+// survivoR is behind, a complete Survivor wiki episode is imported instead (admins are told), and survivoR
+// replaces it once it has the episode, DMing admins if that changed any boot or points. Missing results past
+// the file's due time, holds, and conflicts become one-time admin alerts.
 func (r *reconciler) importResults(done map[int][]int) error {
 	var errs []error
 	for ep := max(1, r.f.Automation.FromWeek); ep <= len(r.airs); ep++ {
-		if _, ok := done[ep]; ok || r.now.Before(r.airs[ep-1].Add(3*time.Hour)) {
+		_, imported := done[ep]
+		if imported && r.sources[ep] != "wiki" || r.now.Before(r.airs[ep-1].Add(3*time.Hour)) {
 			continue
 		}
 		plan, err := r.fetchPlan(ep)
@@ -144,11 +153,39 @@ func (r *reconciler) importResults(done map[int][]int) error {
 		}
 		r.logf("%s", plan.describe())
 		key := fmt.Sprintf("s%d-ep%d", r.f.Season, ep)
+		if imported { // from the wiki: survivoR replaces it only once it's complete and clean
+			if plan.Status == "ready" && len(plan.Holds)+len(plan.Review) == 0 {
+				errs = append(errs, r.applyPlan(plan, false))
+			}
+			continue
+		}
 		switch {
 		case plan.Status != "ready":
+			why := "survivoR: " + plan.Why
+			if r.fetchWiki != nil {
+				wiki, err := r.fetchWiki(ep)
+				if err != nil {
+					wiki = episodePlan{Status: "unreachable", Why: err.Error()}
+				}
+				r.logf("%s", wiki.describe())
+				if wiki.Status == "ready" && len(wiki.Holds)+len(wiki.Review) == 0 {
+					if err := r.applyPlan(wiki, false); err != nil {
+						errs = append(errs, err)
+						continue
+					}
+					errs = append(errs, r.alertMsg(key+"-survivor-behind", "survivor-behind", map[string]any{"Episode": ep, "Why": plan.Why, "Results": resultLines(wiki), "Week": ep}))
+					continue
+				}
+				switch {
+				case wiki.Status != "ready":
+					why += "; Survivor wiki: " + wiki.Why
+				default:
+					why += "; Survivor wiki: needs a decision (" + strings.Join(append(wiki.Holds, wiki.Review...), "; ") + ")"
+				}
+			}
 			due, err := planTime(r.f.Weekly.Results.Due, r.airs[ep-1])
 			if err == nil && r.now.After(due) {
-				errs = append(errs, r.alertMsg(key+"-results-missing", "results-missing", map[string]any{"Episode": ep, "Why": plan.Why, "Week": ep, "Season": r.f.Season}))
+				errs = append(errs, r.alertMsg(key+"-results-missing", "results-missing", map[string]any{"Episode": ep, "Why": why, "Week": ep, "Season": r.f.Season}))
 			}
 		case len(plan.Holds) > 0:
 			errs = append(errs, r.alertMsg(key+"-holds-"+hash8(strings.Join(plan.Holds, "\n")), "holds", map[string]any{"Episode": ep, "Holds": plan.Holds, "Season": r.f.Season, "Week": ep}))
@@ -219,17 +256,34 @@ func (r *reconciler) applyPlan(plan episodePlan, manual bool) error {
 	if err != nil {
 		return err
 	}
+	if r.sources[plan.Episode] == "wiki" && body["source"] == "survivor" {
+		body["replace"] = true
+	}
 	var res struct {
-		Status string `json:"status"`
+		Status  string `json:"status"`
+		Changed bool   `json:"changed"`
 	}
 	err = r.call(r.ctx, "POST", r.path+"/episode-imports", body, &res)
 	if err != nil && strings.Contains(err.Error(), "409") {
 		return r.alertMsg(fmt.Sprintf("s%d-ep%d-conflict-%s", r.f.Season, plan.Episode, hash8(err.Error())), "import-conflict", map[string]any{"Episode": plan.Episode, "Error": err.Error()})
 	}
-	if err == nil {
-		r.logf("episode %d: %s", plan.Episode, res.Status)
+	if err != nil {
+		return err
 	}
-	return err
+	r.logf("episode %d: %s", plan.Episode, res.Status)
+	if res.Status == "replaced" {
+		r.sources[plan.Episode] = "survivor"
+	}
+	if res.Status == "replaced" && res.Changed {
+		return r.alertMsg(fmt.Sprintf("s%d-ep%d-score-update", r.f.Season, plan.Episode), "score-update", map[string]any{"Episode": plan.Episode, "Week": plan.Episode, "Results": resultLines(plan)})
+	}
+	return nil
+}
+
+// resultLines are a plan's boots and winners for an admin DM.
+func resultLines(p episodePlan) []string {
+	_, lines, _ := strings.Cut(p.describe(), "\n")
+	return strings.Split(strings.TrimSpace(strings.ReplaceAll(lines, "\n  ", "\n")), "\n")
 }
 
 type liveGame struct {
@@ -571,6 +625,9 @@ func newReconcilerFor(c *cobra.Command, call apiCall, f seasonFile, tmpl templat
 	r.fetchPlan = func(ep int) (episodePlan, error) {
 		return fetchEpisodePlan(r.ctx, call, r.path, f.Season, ep, r.rules())
 	}
+	r.fetchWiki = func(ep int) (episodePlan, error) {
+		return fetchWikiPlan(r.ctx, call, r.path, f.Season, ep, r.rules(), r.now)
+	}
 	return r, nil
 }
 
@@ -611,6 +668,7 @@ func addEpisodeImportCommand(episodeCmd, season *cobra.Command, call apiCall, ye
 	var file string
 	var episode int
 	var resolveHolds bool
+	var source string
 	run := func(c *cobra.Command) error {
 		r, err := newReconciler(c, call, file)
 		if err != nil {
@@ -619,14 +677,26 @@ func addEpisodeImportCommand(episodeCmd, season *cobra.Command, call apiCall, ye
 		if episode < 1 || episode > len(r.airs) {
 			return fmt.Errorf("episode must be 1-%d", len(r.airs))
 		}
-		plan, err := r.fetchPlan(episode)
+		fetch := r.fetchPlan
+		if source == "" {
+			source = "survivor"
+		}
+		if source == "wiki" {
+			fetch = r.fetchWiki
+		} else if source != "survivor" {
+			return fmt.Errorf("--source is survivor or wiki")
+		}
+		if _, err := r.imports(); err != nil {
+			return err
+		}
+		plan, err := fetch(episode)
 		if err != nil {
 			return err
 		}
 		r.logf("%s", plan.describe())
 		switch {
 		case plan.Status != "ready" && !resolveHolds:
-			return fmt.Errorf("episode %d isn't complete in survivoR yet", episode)
+			return fmt.Errorf("episode %d isn't complete in %s yet", episode, map[string]string{"survivor": "survivoR", "wiki": "the Survivor wiki"}[source])
 		case len(plan.Holds) > 0 && !resolveHolds:
 			return fmt.Errorf("episode %d has holds: record them by hand (`probst boot` / `probst challenge`), then re-run with --resolve-holds", episode)
 		case !*yes:
@@ -637,7 +707,7 @@ func addEpisodeImportCommand(episodeCmd, season *cobra.Command, call apiCall, ye
 	}
 	cmd := &cobra.Command{
 		Use:   "import N --file SEASON_FILE",
-		Short: "Import an episode's results from survivoR all at once (dry run unless --yes)",
+		Short: "Import an episode's results from survivoR (or --source wiki) all at once (dry run unless --yes)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(c *cobra.Command, a []string) error {
 			n, err := strconv.Atoi(a[0])
@@ -653,6 +723,7 @@ func addEpisodeImportCommand(episodeCmd, season *cobra.Command, call apiCall, ye
 	}
 	cmd.Flags().StringVar(&file, "file", "", "Season file, e.g. seasons/51.yaml")
 	cmd.Flags().BoolVar(&resolveHolds, "resolve-holds", false, "Held items were recorded by hand: import the rest and mark the episode done")
+	cmd.Flags().StringVar(&source, "source", "survivor", "survivor, or wiki (survivor.fandom.com) while survivoR is behind; survivoR later replaces a wiki import")
 	episodeCmd.AddCommand(cmd)
 
 	alias := &cobra.Command{

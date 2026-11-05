@@ -1,0 +1,82 @@
+{{Episode
+| image          = S51E06 Savu Discussion.jpg
+| version        = {{Version|us}}
+| season         = {{S2|51}}
+| episodenumber  = 6/14 (745)
+| firstbroadcast = October 28, 2026
+| viewership     = 
+| share          = 
+| previous       = {{Ep|5105}}
+| next           = {{Ep|5107}}
+}}
+'''I Love Crying''' is the sixth episode of {{S|51}}.
+==Story==
+===Day 11===
+===Day 12===
+==Challenges==
+'''Immunity Challenge:''' ''[[Challenge Pitch|UnBraidy]] [[Knot Your Fault|Bunch]]''<br />The castaways are going to race to untangle themselves from braided ropes. They'll then use those ropes to pull a sled of sandbags to them. Then one at a time, they'll use the sandbags to knock off every piece of their puzzle from that platform, and then they will work together to use all those pieces to build a large ''Survivor'' puzzle.<br />'''Winners (in order of finish):''' {{tribeicon|toka}} and {{tribeicon|dina}}
+
+==Tribal Council==
+{| class="wikitable article-table" style="margin:auto; text-align:center; font-size:8pt; line-height:18px;" align="center"
+! colspan="2" {{tribebox3|savu|Tribal Council 7:<br />Savu}}
+|-
+! Voted<br />Against
+! Voter<br /><small>''(Ori used Shot in the Dark and was not safe)''</small>
+|-
+| {{tribebox3|savu|[[File:S51 ori t.png|60px|link=Ori Jean-Charles]]<br />Ori (2 votes)}}
+| {{tribebox3|savu|[[File:S51 devin t.png|60px|link=Devin Way]][[File:S51 jelly t.png|60px|link=Jelly Loblack]]<br />Devin, Jelly}}
+|-
+! colspan="2" {{tribebox3|savu|VOTED OUT:<br />[[File:S51 ori bw.png|60px|link=Ori Jean-Charles]]<br />Ori Jean-Charles}}
+|}
+
+===Voting Confessionals===
+''Jelly was shown writing Ori's name down.''
+{{confessional|savu|(''playing Shot in the Dark'') Can't wait for this to say "Safe". Right here. This is the one. Wish me luck.|Ori Jean-Charles|Ori|S51 ori t.png}}
+===Final Words===
+{{Confessional|none|Played my Shot in the Dark, it said 'Not Safe', and that was all she wrote. Got eliminated tonight, heartbroken right now. And I was playing with the people that I really, genuinely care for and enjoyed being around. When you go through the fight together, and when you starve together, it bonds you. It's an experience that I wouldn't it trade for nothing, it's undescribable honestly.|Ori Jean-Charles|Ori|S51 ori bw.png}}
+===Still in the Running===
+{| align="center" style="font-size:10px;"
+| {{ContestantThumbnail|color=none|articlename=Aaliyah Puglia|name=Aaliyah|image=S51 aaliyah bw.png|place=21st}}
+| {{ContestantThumbnail|color=none|articlename=Ana Sani|name=Ana|image=S51 ana bw.png|place=20th}}
+| {{ContestantThumbnail|color=none|articlename=Rob Antonson|name=Rob|image=S51 rob bw.png|place=19th}}
+| {{ContestantThumbnail|color=none|articlename=Patt Cannaday|name=Patt|image=S51 patt bw.png|place=18th}}
+| {{ContestantThumbnail|color=none|articlename=Jenna Doore|name=Jenna|image=S51 jenna bw.png|place=17th}}
+| {{ContestantThumbnail|color=none|articlename=Alexis Levine|name=Alexis|image=S51 alexis bw.png|place=16th}}
+| {{ContestantThumbnail|color=none|articlename=Linnea Capobianco|name=Linnea|image=S51 linnea bw.png|place=15th}}
+|-
+| {{ContestantThumbnail|color=none|articlename=Ori Jean-Charles|name=Ori|image=S51 ori bw.png|place=14th}}
+| {{ContestantThumbnail|color=toka|articlename=Brady Booker|name=Brady|image=S51 brady t.png|place=Toka}}
+| {{ContestantThumbnail|color=toka|articlename=Carter Krull|name=Carter|image=S51 carter t.png|place=Toka}}
+| {{ContestantThumbnail|color=dina|articlename=Cristian Chavez|name=Cristian|image=S51 cristian t.png|place=Dina}}
+| {{ContestantThumbnail|color=savu|articlename=Devin Way|name=Devin|image=S51 devin t.png|place=Savu}}
+| {{ContestantThumbnail|color=dina|articlename=Eric Macksoud|name=Eric|image=S51 eric t.png|place=Dina}}
+| {{ContestantThumbnail|color=savu|articlename=Jelly Loblack|name=Jelly|image=S51 jelly t.png|place=Savu}}
+|-
+| {{ContestantThumbnail|color=dina|articlename=Danny Kilby|name=Kilby|image=S51 kilby t.png|place=Dina}}
+| {{ContestantThumbnail|color=toka|articlename=Kristin Flickinger|name=Kristin|image=S51 kristin t.png|place=Toka}}
+| {{ContestantThumbnail|color=dina|articlename=Lewis Kelly|name=Lewis|image=S51 lewis t.png|place=Dina}}
+| {{ContestantThumbnail|color=toka|articlename=Maggie Nestor|name=Maggie|image=S51 maggie t.png|place=Toka}}
+| {{ContestantThumbnail|color=toka|articlename=Mike Pinsky|name=Mike|image=S51 mike t.png|place=Toka}}
+| {{ContestantThumbnail|color=dina|articlename=Sharonda Cox|name=Sharonda|image=S51 sharonda t.png|place=Dina}}
+| {{ContestantThumbnail|color=toka|articlename=Thien An Nguyen|name=Thien An|image=S51 thienan t.png|place=Toka}}
+|}
+
+==Trivia==
+===Secret Scene===
+*'''Treemail:''' Lewis is desperate to win what sounds like an Immunity Challenge.<ref>https://www.cbs.com/shows/video/ALVE01M645FC58E8A8Q008HRF6R48M/</ref>
+*'''(Untitled):''' Kristin Flickinger spins a calculated cover story about her night on Exile Island to hide her new idol. But one tribemate is already seeing right through it.<ref>https://parade.com/tv/survivor-51-episode-6-deleted-scene-kristin-exile-island-lie</ref>
+*'''Maggie Tries to Hunt for Breakfast:''' Breakfast is an essential part of the day 🦀<ref>https://www.instagram.com/survivorcbs/reel/DfIZBXuEfWP/</ref>
+===Behind the Scenes===
+===Other===
+* The title of the episode was said by [[Eric Macksoud]] about how he feels comfortable letting out his negative emotions.
+* After six consecutive [[Tribal Council]] eliminations by women, [[Ori Jean-Charles|Ori]] is the first man to be voted out, though [[Rob Antonson|not the first]] to be eliminated.
+** Ori is also the only man to be voted out before the [[merge]].
+
+==References==
+{{Reflist}}
+{{S51episodes}}
+[[Category:Survivor (U.S.)]]
+[[Category:Episodes]]
+[[Category:Survivor (U.S.) Episodes|5106]]
+[[Category:Survivor 51]]
+[[Category:Survivor 51 Episodes|06]]

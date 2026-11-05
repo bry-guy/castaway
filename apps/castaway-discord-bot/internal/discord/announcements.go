@@ -162,6 +162,7 @@ func (b *Bot) notifyAdminAlert(ctx context.Context) error {
 	if err := b.dmAdmins(ctx, a.Admins, text); err != nil {
 		return err
 	}
+	b.log.Info("admin alert delivered", "alert_id", a.Alert.ID, "admins", len(a.Admins))
 	return b.castaway.ConfirmAdminAlert(ctx, a.Alert.ID)
 }
 

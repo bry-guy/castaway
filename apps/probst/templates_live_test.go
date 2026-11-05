@@ -27,7 +27,7 @@ func TestLiveTemplatesRender(t *testing.T) {
 			t.Errorf("%s: %v", name, err)
 		}
 	}
-	sample := map[string]any{"Episode": 3, "Week": 3, "Season": 51, "Why": "w", "Holds": []string{"h"}, "Review": []string{"r"}, "Revision": "abc",
+	sample := map[string]any{"Episode": 3, "Week": 3, "Season": 51, "Why": "w", "Holds": []string{"h"}, "Review": []string{"r"}, "Revision": "abc", "Results": []string{"boot: Ori"},
 		"Boots": []map[string]any{{"Name": "Rob", "Position": 19, "Result": "Quit"}}, "Challenges": []map[string]any{{"Tribes": "Savu", "Kind": "immunity", "Points": "+2"}},
 		"Champions": []map[string]any{}, "Error": "e", "At": "a", "Waiting": "w", "Until": "u", "Game": "g", "Problem": "p", "Opens": "o", "Issues": []string{"i"}, "Kind": "swap", "Tribes": []swapTribe{}, "Awards": []tribeAward{}}
 	for name := range set {

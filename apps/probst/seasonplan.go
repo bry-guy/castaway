@@ -324,6 +324,7 @@ func newSeasonCommand(call apiCall, instance, guild *string, yes *bool) *cobra.C
 			if err != nil {
 				return err
 			}
+			markImports(c.Context(), call, f, items)
 			out := c.OutOrStdout()
 			fmt.Fprintf(out, "Season %d — timeline (ET)\n", f.Season)
 			printTimeline(out, items)
@@ -394,4 +395,32 @@ func loadAnnouncements(ctx context.Context, call apiCall, instancePath string) (
 		Announcements []announcement `json:"announcements"`
 	}
 	return res.Announcements, call(ctx, "GET", instancePath+"/announcements", nil, &res)
+}
+
+// markImports shows whether each due episode's results were actually imported, not just that the due time passed.
+func markImports(ctx context.Context, call apiCall, f seasonFile, items []planItem) {
+	var res struct {
+		Imports []struct {
+			Episode int    `json:"episode_number"`
+			Source  string `json:"source"`
+		} `json:"imports"`
+	}
+	if call(ctx, "GET", "/instances/"+url.PathEscape(f.Instance)+"/episode-imports", nil, &res) != nil {
+		return
+	}
+	got := map[int]string{}
+	for _, i := range res.Imports {
+		got[i.Episode] = i.Source
+	}
+	for i := range items {
+		var ep int
+		if _, err := fmt.Sscanf(items[i].What, "Episode %d results due", &ep); err != nil || items[i].Status != "✓" {
+			continue
+		}
+		if src, ok := got[ep]; ok {
+			items[i].Status = "✓ " + src
+		} else if ep >= f.Automation.FromWeek {
+			items[i].Status = "⚠ not imported"
+		}
+	}
 }

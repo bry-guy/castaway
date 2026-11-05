@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+- Logs each delivered admin-alert DM.
+
 - The access-request DM also offers the view-only approval command.
 - An instance admin's free-form DM is a publish request: the bot echoes the exact text and lists the season channels the admin administers. Reply with a server name (case-insensitive, or a channel ID when names repeat), several separated by `/`, or `no` to cancel. Unknown names keep the request open and list the options. Non-admins get no reply.
 - Episode discussion threads: the bot opens a queued thread as a public thread with no opener, deletes the "started a thread" system message, and posts just the thread link (`<#thread>`) in the season channel. Missing Create Public Threads, Manage Messages, View Channel, or Send Messages is reported to admins before any thread is opened.

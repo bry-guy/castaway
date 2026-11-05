@@ -264,7 +264,7 @@ DM. Each run:
    approved or sent with the old numbers: an untouched draft is redrafted and re-asked; an admin-edited one
    keeps the admin's text, re-asks, and the admins get an alert to check the numbers (that note is an alert, not part of the DM).
 
-`probst episode import N --file FILE [--yes]` runs the same import by hand (`season import` and `episode sync` are deprecated) (dry run without `--yes`).
+`probst episode import N --file FILE [--source wiki] [--yes]` runs the same import by hand (`--source wiki` reads the Survivor wiki while survivoR is behind; survivoR later replaces it and admins get a DM if scores changed) (`season import` and `episode sync` are deprecated) (dry run without `--yes`).
 Kill switch: `kubectl -n castaway patch cronjob probst-season-check -p '{"spec":{"suspend":true}}'` or
 `automation.enabled: false`. The job reuses the bot's service token (`CASTAWAY_API_AUTH_TOKEN`, by
 `secretKeyRef`) acting as an admin via `PROBST_DISCORD_USER_ID`, and reaches castaway-web over in-cluster

@@ -1,1 +1,1 @@
-⚠️ **Episode {{.Episode}} results aren't in survivoR yet** ({{.Why}}). The Week {{.Week}} scores post waits for them. Enter them by hand (`probst boot` / `probst challenge`), then run `probst episode import {{.Episode}} --file seasons/{{.Season}}.yaml --resolve-holds --yes`.
+⚠️ **Episode {{.Episode}} results aren't in survivoR or the Survivor wiki yet** ({{.Why}}). The Week {{.Week}} scores post waits for them. Enter them by hand (`probst boot` / `probst challenge`), then run `probst episode import {{.Episode}} --file seasons/{{.Season}}.yaml --resolve-holds --yes`.
