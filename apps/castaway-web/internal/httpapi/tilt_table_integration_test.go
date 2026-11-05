@@ -112,7 +112,6 @@ func TestTiltTable(t *testing.T) {
 	}
 	progress("fast", 0, 1, 409) // a hole can't empty
 	progress("fast", 1, 0, 409) // rollbacks can't go down
-	progress("fast", 7, 1, 409) // two holes at once
 	progress("fast", 8, 1, 400)
 	progress("fast", 3, 1, 200)
 	at(30*time.Second + 40*time.Millisecond)
@@ -127,8 +126,7 @@ func TestTiltTable(t *testing.T) {
 	// tie: three aces in 30.09s (the same tenth as fast). slow: 45s, one ace and a rollback on each of the other balls. quit: two in.
 	at(0)
 	progress("tie", 0, 0, 200)
-	progress("tie", 2, 0, 200)
-	progress("tie", 6, 0, 200)
+	progress("tie", 2, 0, 200) // its next save (6) lost: the last one catches up two sinks, both aces
 	at(30*time.Second + 90*time.Millisecond)
 	progress("tie", 7, 0, 200)
 	at(0)

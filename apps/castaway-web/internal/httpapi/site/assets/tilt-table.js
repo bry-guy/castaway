@@ -141,11 +141,40 @@ function resumeRun() { // a reload mid-run: filled holes stay filled and the clo
 }
 
 // Scored runs: progress at "Go" (which starts the server's clock), after every rollback and every sink.
+
+// Saves go one at a time, always the newest state, and a failed save retries until it lands, so a dropped
+// request can't leave the server behind. A save the server refuses is shown, never swallowed.
+let saving = null, pending = null;
+function saveNote(text) {
+  let el = $("savenote");
+  if (!el) { el = document.createElement("p"); el.id = "savenote"; el.setAttribute("role", "status");
+    el.style.cssText = "position:fixed;left:50%;bottom:12px;transform:translateX(-50%);margin:0;padding:6px 12px;border-radius:8px;background:#c8372d;color:#fff;font:600 14px sans-serif;z-index:50;max-width:90vw;text-align:center"; document.body.append(el); }
+  el.textContent = text; el.hidden = !text;
+}
+function save(body) {
+  if (!ACTION) return Promise.resolve(null);
+  pending = body;
+  return saving || (saving = (async () => {
+    let res = null;
+    for (let tries = 0; pending;) {
+      const sent = pending;
+      try {
+        const r = await fetch(ACTION + "/progress", { method: "POST", keepalive: true, redirect: "manual", headers: { "Content-Type": "application/json" }, body: JSON.stringify(sent) });
+        if (r.ok) { res = await r.json(); tries = 0; if (pending === sent) pending = null; saveNote(""); continue; }
+        if (r.type === "opaqueredirect" || r.status === 401) { saveNote("Not saved: you're signed out. Sign in again in another tab, then keep playing."); }
+        else if (r.status === 409 || r.status === 400) { const e = await r.json().catch(() => ({})); saveNote(`Not saved: ${e.error || "the server refused this run"}. Reload the page.`); pending = null; break; }
+        else saveNote("Saving… (retrying)");
+      } catch { saveNote("Not saved yet: no connection. Retrying…"); }
+      await new Promise((ok) => setTimeout(ok, Math.min(8000, 500 * 2 ** tries++)));
+    }
+    saving = null;
+    return res;
+  })());
+}
 function report() {
   if (!ACTION || phase === "practice") return Promise.resolve(null);
   const mask = holes.reduce((m, b, i) => (b ? m | (1 << i) : m), 0);
-  return fetch(ACTION + "/progress", { method: "POST", keepalive: true, headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ holes_mask: mask, rollbacks }) }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  return save({ holes_mask: mask, rollbacks, aces });
 }
 
 // ---- input: grab a ball from the rack, the mat, or the return, and set it on the mat ----

@@ -485,8 +485,9 @@ func (s *Server) tiltProgress(c *gin.Context) {
 		return
 	}
 	var req struct {
-		HolesMask int `json:"holes_mask"`
-		Rollbacks int `json:"rollbacks"`
+		HolesMask int  `json:"holes_mask"`
+		Rollbacks int  `json:"rollbacks"`
+		Aces      *int `json:"aces"` // the client's count; a post that catches up on missed sinks needs it
 	}
 	if err := c.ShouldBindJSON(&req); err != nil || req.HolesMask < 0 || req.HolesMask > 7 || req.Rollbacks < 0 || req.Rollbacks > tiltMaxRollbacks {
 		c.JSON(http.StatusBadRequest, errorResponse{Error: "bad progress"})
@@ -509,14 +510,19 @@ func (s *Server) tiltProgress(c *gin.Context) {
 		return
 	}
 	added := bits.OnesCount(uint(req.HolesMask &^ old.mask)) // #nosec G115 -- masks are 0–7
-	if old.finished != nil || req.HolesMask&old.mask != old.mask || added > 1 || req.Rollbacks < old.rollbacks {
+	if old.finished != nil || req.HolesMask&old.mask != old.mask || req.Rollbacks < old.rollbacks {
 		c.JSON(http.StatusConflict, errorResponse{Error: "already finished, or progress went backwards"})
 		return
 	}
 	aces, sinkRollbacks := old.aces, old.sinkRollbacks
-	if added == 1 {
-		if req.Rollbacks == old.sinkRollbacks {
-			aces++
+	if added > 0 {
+		// A save can carry more than one new sink when an earlier one was lost. The server can tell an ace
+		// only when no rollback came in between; otherwise it takes the client's count, within what's possible.
+		switch {
+		case req.Rollbacks == old.sinkRollbacks:
+			aces += added
+		case req.Aces != nil:
+			aces = min(max(*req.Aces, old.aces), old.aces+added)
 		}
 		sinkRollbacks = req.Rollbacks
 	}

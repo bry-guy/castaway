@@ -69,10 +69,38 @@ function resume(code) {
 }
 
 // Scored runs save the whole list after every slide; the server only accepts a list that extends the saved one.
+
+// Saves go one at a time, always the newest state, and a failed save retries until it lands, so a dropped
+// request can't leave the server behind. A save the server refuses is shown, never swallowed.
+let saving = null, pending = null;
+function saveNote(text) {
+  let el = $("savenote");
+  if (!el) { el = document.createElement("p"); el.id = "savenote"; el.setAttribute("role", "status");
+    el.style.cssText = "position:fixed;left:50%;bottom:12px;transform:translateX(-50%);margin:0;padding:6px 12px;border-radius:8px;background:#c8372d;color:#fff;font:600 14px sans-serif;z-index:50;max-width:90vw;text-align:center"; document.body.append(el); }
+  el.textContent = text; el.hidden = !text;
+}
+function save(body) {
+  if (!ACTION) return Promise.resolve(null);
+  pending = body;
+  return saving || (saving = (async () => {
+    let res = null;
+    for (let tries = 0; pending;) {
+      const sent = pending;
+      try {
+        const r = await fetch(ACTION + "/progress", { method: "POST", keepalive: true, redirect: "manual", headers: { "Content-Type": "application/json" }, body: JSON.stringify(sent) });
+        if (r.ok) { res = await r.json(); tries = 0; if (pending === sent) pending = null; saveNote(""); continue; }
+        if (r.type === "opaqueredirect" || r.status === 401) { saveNote("Not saved: you're signed out. Sign in again in another tab, then keep playing."); }
+        else if (r.status === 409 || r.status === 400) { const e = await r.json().catch(() => ({})); saveNote(`Not saved: ${e.error || "the server refused this run"}. Reload the page.`); pending = null; break; }
+        else saveNote("Saving… (retrying)");
+      } catch { saveNote("Not saved yet: no connection. Retrying…"); }
+      await new Promise((ok) => setTimeout(ok, Math.min(8000, 500 * 2 ** tries++)));
+    }
+    saving = null;
+    return res;
+  })());
+}
 function report(finished) {
-  if (!ACTION) return; // practice is never saved
-  fetch(ACTION + "/progress", { method: "POST", keepalive: true, headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ moves, finished }) }).catch(() => {});
+  return save({ moves: moves.slice(), finished }); // practice (no ACTION) is never saved
 }
 
 // ---- layout ----
@@ -131,6 +159,7 @@ canvas.addEventListener("pointercancel", release);
 
 // ---- end card: the idol is out; stamps slam down like Inside Track's ----
 function finish() {
+  if (done) return; // once: a resumed solved run and the last slide can both land here
   done = true;
   report(true);
   setTimeout(() => {
