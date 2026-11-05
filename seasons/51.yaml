@@ -45,7 +45,7 @@ weekly:
   scores_post:
     at: "+7d 20:00"             # Wednesday 8pm, right after the game resolves at 7:59
     template: scores            # seasons/51-templates/scores.md, filled by `probst season post seasons/51.yaml --week N`
-    ping: [top3, last]          # mention only the top 3 and last place (not the role)
+    ping: [all]                 # mention every player on the leaderboard (not the role)
     callouts:                   # same shape every week, fresh wording each week (no repeats within the season)
       - praise: leader          # top player overall
       - praise: biggest_gainer  # largest week-over-week rise

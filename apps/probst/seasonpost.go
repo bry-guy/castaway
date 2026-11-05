@@ -30,7 +30,7 @@ type scoresPost struct {
 	Intro, Boots, Leader, Gainer, Slider string
 	Top                                  []rankLine
 	Last                                 rankLine
-	All                                  []rankLine // the whole board; only the top 3 and last place are mentions
+	All                                  []rankLine // the whole board, every player mentioned
 	Site, NextGame, GameScore            string
 	Facts                                scoresFacts
 }
@@ -109,10 +109,7 @@ func buildScoresPost(t templateSet, season, week int, now, prev []scoreRow, boot
 	last := rows[len(rows)-1]
 	p.Last = rankLine{Mention: mention(last), Total: last.Total}
 	for i, r := range rows {
-		name := r.Name
-		if i < 3 || i == len(rows)-1 {
-			name = mention(r)
-		}
+		name := mention(r)
 		place := i + 1
 		if i > 0 && r.Total == rows[i-1].Total {
 			place = p.All[i-1].Place
@@ -208,7 +205,7 @@ func addSeasonPostCommand(season *cobra.Command, call apiCall, guild *string, ye
 			}
 			key := scoresKey(f.Season, week)
 			if !*yes {
-				_, err = fmt.Fprintf(out, "Dry run — %s, sends %s ET (pings the top 3 and last place):\n\n%s\nRe-run with --yes to save and schedule it.\n", key, at.Format("Mon Jan 02 3:04pm"), text)
+				_, err = fmt.Fprintf(out, "Dry run — %s, sends %s ET (pings every player):\n\n%s\nRe-run with --yes to save and schedule it.\n", key, at.Format("Mon Jan 02 3:04pm"), text)
 				return err
 			}
 			path := "/instances/" + url.PathEscape(f.Instance)
