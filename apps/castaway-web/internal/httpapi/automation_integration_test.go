@@ -120,6 +120,29 @@ func TestSeasonAutomation(t *testing.T) {
 	if jlen(imports, "imports") != 2 || jstr(imports, "imports", 0, "source_revision") != "rev1" {
 		t.Fatalf("imports: %v", imports)
 	}
+	// The wiki scores an episode first; survivoR replaces it, reporting whether anything changed.
+	wiki := func(ep int, source, key, tribe string, replace bool) string {
+		return fmt.Sprintf(`{"episode_number":%d,"source":%q,"replace":%t,"boots":[],"challenges":[{"key":%q,"kind":"reward","winning_tribes":[%q],"effective_at":"2030-10-0%dT01:00:00Z"}]}`, ep, source, replace, key, tribe, ep-1)
+	}
+	base := bonus()
+	call("POST", path+"/episode-imports", wiki(6, "wiki", "wiki-ep6-c1-reward", "Savu", true), 400) // only survivoR replaces
+	call("POST", path+"/episode-imports", wiki(6, "wiki", "wiki-ep6-c1-reward", "Savu", false), 201)
+	call("POST", path+"/episode-imports", wiki(6, "survivor", "survivor-ep6-c11-reward", "Savu", false), 409)
+	if res := call("POST", path+"/episode-imports", wiki(6, "survivor", "survivor-ep6-c11-reward", "Savu", true), 200); res["status"] != "replaced" || res["changed"] != false {
+		t.Fatalf("same-results replace: %v", res)
+	}
+	if got := bonus(); got["Bob"] != base["Bob"] || got["Alice"] != base["Alice"]+1 {
+		t.Fatalf("after same replace: %v", got)
+	}
+	call("POST", path+"/episode-imports", wiki(7, "wiki", "wiki-ep7-c1-reward", "Savu", false), 201)
+	if res := call("POST", path+"/episode-imports", wiki(7, "survivor", "survivor-ep7-c12-reward", "Toka", true), 200); res["status"] != "replaced" || res["changed"] != true {
+		t.Fatalf("changed replace: %v", res)
+	}
+	if got := bonus(); got["Bob"] != base["Bob"]+1 || got["Alice"] != base["Alice"]+1 {
+		t.Fatalf("after changed replace: %v base %v", got, base)
+	}
+	// A survivoR import is never replaced.
+	call("POST", path+"/episode-imports", wiki(7, "survivor", "survivor-ep7-c12-reward", "Savu", true), 409)
 	// Another season sees none of it.
 	if got := call("GET", "/instances/"+id(other.ID.Bytes)+"/episode-imports", "", 200); jlen(got, "imports") != 0 {
 		t.Fatal("cross-instance import leak")

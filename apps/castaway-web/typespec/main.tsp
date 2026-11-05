@@ -155,7 +155,7 @@ model EpisodeImportChallenge { key: string; legacy_keys?: string[]; kind: string
 
 @route("/instances/{instanceID}/episode-imports")
 @post
-op importEpisode(@path instanceID: string, @body body: { episode_number: int32; source: string; source_revision?: string; boots: EpisodeImportBoot[]; challenges: EpisodeImportChallenge[]; champion_challenges?: { key: string; kind: string; winners: string[]; effective_at: utcDateTime; }[]; }): { status: string; outcomes_recorded?: int32; challenge_awards?: int32; } | ErrorResponse;
+op importEpisode(@path instanceID: string, @body body: { episode_number: int32; source: string; source_revision?: string; replace?: boolean; boots: EpisodeImportBoot[]; challenges: EpisodeImportChallenge[]; champion_challenges?: { key: string; kind: string; winners: string[]; effective_at: utcDateTime; }[]; }): { status: string; outcomes_recorded?: int32; challenge_awards?: int32; changed?: boolean; } | ErrorResponse;
 
 @route("/instances/{instanceID}/episode-imports")
 @get

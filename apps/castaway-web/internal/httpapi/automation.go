@@ -37,11 +37,13 @@ type episodeImportChallenge struct {
 }
 
 type episodeImportRequest struct {
-	EpisodeNumber  int                      `json:"episode_number"`
-	Source         string                   `json:"source"`
-	SourceRevision string                   `json:"source_revision"`
-	Boots          []episodeImportBoot      `json:"boots"`
-	Challenges     []episodeImportChallenge `json:"challenges"`
+	EpisodeNumber  int    `json:"episode_number"`
+	Source         string `json:"source"`
+	SourceRevision string `json:"source_revision"`
+	// Replace lets a survivoR import replace an episode first scored from the wiki.
+	Replace    bool                     `json:"replace"`
+	Boots      []episodeImportBoot      `json:"boots"`
+	Challenges []episodeImportChallenge `json:"challenges"`
 	// ChampionChallenges are post-merge challenges won by castaways (contestant public IDs).
 	ChampionChallenges []championImportChallenge `json:"champion_challenges"`
 }
@@ -104,7 +106,7 @@ func (s *Server) importEpisode(c *gin.Context) {
 	defer rollbackTx(c, tx)
 	ctx := c.Request.Context()
 	res, err := s.applyEpisodeImport(ctx, tx, qtx, instanceID, req)
-	if err == nil && res["status"] == "applied" {
+	if err == nil && (res["status"] == "applied" || res["status"] == "replaced") {
 		err = tx.Commit(ctx)
 	}
 	if err != nil {
@@ -119,8 +121,8 @@ func (s *Server) importEpisode(c *gin.Context) {
 }
 
 func (r episodeImportRequest) validate() error {
-	if r.EpisodeNumber < 0 || (r.Source != "survivor" && r.Source != "manual") || len(r.SourceRevision) > 80 {
-		return errors.New("episode_number (0+) and source (survivor or manual) are required")
+	if r.EpisodeNumber < 0 || (r.Source != "survivor" && r.Source != "manual" && r.Source != "wiki") || (r.Replace && r.Source != "survivor") || len(r.SourceRevision) > 80 {
+		return errors.New("episode_number (0+) and source (survivor, manual or wiki) are required; only survivor can replace")
 	}
 	for _, ch := range r.Challenges {
 		if ch.Key == "" || len(ch.Key) > 64 || ch.EffectiveAt.IsZero() || len(ch.WinningTribes) == 0 || (ch.Kind != "immunity" && ch.Kind != "reward") {
@@ -139,12 +141,16 @@ func (r episodeImportRequest) validate() error {
 // commits. Replaying the same results is "unchanged"; different results for an imported episode conflict.
 func (s *Server) applyEpisodeImport(ctx context.Context, tx pgx.Tx, qtx *db.Queries, instanceID uuid.UUID, req episodeImportRequest) (gin.H, error) {
 	fingerprint := req.fingerprint()
-	var stored string
-	err := tx.QueryRow(ctx, `SELECT e.fingerprint FROM episode_imports e JOIN instances i ON i.id = e.instance_id
-		WHERE i.public_id = $1 AND e.episode_number = $2`, toPGUUID(instanceID), req.EpisodeNumber).Scan(&stored)
+	var stored, storedSource string
+	var storedBoots []int32
+	var storedKeys []string
+	err := tx.QueryRow(ctx, `SELECT e.fingerprint, e.source, e.boot_positions, e.challenge_keys FROM episode_imports e JOIN instances i ON i.id = e.instance_id
+		WHERE i.public_id = $1 AND e.episode_number = $2`, toPGUUID(instanceID), req.EpisodeNumber).Scan(&stored, &storedSource, &storedBoots, &storedKeys)
 	switch {
 	case err == nil && stored == fingerprint:
 		return gin.H{"status": "unchanged"}, nil
+	case err == nil && req.Replace && storedSource == "wiki":
+		return s.replaceWikiImport(ctx, tx, qtx, instanceID, req, storedBoots, storedKeys)
 	case err == nil:
 		return nil, progressionError(http.StatusConflict, fmt.Sprintf("episode %d was already imported with different results; an admin needs to review it", req.EpisodeNumber))
 	case !errors.Is(err, pgx.ErrNoRows):
@@ -554,4 +560,63 @@ func (s *Server) scoresStillCurrent(ctx context.Context, q interface {
 	}
 	_, current, err := s.scoreStandings(ctx, instanceID)
 	return current == *fingerprint, err
+}
+
+// replaceWikiImport swaps a wiki-sourced episode for survivoR's results: it removes what the wiki import
+// recorded (its boots and challenge awards; ledger rows cascade), applies the request, and reports whether
+// any boot or anyone's points changed.
+func (s *Server) replaceWikiImport(ctx context.Context, tx pgx.Tx, qtx *db.Queries, instanceID uuid.UUID, req episodeImportRequest, boots []int32, keys []string) (gin.H, error) {
+	positions := append([]int32(nil), boots...)
+	newKeys := make([]string, 0, len(req.Challenges)+len(req.ChampionChallenges))
+	for _, b := range req.Boots {
+		positions = append(positions, int32(b.Position)) // #nosec G115 -- validated against the roster size
+	}
+	for _, ch := range req.Challenges {
+		newKeys = append(newKeys, ch.Key)
+	}
+	for _, ch := range req.ChampionChallenges {
+		newKeys = append(newKeys, ch.Key)
+	}
+	before, err := importSnapshot(ctx, tx, instanceID, positions, keys)
+	if err != nil {
+		return nil, err
+	}
+	id := toPGUUID(instanceID)
+	if _, err := tx.Exec(ctx, `DELETE FROM activity_occurrences o USING instance_activities a, instances i
+		WHERE o.activity_id = a.id AND a.instance_id = i.id AND i.public_id = $1 AND o.source_ref = ANY($2::text[])`, id, keys); err != nil {
+		return nil, err
+	}
+	if _, err := tx.Exec(ctx, `DELETE FROM outcome_positions o USING instances i WHERE o.instance_id = i.id AND i.public_id = $1 AND o.position = ANY($2::int[])`, id, boots); err != nil {
+		return nil, err
+	}
+	if _, err := tx.Exec(ctx, `DELETE FROM episode_imports e USING instances i WHERE e.instance_id = i.id AND i.public_id = $1 AND e.episode_number = $2`, id, req.EpisodeNumber); err != nil {
+		return nil, err
+	}
+	req.Replace = false
+	res, err := s.applyEpisodeImport(ctx, tx, qtx, instanceID, req)
+	if err != nil {
+		return nil, err
+	}
+	after, err := importSnapshot(ctx, tx, instanceID, positions, newKeys)
+	if err != nil {
+		return nil, err
+	}
+	res["status"] = "replaced"
+	res["changed"] = before != after
+	return res, nil
+}
+
+// importSnapshot describes who sits at positions and each participant's points from the keyed occurrences.
+func importSnapshot(ctx context.Context, tx pgx.Tx, instanceID uuid.UUID, positions []int32, keys []string) (string, error) {
+	var out string
+	err := tx.QueryRow(ctx, `SELECT
+		coalesce((SELECT string_agg(o.position || '=' || coalesce(o.contestant_id::text, ''), ';' ORDER BY o.position)
+			FROM outcome_positions o JOIN instances i ON i.id = o.instance_id WHERE i.public_id = $1 AND o.position = ANY($2::int[])), '')
+		|| '|' ||
+		coalesce((SELECT string_agg(p || '=' || n, ';' ORDER BY p) FROM (SELECT l.participant_id::text p, sum(l.points) n
+			FROM bonus_point_ledger_entries l JOIN activity_occurrences o ON o.id = l.activity_occurrence_id
+			JOIN instance_activities a ON a.id = o.activity_id JOIN instances i ON i.id = a.instance_id
+			WHERE i.public_id = $1 AND o.source_ref = ANY($3::text[]) GROUP BY l.participant_id HAVING sum(l.points) <> 0) t), '')`,
+		toPGUUID(instanceID), positions, keys).Scan(&out)
+	return out, err
 }

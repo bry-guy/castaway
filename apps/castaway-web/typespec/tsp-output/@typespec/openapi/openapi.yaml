@@ -2159,6 +2159,8 @@ paths:
                       challenge_awards:
                         type: integer
                         format: int32
+                      changed:
+                        type: boolean
                     required:
                       - status
                   - $ref: '#/components/schemas/ErrorResponse'
@@ -2176,6 +2178,8 @@ paths:
                   type: string
                 source_revision:
                   type: string
+                replace:
+                  type: boolean
                 boots:
                   type: array
                   items:
