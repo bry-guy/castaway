@@ -22,6 +22,7 @@ var gameNames = map[string]string{"press_the_button": "Press the Button", "casta
 type rankLine struct {
 	Mention string
 	Total   int
+	Place   int
 }
 
 type scoresPost struct {
@@ -29,6 +30,7 @@ type scoresPost struct {
 	Intro, Boots, Leader, Gainer, Slider string
 	Top                                  []rankLine
 	Last                                 rankLine
+	All                                  []rankLine // the whole board; only the top 3 and last place are mentions
 	Site, NextGame, GameScore            string
 	Facts                                scoresFacts
 }
@@ -102,10 +104,21 @@ func buildScoresPost(t templateSet, season, week int, now, prev []scoreRow, boot
 		p.Gainer, p.Slider = line("gainer", gainers, best), line("slow", sliders, worst)
 	}
 	for _, r := range rows[:min(3, len(rows)-1)] {
-		p.Top = append(p.Top, rankLine{mention(r), r.Total})
+		p.Top = append(p.Top, rankLine{Mention: mention(r), Total: r.Total})
 	}
 	last := rows[len(rows)-1]
-	p.Last = rankLine{mention(last), last.Total}
+	p.Last = rankLine{Mention: mention(last), Total: last.Total}
+	for i, r := range rows {
+		name := r.Name
+		if i < 3 || i == len(rows)-1 {
+			name = mention(r)
+		}
+		place := i + 1
+		if i > 0 && r.Total == rows[i-1].Total {
+			place = p.All[i-1].Place
+		}
+		p.All = append(p.All, rankLine{Mention: name, Total: r.Total, Place: place})
+	}
 	if len(booted) > 0 {
 		if len(booted) > 1 {
 			p.Boots = line("boot-many", booted, 0)
@@ -502,10 +515,10 @@ type gameRow struct {
 	Points, Presses, StreakDays            int
 	First, Last, Solved                    bool
 	Place, Seconds, WrongChecks, Guesses   int
-	HintPoints, CleanPoints                int  // Island Scramble: before-hint and fewest-wrong-checks points
-	Score, Cups, BallsLeft                 int  // Inside Track: in-game score = cups + balls left once all three are in
-	Moves, PlacePoints                     int  // Free the Block: slides to free the idol (Solved says whether it got out); place points
-	Perfect                                bool // Free the Block: solved in the optimum moves (+5)
+	HintPoints, CleanPoints                int    // Island Scramble: before-hint and fewest-wrong-checks points
+	Score, Cups, BallsLeft                 int    // Inside Track: in-game score = cups + balls left once all three are in
+	Moves, PlacePoints                     int    // Free the Block: slides to free the idol (Solved says whether it got out); place points
+	Perfect                                bool   // Free the Block: solved in the optimum moves (+5)
 	Finished                               bool   // Tilt Table: all three balls in (Time is the run, m:ss.t)
 	Time                                   string // Tilt Table
 	Holes, Rollbacks, Aces                 int    // Tilt Table: aces are balls in with no rollback (+1 each)

@@ -1,13 +1,1 @@
-The Open Era claims its first victim: {{.Names}} is heading home. Hope the snacks at Ponderosa slap. 🔥
-{{.Names}} grabbed their torch and learned the hard way that vibes are not a strategy. 🔦
-Somewhere, {{.Names}} is still explaining why that vote was actually a great move for their résumé. 📝
-{{.Names}} has left the island. Jeff didn't even let them finish the sentence. 🔥
-Pour one out for {{.Names}}. They came, they saw, they got blindsided. 🫗
-{{.Names}} became the latest castaway to discover the tribe has, in fact, spoken. 🗣️
-Some players build big alliances. {{.Names}} built a canoe out of bad decisions. 🛶
-{{.Names}} is now enjoying unlimited food and zero paranoia. Honestly? Winning. 🍔
-Tribal was chaos, and when the smoke cleared, {{.Names}} was gone. 💨
-Jury bound and salty about it: {{.Names}} just joined the bench. 🪑
-{{.Names}} played hard, played loud, and played themselves right out of the game. 📣
-The end is near, and {{.Names}} won't be there to see it. So close, yet so snuffed. 🕯️
-One final torch goes dark: {{.Names}} falls just short of the finish line. 🏁
+{{.Names}} was voted off the island.

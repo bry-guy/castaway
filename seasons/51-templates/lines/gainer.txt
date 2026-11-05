@@ -1,13 +1,1 @@
-Biggest move of the week: {{.Names}}, up {{.N}}. Big swing!
-{{.Names}} came to play: +{{.N}} this week.
-Hot streak alert: {{.Names}} jumped {{.N}}.
-{{.Names}} found an advantage somewhere: +{{.N}}.
-Look out for {{.Names}}, up {{.N}} and coming for the top.
-{{.Names}} made the power move this week: +{{.N}}.
-{{.Names}} turned it up: {{.N}} points gained.
-Nobody climbed faster than {{.Names}}: +{{.N}}.
-{{.Names}} {{if .Plural}}are{{else}}is{{end}} on a heater: +{{.N}}.
-{{.Names}}, +{{.N}}. That's how you play the game.
-Mover of the week: {{.Names}}, up {{.N}}.
-{{.Names}} surged {{.N}} when it mattered.
-One last leap: {{.Names}}, +{{.N}}.
+{{.Names}} gained the most this week: +{{.N}}.

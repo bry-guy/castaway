@@ -1,13 +1,1 @@
-{{.Names}} slipped {{.N}}. It happens to the best of us. Allegedly.
-{{.Names}} lost {{.N}} this week. Maybe check the rice ration.
-Rough week for {{.Names}}: down {{.N}}. The fire went out, but you can make another.
-{{.Names}} dropped {{.N}}. Somebody get them a reward challenge.
-{{.Names}} slid {{.N}}. Not a blindside, just a bruise.
-{{.Names}}, down {{.N}}. Still in the game, still dangerous. Probably.
-{{.Names}} took a {{.N}}-point tumble. Shake it off.
-{{.Names}} lost {{.N}}. Jeff says: dig deep.
-{{.Names}} went {{.N}} in the wrong direction. Plenty of game left.
-{{.Names}} fell back {{.N}}. Every legend has a low point.
-{{.Names}}, down {{.N}}. Time for a comeback arc.
-{{.Names}} slid {{.N}}. The edge of extinction is lonely, come back.
-{{.Names}} dropped {{.N}} at the very end. Brutal. Beautiful.
+{{.Names}} dropped {{.N}}.

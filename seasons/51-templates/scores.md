@@ -1,20 +1,16 @@
 ## Castaway Season {{.Season}}: Week {{.Week}} Scores
 
-{{.Intro}}
-{{if .Boots}}
-{{.Boots}}
-{{end}}
-👑 {{.Leader}}
+{{if .Boots}}{{.Boots}}
+
+{{end}}👑 {{.Leader}}
 {{- if .Gainer}}
 📈 {{.Gainer}}{{end}}
 {{- if .Slider}}
 📉 {{.Slider}}{{end}}
 
-{{range $i, $r := .Top}}{{if eq $i 0}}🥇{{else if eq $i 1}}🥈{{else}}🥉{{end}} {{$r.Mention}}: {{$r.Total}}
+{{range .All}}{{if eq .Place 1}}🥇{{else if eq .Place 2}}🥈{{else if eq .Place 3}}🥉{{else}}{{.Place}}.{{end}} {{.Mention}}: {{.Total}}
 {{end -}}
-🔦 {{.Last.Mention}}: {{.Last.Total}}
 {{- if .GameScore}}
-
 {{.GameScore}}{{end}}
 
 Full scores: <{{.Site}}>

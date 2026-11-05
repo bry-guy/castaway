@@ -1,13 +1,1 @@
-Two torches out this week: {{.Names}} are heading home. Ponderosa just got crowded. 🔥
-{{.Names}} have left the island. Somebody tell Jeff to slow down. 🔦
-A double exit! {{.Names}} are done, and the beach got a lot quieter. 🏝️
-{{.Names}} are out. Two fewer mouths to feed, two more jury snacks. 🍔
-Pour two out for {{.Names}}. 🫗🫗
-{{.Names}} walked off into the sunset together. Not a great sunset. 🌅
-Double trouble: {{.Names}} are gone. 💨
-{{.Names}} are heading to Ponderosa as a package deal. 📦
-Two snuffs, one week: {{.Names}} are out. 🕯️🕯️
-{{.Names}} have joined the bench. Scoot over. 🪑
-The island claims two: {{.Names}}. 🌊
-{{.Names}} are out, and the finish line just got closer. 🏁
-Final double exit: {{.Names}} fall just short. 🏁
+{{.Names}} were voted off the island.
