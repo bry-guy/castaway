@@ -502,10 +502,10 @@ type gameRow struct {
 	Points, Presses, StreakDays            int
 	First, Last, Solved                    bool
 	Place, Seconds, WrongChecks, Guesses   int
-	HintPoints, CleanPoints                int  // Island Scramble: before-hint and fewest-wrong-checks points
-	Score, Cups, BallsLeft                 int  // Inside Track: in-game score = cups + balls left once all three are in
-	Moves, PlacePoints                     int  // Free the Block: slides to free the idol (Solved says whether it got out); place points
-	Perfect                                bool // Free the Block: solved in the optimum moves (+5)
+	HintPoints, CleanPoints                int    // Island Scramble: before-hint and fewest-wrong-checks points
+	Score, Cups, BallsLeft                 int    // Inside Track: in-game score = cups + balls left once all three are in
+	Moves, PlacePoints                     int    // Free the Block: slides to free the idol (Solved says whether it got out); place points
+	Perfect                                bool   // Free the Block: solved in the optimum moves (+5)
 	Finished                               bool   // Tilt Table: all three balls in (Time is the run, m:ss.t)
 	Time                                   string // Tilt Table
 	Holes, Rollbacks, Aces                 int    // Tilt Table: aces are balls in with no rollback (+1 each)

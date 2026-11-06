@@ -224,6 +224,7 @@ func (s *Server) registerAPI(protected *gin.RouterGroup) {
 	protected.POST("/occurrences/:occurrenceID/participants", s.createOccurrenceParticipant)
 	protected.POST("/occurrences/:occurrenceID/groups", s.createOccurrenceGroup)
 	protected.POST("/occurrences/:occurrenceID/resolve", s.resolveOccurrence)
+	protected.POST("/instances/:instanceID/occurrences/:occurrenceID/corrections", s.createScoreCorrection)
 	protected.GET("/instances/:instanceID/participants/:participantID/activity-history", s.participantActivityHistory)
 }
 
