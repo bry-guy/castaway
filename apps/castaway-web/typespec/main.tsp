@@ -130,6 +130,10 @@ op listTrackPlays(@path instanceID: string, @path episode: int32): { game_id: st
 @put
 op setTrackPlay(@path instanceID: string, @path episode: int32, @path participant: string, @body body: { cups_mask: int32; balls_used: int32; finished: boolean; }): { score: int32; } | ErrorResponse;
 
+@route("/instances/{instanceID}/occurrences/{occurrenceID}/corrections")
+@post
+op createScoreCorrection(@path instanceID: string, @path occurrenceID: string, @body body: { participant_id: string; points: int32; reason: string; }): { id: string; } | ErrorResponse;
+
 @route("/announcements/approvals/claim")
 @post
 op claimAnnouncementApproval(@body body: { guild_ids: string[]; }): { announcement: unknown | null; send_at?: utcDateTime; revision?: string; missed?: boolean; admin_discord_user_ids?: string[]; } | ErrorResponse;

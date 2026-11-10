@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 	"time"
@@ -624,6 +625,50 @@ func newCommand() *cobra.Command {
 		}
 		return request(c, "POST", p+"/viewers", map[string]string{"discord_user_id": a[0]})
 	})
+	score := &cobra.Command{Use: "score", Short: "Admin corrections to players' points"}
+	root.AddCommand(score)
+	var corrWeek int
+	var corrGame string
+	correct := &cobra.Command{Use: "correct PLAYER POINTS REASON", Short: "Add or take away a player's points on a week's game, with a reason (dry run unless --yes)", Args: cobra.ExactArgs(3), RunE: func(c *cobra.Command, a []string) error {
+		p, e := instancePath()
+		if e != nil {
+			return e
+		}
+		points, err := strconv.Atoi(a[1])
+		if err != nil || points == 0 {
+			return fmt.Errorf("POINTS must be a non-zero whole number, got %q", a[1])
+		}
+		name, ok := gameNames[corrGame]
+		if !ok || corrWeek < 1 {
+			return fmt.Errorf("need --week N and --game (one of free_the_block, tilt_table, inside_track, ...)")
+		}
+		occName := fmt.Sprintf("%s: Episode %d", name, corrWeek)
+		occID, err := findOccurrence(c.Context(), call, p, occName)
+		if err != nil {
+			return err
+		}
+		all, err := loadParticipants(c.Context(), call, p)
+		if err != nil {
+			return err
+		}
+		who, err := findParticipant(all, a[0])
+		if err != nil {
+			return err
+		}
+		if !yes {
+			_, err = fmt.Fprintf(c.OutOrStdout(), "Dry run: %+d to %s on %s (%q). Add --yes to save.\n", points, who.Name, occName, a[2])
+			return err
+		}
+		if err := call(c.Context(), "POST", p+"/occurrences/"+url.PathEscape(occID)+"/corrections",
+			map[string]any{"participant_id": who.ID, "points": points, "reason": a[2]}, nil); err != nil {
+			return err
+		}
+		_, err = fmt.Fprintf(c.OutOrStdout(), "Saved: %+d to %s on %s.\n", points, who.Name, occName)
+		return err
+	}}
+	score.AddCommand(correct)
+	correct.Flags().IntVar(&corrWeek, "week", 0, "Episode/week of the game")
+	correct.Flags().StringVar(&corrGame, "game", "", "Game type, e.g. free_the_block")
 	// approve = `player add NAME --discord-user USER` (reuses a same-name player); the request then drops off the list.
 	add(access, "approve DISCORD_USER NAME", 2, func(c *cobra.Command, a []string) error {
 		discordUser = a[0]

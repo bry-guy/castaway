@@ -201,6 +201,19 @@ func TestFreeTheBlock(t *testing.T) {
 	if page := serve("GET", "/players/"+ids["quit"], "", "idle", 200); !strings.Contains(page, "Not solved · &#43;0 pts") {
 		t.Fatalf("quit profile: %s", page)
 	}
+	// An admin correction lands on the game's occurrence; players can't make one.
+	var occID string
+	if err := pool.QueryRow(ctx, `SELECT o.public_id::text FROM activity_occurrences o JOIN bonus_point_ledger_entries l ON l.activity_occurrence_id = o.id WHERE l.award_key = 'free_the_block' LIMIT 1`).Scan(&occID); err != nil {
+		t.Fatal(err)
+	}
+	fix := `{"participant_id":"` + ids["quit"] + `","points":1,"reason":"save lost"}`
+	serve("POST", "/api/instances/"+instanceID+"/occurrences/"+occID+"/corrections", fix, "quit", 403)
+	serve("POST", "/api/instances/"+instanceID+"/occurrences/"+occID+"/corrections", `{"participant_id":"`+ids["quit"]+`","points":0,"reason":"x"}`, "admin", 400)
+	serve("POST", "/api/instances/"+instanceID+"/occurrences/"+occID+"/corrections", fix, "admin", 201)
+	var quitTotal int
+	if err := pool.QueryRow(ctx, `SELECT COALESCE(sum(l.points), 0) FROM bonus_point_ledger_entries l JOIN participants p ON p.id = l.participant_id WHERE p.public_id::text = $1`, ids["quit"]).Scan(&quitTotal); err != nil || quitTotal != 1 {
+		t.Fatalf("quit after correction %d, err %v; want 1", quitTotal, err)
+	}
 	if list := serve("GET", "/api/instances/"+instanceID+"/scheduled-games", "", "admin", 200); !strings.Contains(list, "free_the_block") {
 		t.Fatalf("scheduled games: %s", list)
 	}

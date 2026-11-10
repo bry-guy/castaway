@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- `probst score correct PLAYER POINTS REASON --week N --game TYPE` adds or takes away points on a week's game (dry run unless `--yes`; use `--` before negative points).
 - `probst access view DISCORD_USER --instance INSTANCE` approves a website access request as view-only (scores, seasons, players; no games).
 
 - Tilt Table: `season apply` creates `tilt_table` games (`POST /instances/:id/tilt-games`) for weeks set to `type: tilt_table`; the scores post renders `games/tilt_table.md` from each player's `finished`, `time_ms`, `holes`, `aces` and `place_points`; `next-game.md` shows 🌴.
