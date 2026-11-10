@@ -1,0 +1,5 @@
+# Agents merge their own pull requests once CI passes; these paths wait for Bryan.
+/.pi/ @bry-guy
+/.github/ @bry-guy
+/deploy/ @bry-guy
+/apps/castaway-web/db/migrations/ @bry-guy

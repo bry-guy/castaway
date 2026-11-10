@@ -8,14 +8,16 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # shortcut: mise's hurl 8.0.1 needs libxml2.so.2, which ubuntu-26.04 dropped; unpin when hurl is upgraded
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: jdx/mise-action@v2
       - run: mise run ci
 
   integration:
-    runs-on: ubuntu-latest
+    # shortcut: mise's hurl 8.0.1 needs libxml2.so.2, which ubuntu-26.04 dropped; unpin when hurl is upgraded
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: jdx/mise-action@v2

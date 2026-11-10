@@ -1,0 +1,23 @@
+{
+  "description": "castaway developer: code, tests and PRs in a worktree. Checks run in the sandbox (lint, unit tests, build); the Docker-backed regression and integration jobs run in GitHub CI on the PR. Push feature/<name>: that deploys a castaway-web preview that writes to the production database, so never exercise write endpoints on it. Open a PR and merge it with `gh pr merge --auto --squash` once CI passes. Changes under .pi/, .github/, deploy/ and apps/castaway-web/db/migrations/ wait for Bryan. No DB access.",
+  "egress": [
+    "proxy.golang.org",
+    "sum.golang.org",
+    "go.dev",
+    "dl.google.com",
+    "dl.k8s.io"
+  ],
+  "secrets": {
+    "GH_TOKEN": {
+      "hosts": [
+        "github.com",
+        "api.github.com"
+      ]
+    }
+  },
+  "git": {
+    "name": "bry-guy-castaway-developer[bot]",
+    "email": "354750212+bry-guy-castaway-developer[bot]@users.noreply.github.com"
+  },
+  "broker": {}
+}
