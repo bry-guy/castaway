@@ -4,28 +4,30 @@ Status: in-progress
 
 ## Goal
 
-A phone-only, two-thumb Survivor stacking challenge, Season 51 week 8, scored like Tilt Table. One thumb holds a
-bamboo stick with a tray on top; the other stacks letter blocks until the tower spells SURVIVOR.
+A phone-only Survivor stacking challenge, Season 51 week 8, scored like Tilt Table. The phone, held upright, is
+the balancing device; one finger stacks letter blocks until the tower spells SURVIVOR.
 
 ## Rules
 
-- Side view, phone sideways. The tray rests on two balls in a cup on top of the stick. The left thumb (anywhere
-  left of the table) holds the stick; sliding it moves the balls under the tray (half the thumb's travel, at most
-  13 cm). The stick follows the thumb with a little lag (critically damped, ω = 14/s).
+- Side view, phone upright (portrait). A tray rests on two balls in a cup on a fixed stand in the bottom third.
+  Tilting the phone (its roll in the screen plane, from `deviceorientation`, calibrated level on "Hold your phone
+  upright" and the Level button) tilts gravity in the scene.
 - The tray rocks as if on a 22 cm rocker: a short stack rights itself; once the stack's centre of mass is above
-  that curve (around block 5–6) it tips unless the balls are kept under it. Gravity is slowed (4.5 m/s²) so an
-  unattended full tower takes about 1.4 s to fall, enough to catch.
-- The right thumb drags the next block from the table (blocks are laid out in placing order, R O V I V R U S, so
-  the tower reads SURVIVOR from the top) and lets go over the stack. It drops straight down onto the top block,
-  keeping its position along the tray. A block whose middle is past the edge of the block below falls off and
-  goes back to the table; a block that leaves the blocks above some lower block overhanging topples the tower.
-- The tower falls (a drop) if the stick is let go, the tray tips past 28°, or it rolls off the balls. Every
-  block goes back to the table.
+  that curve (around block 5–6) it tips unless the phone is tilted against the lean. Gravity is slowed (4.5 m/s²)
+  so an unattended full tower takes a couple of seconds to fall.
+- A slotted bamboo rack top right holds the blocks in placing order (R O V I V R U S from the bottom, so the tower
+  reads SURVIVOR from the top). Touching the rack pulls the bottom block; the rest drop down a slot. A small
+  pulsing ring and arrow mark it; no instruction text. Let it go over the stack and it drops straight down onto
+  the top block, keeping its position along the tray; anywhere else it goes back into the rack. A block whose
+  middle is past the edge of the block below falls off; a block that leaves the blocks above some lower block
+  overhanging topples the tower.
+- The tower falls (a drop) if the tray tips past 28° from level in the world or rolls off the balls. Every block
+  goes back to the rack.
 - Eight blocks, then hold for 3 seconds to finish.
-- Practice until Ready, or three minutes at most: six blocks that spell ISLAND. Then a 3-2-1
-  countdown and the timed run.
-- Phones only: coarse pointer and multi-touch. `?debug` allows a desktop (Shift holds the stick, arrows slide
-  it, the mouse stacks).
+- Practice until Ready, or three minutes at most: six blocks that spell ISLAND. Then a 3-2-1 countdown and the
+  timed run.
+- Phones only: coarse pointer and motion access (iOS asks on "Let's go"). `?debug` allows a desktop (arrows tilt
+  a degree at a time, the mouse stacks).
 
 ## Scoring
 
@@ -49,8 +51,9 @@ bamboo stick with a tray on top; the other stacks letter blocks until the tower 
 - Go unit test `TestStackPoints`; integration test `TestStackEmUp` (refusals, resume attributes, server clock,
   tie in tenths, resolve once, results, ledger, profile, scheduled games). Probst render test.
 - Physics self-check (node, not committed): up to 4 blocks right themselves; 8 blocks fall unattended in about
-  1.4 s; a delayed proportional-derivative controller keeps 8 blocks up for 30 s with 150 ms and 250 ms of lag.
-- Browser (Playwright, mobile landscape, synthetic pointers, not committed): two simultaneous pointers; stacking
-  four blocks; letting go of the stick drops the tower.
-- Not verifiable here: real two-thumb feel on iOS and Android. Tune `G`, `CRADLE_R`, `SLIDE_GAIN`, `HAND_W` and
-  `FALL_TILT` on devices.
+  2.7 s; a tilt controller 150 ms or 250 ms late, with the wrist rate-limited to 170°/s, keeps 8 blocks up for
+  30 s.
+- Browser (Playwright, mobile portrait, synthetic pointers and `?debug` tilt, not committed): pulling four blocks
+  from the rack and stacking them; a release away from the tray goes back to the rack; a 30° tilt drops the tower.
+- Not verifiable here: real tilt feel on iOS and Android. Tune `G`, `CRADLE_R`, `DEAD` and `FALL_TILT` on
+  devices.

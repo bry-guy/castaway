@@ -1,8 +1,7 @@
 /* On top of tilt-table.css: the same card, HUD and stamps. */
 .hud { padding-top: max(.4rem, env(safe-area-inset-top)); padding-bottom: .35rem; }
 .count.hold { font-size: 3rem; align-items: start; padding-top: 22vh; }
-.grip { position: fixed; z-index: 2; left: max(1rem, env(safe-area-inset-left)); bottom: 4.6rem; padding: .25rem .6rem; background: #e8b923; border: 2px solid #2b2418; box-shadow: 3px 3px 0 #2b2418; text-transform: uppercase; letter-spacing: .12em; font-size: .75rem; pointer-events: none; }
 .turn { display: none; }
-@media (orientation: portrait) {
+@media (orientation: landscape) and (pointer: coarse) {
   .turn { display: grid; place-items: center; position: fixed; z-index: 4; inset: 0; background: rgba(20, 30, 18, .85); color: #ece6d6; font-size: 1.4rem; text-transform: uppercase; letter-spacing: .12em; text-align: center; padding: 2rem; }
 }

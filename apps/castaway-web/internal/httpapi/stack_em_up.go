@@ -17,7 +17,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// Stack 'Em Up: one thumb holds a stick with a tray on top, the other stacks eight letter blocks until the tower
+// Stack 'Em Up: tilt the phone to balance a tray on a stand while stacking eight letter blocks until the tower
 // spells SURVIVOR, then holds it for three seconds (site/assets/stack-em-up.js). One timed run per player per game.
 // The page saves the tower's height and the drop count (towers that fell) at "Go", after every block and every
 // drop; the save with height 8 means the full tower was held, and finishes the run. The server keeps the clock
