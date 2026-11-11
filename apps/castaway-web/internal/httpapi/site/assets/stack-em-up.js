@@ -15,10 +15,10 @@ let G = 4.5;                              // slowed down: real gravity tips a 0.
 let DAMP = 4;                             // rocking friction (1/s)
 let SLOSH = 0.3;                          // how much the balls rolling in the cup throws the tray
 let CUP_R = 0.1, CUP_DAMP = 35;            // the cup the balls roll in, and their rolling friction (1/s)
-let CUP_LIP = 12 * DEG;                   // past this the balls roll over the rim, tray and all
+let CUP_LIP = 24 * DEG;                   // past this the outer ball reaches the drawn rim (RIM_A) and rolls over, tray and all
 const BALL_R = 0.028;
 const MAX_TILT = 40 * DEG, DEAD = 0.5 * DEG; // phone roll used, and ignored jitter
-let FALL_TILT = 20 * DEG;                 // blocks slide off past this, from level in the world
+let FALL_TILT = 20 * DEG;                 // the tower starts sliding past this, from level in the world (wood on wood)
 const HOLD_S = 3, PRACTICE_S = 180;
 const SCORED_WORD = "SURVIVOR", PRACTICE_WORD = "ISLAND";
 const RACK = { x: 0.34, y: 0.8, pitch: 0.1 }; // the slotted rack, top right: slot 0 (the one you pull) at the bottom
@@ -115,12 +115,13 @@ let gone = null; // the tray and balls after they rolled off the stand: { x, y, 
 let block = null, lift = 0, liftV = 0; // the block in hand ({ id, letter, x, y, tx, ty, home }); the rack's drop
 function setup(practice) {
   word = practice ? PRACTICE_WORD : SCORED_WORD;
-  s = { psi: 0, psiV: 0, th: 0, thV: 0, phi: s?.phi ?? 0, stack: [] }; gone = null;
+  s = { psi: 0, psiV: 0, th: 0, thV: 0, sv: 0, phi: s?.phi ?? 0, stack: [] }; gone = null;
   flying = []; dropping = null; block = null; lift = 0; holdFrom = 0; hud();
 }
 const placed = () => s.stack.length;
 const nextLetter = () => word[word.length - 1 - placed()];
-const rackFirst = () => placed() + (dropping ? 1 : 0) + (block && !block.home ? 1 : 0); // placing index in slot 0
+const falling = () => flying.filter((b) => b.down).length; // blocks of a fallen tower not yet on the ground
+const rackFirst = () => placed() + falling() + (dropping ? 1 : 0) + (block && !block.home ? 1 : 0); // placing index in slot 0
 const rackSlot = (k) => ({ x: RACK.x, y: RACK.y + BH / 2 + (k + lift) * RACK.pitch });
 function holdUpright(then) {
   const el = $("count"); el.classList.add("msg"); el.classList.remove("hidden"); el.textContent = "Hold your phone upright";
@@ -224,7 +225,7 @@ function hitRim(st) {
 
 // ---- input: one finger pulls the bottom block out of the rack (anywhere on the rack grabs it) ----
 canvas.addEventListener("pointerdown", (e) => {
-  if (!(phase === "practice" || phase === "run") || block || dropping || placed() >= word.length) return;
+  if (!(phase === "practice" || phase === "run") || block || dropping || falling() || gone || placed() >= word.length) return;
   const p = toWorld(e), bottom = rackSlot(0);
   if (Math.abs(p.x - RACK.x) > BW * 0.9 || p.y < bottom.y - BH || p.y > RACK.y + RACK.pitch * (word.length - placed()) + 0.05) return;
   block = { id: e.pointerId, letter: nextLetter(), x: bottom.x, y: bottom.y, tx: p.x, ty: p.y + 0.07 };
@@ -271,18 +272,23 @@ function land(d) { // the dropped block reaches the top of the stack
   if (placed() === word.length) { holdFrom = performance.now(); pop("Hold it!"); }
   else pop(word.slice(word.length - placed()));
 }
-// The tower falls: its blocks fly off the tray, then go back to the rack. In a run, that's a drop.
+// The tower falls: its blocks fly off the tray. Once they're all on the ground they go back to the rack, the tray is
+// set flat, and in a run that's a drop (see landed).
 function fall(why) {
   if (!s.stack.length) return;
   const f = trayFrame(), lean = Math.sign(s.th - s.psi + s.phi) || 1;
   s.stack.forEach((u, k) => {
     const w = f.at(u, TRAY_T + BH * (k + 0.5)), r = TRAY_T + BH * (k + 0.5);
-    flying.push({ letter: word[word.length - 1 - k], x: w.x, y: w.y, vx: s.thV * r * Math.cos(s.th) + lean * 0.8 + (k - 3) * 0.05,
-      vy: 0.3 + 0.1 * k, ang: f.rot, spin: lean * (2 + k) });
+    const slid = s.sv * Math.cos(f.rot); // a sliding tower just carries on off the end; a toppling one is thrown
+    flying.push({ letter: word[word.length - 1 - k], x: w.x, y: w.y, vx: s.thV * r * Math.cos(s.th) + (slid || lean * 0.8 + (k - 3) * 0.05),
+      vy: slid ? -s.sv * Math.sin(f.rot) : 0.3 + 0.1 * k, ang: f.rot, spin: lean * (slid ? 1 : 2 + k), down: true });
   });
-  s.stack = []; holdFrom = 0; lift = 1; liftV = 0; navigator.vibrate?.([40, 30, 40]);
-  s.th = s.thV = s.psi = s.psiV = 0; // a fresh start: the tray sits flat, the balls at the bottom of the cup
-  pop(why);
+  s.stack = []; s.sv = 0; holdFrom = 0; navigator.vibrate?.([40, 30, 40]);
+  pop(why); hud();
+}
+function landed() { // the fallen tower is all on the ground
+  flying = flying.filter((b) => !b.down); lift = 1; liftV = 0;
+  if (!gone) s.th = s.thV = s.psi = s.psiV = 0; // a fresh start: the tray sits flat, the balls at the bottom of the cup
   if (phase === "run") { drops++; report(); }
   hud();
 }
@@ -297,20 +303,28 @@ function step(dt) {
   const gx = 9.8 * Math.sin(s.phi), gy = -9.8 * Math.cos(s.phi); // real gravity, on the tilted screen
   if (gone) { // off the stand: it falls, then a fresh tray is set on the balls
     gone.vx += gx * dt; gone.vy += gy * dt; gone.x += gone.vx * dt; gone.y += gone.vy * dt; gone.ang += gone.spin * dt;
-    if ((gone.t -= dt) <= 0) { gone = null; s.psi = s.psiV = s.th = s.thV = 0; }
+    if (gone.y < 0.03 || (gone.t -= dt) <= 0) { gone = null; s.psi = s.psiV = s.th = s.thV = 0; } // on the ground
     return stepRest(dt, gx, gy);
   }
   if (Math.abs(s.psi) > CUP_LIP) { // over the rim: balls, tray and tower all go
     const f = trayFrame(), m = f.at(0, 0), side = Math.sign(s.psi);
     const v = s.psiV * CUP_R;
     fall("Off the stand!");
-    gone = { x: m.x, y: m.y, vx: v + side * 0.3, vy: 0.2, ang: f.rot, spin: side * 3, t: 1.3 };
+    gone = { x: m.x, y: m.y, vx: v + side * 0.3, vy: 0.2, ang: f.rot, spin: side * 3, t: 4 };
     if (phase !== "run") pop("Off the stand!");
     return stepRest(dt, gx, gy);
   }
   if (!(phase === "practice" || phase === "run")) { s.th = s.thV = s.psi = s.psiV = 0; return stepRest(dt, gx, gy); } // the tray waits, flat, until play
   const contact = physics(s, dt), tilt = s.th - s.psi + s.phi;
-  if (s.stack.length && (Math.abs(tilt) > FALL_TILT || Math.abs(contact) > TRAY_W / 2 - 0.02)) fall(Math.abs(tilt) > FALL_TILT ? "Too far!" : "Off the balls!");
+  if (s.stack.length) { // past FALL_TILT the tower slides down the tray (friction holds it below); off the end, it falls
+    const mu = Math.tan(FALL_TILT), g = Math.sin(tilt), n = Math.cos(tilt);
+    if (s.sv || Math.abs(g) > mu * n) {
+      const v = s.sv + G * (g - mu * n * Math.sign(s.sv || g)) * dt;
+      s.sv = s.sv && Math.sign(v) !== Math.sign(s.sv) ? 0 : v; // friction stops it, never pushes it back
+      s.stack = s.stack.map((u) => u + s.sv * dt);
+    }
+  }
+  if (s.stack.length && (Math.abs(s.stack[0]) > TRAY_W / 2 || Math.abs(contact) > TRAY_W / 2 - 0.02)) fall(Math.abs(contact) > TRAY_W / 2 - 0.02 ? "Off the balls!" : "Slid off!");
   else if (toppled(s.stack, tilt) >= 0) fall("Toppled!");
   else if (hitRim(s) && s.stack.length) fall("Hit the bowl!");
   if (!s.stack.length) { // an empty tray never falls off: it settles back over the balls
@@ -324,8 +338,14 @@ function step(dt) {
   stepRest(dt, gx, gy);
 }
 function stepRest(dt, gx, gy) { // blocks in the air
-  for (const b of flying) { b.vx += gx * dt; b.vy += gy * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.ang += b.spin * dt; }
-  flying = flying.filter((b) => b.y > VIEW.y0 - 0.3 && b.x > VIEW.x0 - 0.3 && b.x < VIEW.x1 + 0.3);
+  for (const b of flying) {
+    if (b.rest) continue;
+    b.vx += gx * dt; b.vy += gy * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.ang += b.spin * dt;
+    if (b.down && b.y < BH / 2) { b.y = BH / 2; b.rest = true; } // hit the sand
+    if (b.down && (b.x < VIEW.x0 - 0.3 || b.x > VIEW.x1 + 0.3)) b.rest = true; // off the side: as good as landed
+  }
+  flying = flying.filter((b) => b.down || (b.y > VIEW.y0 - 0.3 && b.x > VIEW.x0 - 0.3 && b.x < VIEW.x1 + 0.3));
+  if (falling() && flying.every((b) => !b.down || b.rest)) landed();
 }
 function frameLogic(now) {
   if (phase === "practice") {

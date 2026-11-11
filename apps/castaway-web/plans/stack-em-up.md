@@ -66,8 +66,10 @@ the balancing device; one finger stacks letter blocks until the tower spells SUR
 ## Tuning (after trying a single ball, a cradle and a pole, all worse)
 
 Back to the two balls in a round cup, with: overdamped balls (`CUP_DAMP` 35), so tilting leans the tray now and the
-bowl forgives over about a second; a held 8° never dumps them, 20° does in under a second. Rocking friction
+bowl forgives over about a second; the balls only go over once the outer one reaches the drawn rim (`CUP_LIP` 24°). Rocking friction
 `DAMP` 4, so a flicked empty tray settles in about 1.2 s instead of rocking in waves. The balls throw the tray
 less (`SLOSH` 0.3), and less the heavier it is. A tall tower topples over its own base at a smaller tilt (22° at
-four blocks, 10° at eight), and blocks slide off past 20°. The tray's underside bounces off the cup's rim instead
+four blocks, 10° at eight). Past 20° (`FALL_TILT`, wood on wood) the tower slides along the tray and falls off
+the end. A fallen tower and tray really fall: the drop counts, and the tray is set flat with the blocks back in the
+rack, only once they hit the ground. The tray's underside bounces off the cup's rim instead
 of passing through it; a loaded tray that hits it drops the tower. The tray waits flat until play.
