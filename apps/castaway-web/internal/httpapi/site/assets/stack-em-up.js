@@ -261,6 +261,7 @@ function fall(why) {
       vy: 0.3 + 0.1 * k, ang: f.rot, spin: lean * (2 + k) });
   });
   s.stack = []; holdFrom = 0; lift = 1; liftV = 0; navigator.vibrate?.([40, 30, 40]);
+  s.th = s.thV = s.psi = s.psiV = 0; // a fresh start: the tray sits flat, the balls at the bottom of the cup
   pop(why);
   if (phase === "run") { drops++; report(); }
   hud();
@@ -281,8 +282,9 @@ function step(dt) {
   }
   if (Math.abs(s.psi) > CUP_LIP) { // over the rim: balls, tray and tower all go
     const f = trayFrame(), m = f.at(0, 0), side = Math.sign(s.psi);
+    const v = s.psiV * CUP_R;
     fall("Off the stand!");
-    gone = { x: m.x, y: m.y, vx: s.psiV * CUP_R + side * 0.3, vy: 0.2, ang: f.rot, spin: side * 3, t: 1.3 };
+    gone = { x: m.x, y: m.y, vx: v + side * 0.3, vy: 0.2, ang: f.rot, spin: side * 3, t: 1.3 };
     if (phase !== "run") pop("Off the stand!");
     return stepRest(dt, gx, gy);
   }
