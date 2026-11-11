@@ -22,7 +22,7 @@ patches:
 images:
   - name: ghcr.io/bry-guy/castaway-web
     newName: ghcr.io/bry-guy/castaway-web
-    digest: sha256:d1519eb2712b84c712ba16e7c2ffade40677175e632fc0f1cadcfd0ecf757289
+    digest: sha256:0d5e963281404363d348b88c11f0b59c1d052e986e1c0da337bad144705762c3
   - name: ghcr.io/bry-guy/castaway-discord-bot
     newName: ghcr.io/bry-guy/castaway-discord-bot
     digest: sha256:116cc38c439b4c45cf69c0e273b4791373f2f5fcd5f9f15fed07a785fafad4ee
