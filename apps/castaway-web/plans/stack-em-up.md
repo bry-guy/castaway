@@ -11,21 +11,24 @@ the balancing device; one finger stacks letter blocks until the tower spells SUR
 
 - Side view, phone upright (portrait). A tray rests on two balls in a cup on a fixed stand in the bottom third.
   Tilting the phone (its roll in the screen plane, from `deviceorientation`, calibrated level on "Hold your phone
-  upright" and the Level button) tilts gravity in the scene. A level bubble beside Ready runs uphill and reaches
-  its edge at the rim.
-- The tray rocks on the balls as if on an 8 cm rocker with little friction, and the balls rolling in the cup throw
-  it about (SLOSH), so even an empty tray wobbles. One or two blocks survive if you're gentle; from about four
-  blocks the tower falls in about 1.5 s unless you tilt against the lean. Gravity is slowed (4.5 m/s²).
+  upright" and the Level button) tilts gravity in the scene.
+- The tray balances on the two balls like a stick on a finger (its weight sits above its 6 mm rocker curve), so it
+  tips one way and keeps going unless the phone is tilted against it: an empty tray takes about 3 s to go from
+  barely off level to over, one block about 1 s, a full tower about 1.8 s (a tall tower is a longer, slower
+  pendulum, but needs bigger corrections). Gravity is slowed (4.5 m/s²); the tray is heavy (5 kg to a block's
+  1 kg) so the first block doesn't throw it about.
+- The balls sit on the cup's flat floor and stick until the phone tilts past 3°, then roll downhill against
+  rolling friction of the same size, so they stop again once it's level. Their speeding up throws the tray the
+  other way. Past the floor's edge (7 cm) they go over the lip; an empty tray tipping past 28° also goes. Either
+  way balls, tray and tower fall off the stand, then a fresh, flat tray is set on after a moment.
+- A level bubble beside Ready runs uphill; inside its inner ring (3°) the balls stay put.
 - A slotted bamboo rack top right holds the blocks in placing order (R O V I V R U S from the bottom, so the tower
   reads SURVIVOR from the top). Touching the rack pulls the bottom block; the rest drop down a slot. A small
   pulsing ring and arrow mark it; no instruction text. Let it go over the stack and it drops straight down onto
   the top block, keeping its position along the tray; anywhere else it goes back into the rack. A block whose
   middle is past the edge of the block below falls off; a block that leaves the blocks above some lower block
   overhanging topples the tower.
-- The balls roll in a round cup toward wherever gravity points. Tilt the phone past about 11° (12° is the rim) and
-  they roll over it: balls, tray and tower all fall off the stand, and a fresh tray is set on after a
-  moment.
-- The tower falls (a drop) if the balls leave the cup, the tray tips past 28° from level in the world or it rolls
+- The tower falls (a drop) if the balls go over the lip, the tray tips past 28° from level in the world or it rolls
   off the balls. Every block goes back to the rack.
 - Eight blocks, then hold for 3 seconds to finish.
 - Practice until Ready, or three minutes at most: six blocks that spell ISLAND. Then a 3-2-1 countdown and the
@@ -59,5 +62,5 @@ the balancing device; one finger stacks letter blocks until the tower spells SUR
   30 s.
 - Browser (Playwright, mobile portrait, synthetic pointers and `?debug` tilt, not committed): pulling four blocks
   from the rack and stacking them; a release away from the tray goes back to the rack; a 30° tilt drops the tower.
-- Not verifiable here: real tilt feel on iOS and Android. Tune `G`, `CRADLE_R`, `DAMP`, `SLOSH`, `CUP_R`, `CUP_DAMP`, `CUP_LIP`, `DEAD` and `FALL_TILT` on
+- Not verifiable here: real tilt feel on iOS and Android. Tune `G`, `CRADLE_R`, `M_TRAY`, `STICK`, `CUP_HALF`, `DEAD` and `FALL_TILT` on
   devices.
