@@ -12,9 +12,9 @@ const CRADLE_R = 0.08;                    // the tray rocks on the balls as if o
 const STAND_TOP = 0.42;                   // where the tray rests
 const M_TRAY = 1.5, M_BLOCK = 1;
 const G = 4.5;                            // slowed down: real gravity tips a 0.7 m tower too fast to catch
-const DAMP = 0.3;                         // rocking friction (1/s)
+const DAMP = 1.5;                         // rocking friction (1/s)
 const SLOSH = 0.8;                        // how much the balls rolling in the cup throws the tray
-const CUP_R = 0.1, CUP_DAMP = 1.5;        // the cup the balls roll in, and their rolling friction (1/s)
+const CUP_R = 0.1, CUP_DAMP = 3;          // the cup the balls roll in, and their rolling friction (1/s)
 const CUP_LIP = 12 * DEG;                 // past this the balls roll over the rim, tray and all
 const BALL_R = 0.028;
 const MAX_TILT = 40 * DEG, DEAD = 0.5 * DEG; // phone roll used, and ignored jitter
