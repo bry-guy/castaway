@@ -13,8 +13,8 @@ const STAND_TOP = 0.42;                   // where the tray rests
 const M_TRAY = 1.5, M_BLOCK = 1;
 const G = 4.5;                            // slowed down: real gravity tips a 0.7 m tower too fast to catch
 const DAMP = 0.8;                         // rocking friction (1/s)
-const CUP_R = 0.14, CUP_DAMP = 3;         // the cup the balls roll in, and their rolling friction (1/s)
-const CUP_LIP = 20 * DEG;                 // past this the balls roll over the rim, tray and all
+const CUP_R = 0.1, CUP_DAMP = 1.5;        // the cup the balls roll in, and their rolling friction (1/s)
+const CUP_LIP = 12 * DEG;                 // past this the balls roll over the rim, tray and all
 const BALL_R = 0.028;
 const MAX_TILT = 40 * DEG, DEAD = 0.5 * DEG; // phone roll used, and ignored jitter
 const FALL_TILT = 28 * DEG;               // blocks slide off past this, from level in the world
@@ -449,6 +449,7 @@ function frame(now) {
   s.phi = readPhi(s.phi);
   while (acc >= STEP) { step(STEP); acc -= STEP; }
   frameLogic(now);
+  $("bubble").style.transform = `translateX(${-clamp(s.phi / CUP_LIP, -1, 1) * 15}px)`; // runs uphill; at the edge, over the rim
   draw();
   requestAnimationFrame(frame);
 }

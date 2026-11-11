@@ -11,7 +11,8 @@ the balancing device; one finger stacks letter blocks until the tower spells SUR
 
 - Side view, phone upright (portrait). A tray rests on two balls in a cup on a fixed stand in the bottom third.
   Tilting the phone (its roll in the screen plane, from `deviceorientation`, calibrated level on "Hold your phone
-  upright" and the Level button) tilts gravity in the scene.
+  upright" and the Level button) tilts gravity in the scene. A level bubble beside Ready runs uphill and reaches
+  its edge at the rim.
 - The tray rocks as if on a 22 cm rocker: a short stack rights itself; once the stack's centre of mass is above
   that curve (around block 5–6) it tips unless the phone is tilted against the lean. Gravity is slowed (4.5 m/s²)
   so an unattended full tower takes a couple of seconds to fall.
@@ -21,8 +22,8 @@ the balancing device; one finger stacks letter blocks until the tower spells SUR
   the top block, keeping its position along the tray; anywhere else it goes back into the rack. A block whose
   middle is past the edge of the block below falls off; a block that leaves the blocks above some lower block
   overhanging topples the tower.
-- The balls roll in a round cup toward wherever gravity points. Tilt the phone past about 15° (or 20° very slowly)
-  and they roll over the rim: balls, tray and tower all fall off the stand, and a fresh tray is set on after a
+- The balls roll in a round cup toward wherever gravity points. Tilt the phone past about 11° (12° is the rim) and
+  they roll over it: balls, tray and tower all fall off the stand, and a fresh tray is set on after a
   moment.
 - The tower falls (a drop) if the balls leave the cup, the tray tips past 28° from level in the world or it rolls
   off the balls. Every block goes back to the rack.
