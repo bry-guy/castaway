@@ -10,8 +10,8 @@ const BW = 0.1, BH = 0.09;                // a block (m)
 const TRAY_W = 0.36, TRAY_T = 0.025;      // the tray
 const STAND_TOP = 0.42;                   // the top of the ball the tray balances on
 const BALL_R = 0.035;                     // that ball, sitting in a cup on the stand
-const CUP_W = 0.08, CUP_GAP = 0.022;      // the cup's rim: half-width, and how far below the ball's top
-const RIM = Math.atan(CUP_GAP / CUP_W);   // the tray's underside meets the rim at this tilt (about 15°)
+const CUP_W = 0.08, CUP_GAP = 0.04;       // the cup's rim: half-width, and how far below the ball's top
+const RIM = Math.atan(CUP_GAP / CUP_W);   // the tray's underside meets the rim at this tilt (about 27°)
 const M_TRAY = 3, M_BLOCK = 1;
 // How quickly a tray with n blocks tips (s to grow e-fold), n = 0..8. A design knob, not physics: a real empty tray
 // is the slowest to tip, but here one centred block steadies it and every block after makes it quicker.
@@ -190,7 +190,8 @@ function trayFrame() {
     from: (x, y) => { const dx = x - qx, dy = y - qy; return { u: dx * rc - dy * rn, v: dx * rn + dy * rc }; } };
 }
 // A fresh tray: level in the world (as far as the rim allows), with a nudge too small to see, so it starts tipping.
-function settle() { s.th = clamp(-s.phi, -RIM, RIM) + (Math.random() - 0.5) * 0.4 * DEG; s.thV = 0; }
+let rimT = 0; // how long an empty tray has lain on the rim
+function settle() { rimT = 0; s.th = clamp(-s.phi, -RIM * 0.7, RIM * 0.7) + (Math.random() - 0.5) * 0.4 * DEG; s.thV = 0; }
 const onRim = () => Math.abs(s.th) >= RIM - 0.5 * DEG;
 
 // ---- input: one finger pulls the bottom block out of the rack (anywhere on the rack grabs it) ----
@@ -268,9 +269,13 @@ function step(dt) {
   if (!(phase === "practice" || phase === "run")) { settle(); return stepRest(dt, gx, gy); } // the tray waits, level, until play
   physics(s, dt);
   if (Math.abs(s.th) >= RIM) { // the tray's underside lands on the cup's rim and stops there
-    s.th = Math.sign(s.th) * RIM; if (s.thV * s.th > 0) s.thV = 0;
+    s.th = Math.sign(s.th) * RIM; if (s.thV * s.th > 0) s.thV *= -0.35; // it knocks against the rim and bounces back
     if (s.stack.length) fall("Hit the rim!"); // a loaded tray can't rest on the rim: the tower goes
-  } else if (s.stack.length && Math.abs(s.th + s.phi) > FALL_TILT) fall("Too far!");
+    else if ((rimT += dt) > 0.6) settle(); // an empty one lying there is set level again
+  } else {
+    if (Math.abs(s.th) < RIM - DEG) rimT = 0;
+    if (s.stack.length && Math.abs(s.th + s.phi) > FALL_TILT) fall("Too far!");
+  }
   if (dropping) {
     dropping.vv -= 9.8 * dt; dropping.v += dropping.vv * dt;
     if (dropping.v <= TRAY_T + BH * (placed() + 0.5)) land(dropping);

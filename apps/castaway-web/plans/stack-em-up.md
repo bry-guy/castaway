@@ -18,10 +18,10 @@ the balancing device; one finger stacks letter blocks until the tower spells SUR
   0.52]`. The empty tray is twitchy; one centred block steadies it; every block after makes it quicker. A real
   empty tray would be the slowest, so this curve is imposed. An off-centre stack also pulls its side down
   (`OFF_GAIN`).
-- The tray's underside lands on the cup's rim at about 15° on screen (from the drawn geometry). An empty tray
-  rests there until you tilt it back, and a block let go onto it slides off ("Missed!", not a drop). A loaded
-  tray touching the rim drops the tower, so it can't be parked there; so does tipping past 20° from level in the
-  world.
+- The tray's underside meets the shallow cup's rim at about 27° on screen (from the drawn geometry), past the
+  20° world fall angle, so a loaded tower normally drops before it gets there. It knocks against the rim and
+  bounces back; a loaded tray touching it drops the tower, so it can't be parked there. An empty tray that lies
+  on the rim for 0.6 s is set level again, and a block let go onto it slides off ("Missed!", not a drop).
 - After a fall, and while waiting to play, the tray is set level in the world (not on screen), as far as the rim
   allows.
 - Free play only: `?tau=0.6,1,…` and `?fall=20` override the curve and the fall angle, to tune on a phone.
