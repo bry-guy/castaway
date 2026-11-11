@@ -1,6 +1,6 @@
 {{template "header" .}}
 {{with .Stack}}<div class="game-heading"><a class="back-link" href="/games">← All games</a><p class="eyebrow">Episode {{.Episode}}</p><h1>Stack 'Em Up</h1>
-<p class="muted">Tilt your phone to balance the tray and stack 8 blocks from the rack until the tower spells SURVIVOR, then hold it for 3 seconds, fastest wins. Finishing is +1; fastest +3, second fastest +2 (ties share); +2 for a clean run with no drops. League points = your points.</p></div>
+<p class="muted">Hold your phone like a pole with the tray balanced on top and stack 8 blocks from the rack until the tower spells SURVIVOR, then hold it for 3 seconds, fastest wins. Finishing is +1; fastest +3, second fastest +2 (ties share); +2 for a clean run with no drops. League points = your points.</p></div>
 {{if .Upcoming}}<p class="center">Opens {{.OpensAt.Format "Mon Jan 2, 3:04pm MST"}}.</p>
 {{else}}{{if .Finished}}<p class="scramble-result">Your time: {{.Time}} · {{.Drops}} {{if eq .Drops 1}}drop{{else}}drops{{end}}{{if eq .Drops 0}} 🔥{{end}}</p>{{else if .Played}}<p class="center muted">Not finished: tallest tower {{.Best}}/8.</p>{{else if not .Open}}<p class="center muted">You didn't play this one.</p>{{end}}
 {{if .Open}}<p class="muted center">Results when it closes {{.CutoffAt.Format "Mon Jan 2, 3:04pm MST"}}.</p>

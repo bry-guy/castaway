@@ -9,19 +9,22 @@ the balancing device; one finger stacks letter blocks until the tower spells SUR
 
 ## Rules
 
-- Side view, phone upright (portrait). The tray rocks (rolls without slipping) on a low curved cradle of radius
-  `CRADLE_R` (10 cm) on a fixed stand in the bottom third. Tilting the phone (its roll in the screen plane, from
-  `deviceorientation`, calibrated level on "Hold your phone upright" and the Level button) tilts the stand, and the
-  tray with it. A level bubble beside Ready runs uphill; its edge is the tilt that slides blocks off.
-- Real rocker physics: with its load's weight h above its underside, the tray leans R/(R − h) times the phone's
-  tilt and settles. 5° of phone tilt leans an empty tray 5.7°, one block 6.8°, two 10.9°; from about three
-  blocks h passes R, so the tray tips on its own and you tilt against it continuously. Gravity for the rocking is
-  slowed (`G` 4.5 m/s²) and the rocking damped (`DAMP` 3/s). Off-centre blocks lean the tray their way.
+- Side view, phone upright (portrait). The phone is the pole: it stands still on screen, running off the bottom,
+  with a ball on top that the tray hinges on. Weights hang under the tray's ends (`KEEL_M` each, 15 cm down).
+  Tilting the phone swings the pole's top sideways as if it were `STICK_L` (0.6 m) long, through a smoothing
+  follower so the sensor's jitter isn't amplified; jerking the phone sideways (`devicemotion` acceleration, dead
+  band 0.15 m/s², clamped ±6, scaled by `SHAKE`) pushes it too. Only the pole's top moving matters: holding the
+  phone tilted and still does nothing.
+- Real physics, a pendulum on a moving pivot: while the load's weight (tray, weights, blocks) sits below the ball,
+  0–2 blocks, the tray hangs level by itself. From three it sits above, a broom: it tips unless you move the
+  pole's top the way it leans to get under it (lean or jerk the phone that way). Gravity is slowed (`G` 4.5 m/s²)
+  and the swing has air drag (`DAMP` 1/s). Off-centre blocks lean the tray their way.
 - The tower falls (a drop) if the tray tips past 20° from level in the world, if the blocks above any block have
-  their weight past its edge at the current tilt (a tall tower goes over at a small tilt: 22° at four blocks,
-  10° at eight), if the tray rolls off the cradle's end (30° on screen), or if a block is stacked past the edge of
-  the one below. An empty tray just bounces back off the end.
-- Free play only: `?r=0.1`, `?g=4.5`, `?damp=3` and `?fall=20` override those, to tune on a phone.
+  their weight past its edge at the current tilt (22° at four blocks, 10° at eight), if the tray swings into the
+  pole (60°), or if a block is stacked past the edge of the one below. An empty tray bounces off the pole.
+- The level bubble runs uphill; at its edge the pole can't swing further (40°).
+- Free play only: `?len=0.6`, `?keel=1.1`, `?g=4.5`, `?damp=1`, `?shake=1` (0 off, negative flips its direction)
+  and `?fall=20` override those, to tune on a phone. iOS is asked for orientation and motion access in one tap.
 - A slotted bamboo rack top right holds the blocks in placing order (R O V I V R U S from the bottom, so the tower
   reads SURVIVOR from the top). Touching the rack pulls the bottom block; the rest drop down a slot. A small
   pulsing ring and arrow mark it; no instruction text. Let it go over the stack and it drops straight down onto
@@ -55,10 +58,11 @@ the balancing device; one finger stacks letter blocks until the tower spells SUR
 
 - Go unit test `TestStackPoints`; integration test `TestStackEmUp` (refusals, resume attributes, server clock,
   tie in tenths, resolve once, results, ledger, profile, scheduled games). Probst render test.
-- Physics self-check (node, not committed): a tilt controller 150 or 250 ms late, with 0.3° of sensor noise and
-  the wrist rate-limited to 170°/s. An empty tray holds with no input; two blocks and up need steering, and some
-  gains still hold eight blocks for 15 s at 250 ms.
+- Physics self-check (node, not committed): 0–2 blocks hang level unattended and under a held 15° phone tilt;
+  3+ fall unattended within about 2 s; tilting toward the lean reduces it; a 3 m/s², 150 ms jolt drops eight
+  blocks but not two. A broom-balancing player that sees the tower 150 or 250 ms late (0.3° noise, wrist
+  rate-limited to 170°/s) but knows its own hand holds 4 and 8 blocks for 15 s at both lags (6 at 150 ms).
 - Browser (Playwright, mobile portrait, synthetic pointers and `?debug` tilt, not committed): pulling four blocks
   from the rack and stacking them; a release away from the tray goes back to the rack; a 30° tilt drops the tower.
-- Not verifiable here: real tilt feel on iOS and Android. Tune `CRADLE_R`, `G`, `DAMP`, `FALL_TILT` and `DEAD` on
+- Not verifiable here: real tilt feel on iOS and Android. Tune `STICK_L`, `KEEL_M`, `SHAKE`, `G`, `DAMP`, `FALL_TILT` and `DEAD` on
   devices.

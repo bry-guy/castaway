@@ -1,20 +1,25 @@
 { // own block: page scripts share one global scope
-// Stack 'Em Up, side view, phone held upright. A tray rocks on a curved cradle on a fixed stand; the phone is the
-// balancing device: tilting it tilts the stand, and the tray with it. One finger pulls letter blocks from a slotted
-// rack (each one you pull lets the next drop down) and stacks them on the tray until the tower reads SURVIVOR from
-// the top. A short stack rights itself, but the more you stack the more the tray amplifies every tilt, and once its
-// weight sits higher than the cradle's curve it tips unless you tilt against it. A tall tower also topples over its
-// own base at a smaller tilt. Any of that, or a block stacked past the edge of the one below, and the tower falls:
-// every block goes back to the rack (a drop).
+// Stack 'Em Up, side view, phone held upright. The phone is the pole: a tray balances on a ball at its top, and
+// tilting or jerking the phone swings the pole's top from side to side. Weights hang under the tray's ends, so an
+// empty tray or a short stack hangs level by itself; once the tower's weight sits higher than the weights', it
+// tips like a broom on your hand and you have to keep moving under it. One finger pulls letter blocks from a
+// slotted rack (each one you pull lets the next drop down) and stacks them until the tower reads SURVIVOR from the
+// top. Tip too far, let a tall tower topple, hit the tray on the pole or stack a block past the edge of the one
+// below, and the tower falls: every block goes back to the rack (a drop).
 const DEG = Math.PI / 180;
 const BW = 0.1, BH = 0.09;                // a block (m)
 const TRAY_W = 0.36, TRAY_T = 0.025;      // the tray
-const STAND_TOP = 0.42;                   // the top of the cradle the tray rocks on
-let CRADLE_R = 0.1;                       // the cradle's curve: a load whose weight sits higher than this tips
-const RIM = 30 * DEG;                     // past this tilt on screen the tray rolls off the cradle's end
+const STAND_TOP = 0.42;                   // the ball on the pole's top, on screen
+const BALL_R = 0.025;
+const RIM = 60 * DEG;                     // past this tilt against the pole the tray hits it
 const M_TRAY = 3, M_BLOCK = 1;
-let G = 4.5;                              // gravity for the rocking, slowed so a tall tower is humanly catchable
-let DAMP = 3;                             // friction on the rocking (1/s)
+const KEEL_U = 0.16, KEEL_V = -0.15;      // the two hanging weights, under the tray's ends
+let KEEL_M = 1.1;                         // each; heavier keeps taller stacks hanging level
+let STICK_L = 0.6;                        // the pole: how far its top swings for a tilt of the phone (m)
+let SHAKE = 1;                            // how much the hand's own sideways jolts push the pole's top
+let G = 4.5;                              // gravity for the balancing, slowed so a tall tower is humanly catchable
+let DAMP = 1;                             // air drag on the tray's swing (1/s)
+const FOLLOW_W = 25;                      // the pole follows the phone this briskly (rad/s), smoothing the sensor
 const MAX_TILT = 40 * DEG, DEAD = 0.5 * DEG; // phone roll used, and ignored jitter
 let FALL_TILT = 20 * DEG;                 // blocks slide off the tray past this, from level in the world
 const HOLD_S = 3, PRACTICE_S = 180;
@@ -25,27 +30,34 @@ const DEBUG = location.search.includes("debug");
 // Scored runs: the server puts data-action on <body>, and data-resume (drops, elapsed ms, and the height the
 // stack had) when the player already started. The clock is the server's.
 const DATA = document.body.dataset, ACTION = DATA.action || "", RESUME = DATA.resume === "1";
-if (!ACTION) { // free play only: ?r=0.1 (cradle curve, m), ?g=4.5, ?damp=3, ?fall=20 to tune on a phone without a deploy
-  const q = new URLSearchParams(location.search), n = (k) => +q.get(k) > 0 && +q.get(k);
-  CRADLE_R = n("r") || CRADLE_R; G = n("g") || G; DAMP = n("damp") || DAMP; FALL_TILT = (n("fall") || FALL_TILT / DEG) * DEG;
+if (!ACTION) { // free play only: ?len=0.6 ?keel=1.1 ?g=4.5 ?damp=1 ?shake=1 ?fall=20 to tune on a phone without a deploy
+  const q = new URLSearchParams(location.search), n = (k) => (q.has(k) && Number.isFinite(+q.get(k)) ? +q.get(k) : null);
+  STICK_L = n("len") ?? STICK_L; KEEL_M = n("keel") ?? KEEL_M; G = n("g") ?? G; DAMP = n("damp") ?? DAMP;
+  SHAKE = n("shake") ?? SHAKE; FALL_TILT = (n("fall") ?? FALL_TILT / DEG) * DEG;
 }
 
 // <physics> (pure: no page state; a self-check can evaluate this part alone)
-// One step. s: { th (tray tilt on the cradle, + is right side down), thV, phi (the phone's roll, + is right side
-// down), stack (block offsets along the tray) }. The tray rolls without slipping on a cradle of radius CRADLE_R:
-// at tilt th it touches it CRADLE_R·th along its underside. Its load (tray and blocks, weight h up and ub along)
-// pulls it over by h·sin(a), a its tilt from level in the world, and the rolling pulls it back by (CRADLE_R·th −
-// ub)·cos(a): stable while h < CRADLE_R, leaning R/(R − h) times the phone's tilt, and tipping once h passes it.
+// One step. s: { a (the tray's tilt from level in the world, + is right side down), aV, phi (the pole's tilt, + is
+// its top to the right), phiV, want (the phone's tilt, which the pole follows), hand (the hand's sideways
+// acceleration, m/s²), stack (block offsets along the tray) }. The tray hinges on the pole's top. Its load (tray,
+// weights, blocks) has its weight hc above the hinge and ub along: gravity pulls it over by hc·sin a + ub·cos a,
+// and the hinge accelerating sideways (ap) swings it back the other way by hc·cos a. Below the hinge (hc < 0) it
+// hangs level; above, it's a broom: move the pole's top toward the lean to get under it.
 function physics(s, dt) {
-  const parts = [{ m: M_TRAY, u: 0, v: TRAY_T / 2, i: M_TRAY * (TRAY_W ** 2 + TRAY_T ** 2) / 12 }];
+  const w = FOLLOW_W, phiA0 = w * w * (s.want - s.phi) - 2 * w * s.phiV; // a critically damped follower: smooth, so its acceleration is too
+  s.phiV += phiA0 * dt; s.phi += s.phiV * dt;
+  let phiA = phiA0;
+  if (Math.abs(s.phi) > MAX_TILT) { s.phi = Math.sign(s.phi) * MAX_TILT; phiA = -s.phiV / dt; s.phiV = 0; }
+  const ap = STICK_L * (phiA * Math.cos(s.phi) - s.phiV ** 2 * Math.sin(s.phi)) + SHAKE * s.hand;
+  const parts = [{ m: M_TRAY, u: 0, v: TRAY_T / 2, i: M_TRAY * (TRAY_W ** 2 + TRAY_T ** 2) / 12 },
+    { m: KEEL_M, u: -KEEL_U, v: KEEL_V, i: 0 }, { m: KEEL_M, u: KEEL_U, v: KEEL_V, i: 0 }];
   s.stack.forEach((u, k) => parts.push({ m: M_BLOCK, u, v: TRAY_T + BH * (k + 0.5), i: M_BLOCK * (BW ** 2 + BH ** 2) / 12 }));
-  let m = 0, ub = 0, h = 0;
-  parts.forEach((q) => { m += q.m; ub += q.m * q.u; h += q.m * q.v; });
-  ub /= m; h /= m;
-  const cu = CRADLE_R * s.th, a = s.th + s.phi;
-  let I = 0; parts.forEach((q) => { I += q.i + q.m * ((q.u - cu) ** 2 + q.v ** 2); }); // about the contact
-  s.thV += (m * G * (h * Math.sin(a) - (cu - ub) * Math.cos(a)) / I - DAMP * s.thV) * dt;
-  s.th += s.thV * dt;
+  let m = 0, ub = 0, hc = 0, I = 0;
+  parts.forEach((q) => { m += q.m; ub += q.m * q.u; hc += q.m * q.v; I += q.i + q.m * (q.u ** 2 + q.v ** 2); });
+  ub /= m; hc /= m;
+  const c = Math.cos(s.a), n = Math.sin(s.a);
+  s.aV += (m * (G * (hc * n + ub * c) - ap * (hc * c - ub * n)) / I - DAMP * s.aV) * dt;
+  s.a += s.aV * dt;
 }
 // toppled: the first block (0 = bottom) whose blocks above, tilted a from level in the world, have their weight past
 // its edge, or -1. The tray is "block" -1's support, wide as the tray. A tall tower goes over at a small tilt.
@@ -82,6 +94,9 @@ addEventListener("deviceorientation", (e) => {
   if (e.beta == null || e.gamma == null) return;
   raw = { b: e.beta * DEG, g: e.gamma * DEG }; sensed = true;
 });
+let handRaw = 0; // the hand's sideways acceleration (m/s², gravity removed), smoothed
+addEventListener("devicemotion", (e) => { const x = e.acceleration?.x; if (x != null) handRaw += (x - handRaw) * 0.35; });
+const handNow = () => (Math.abs(handRaw) < 0.15 ? 0 : clamp(handRaw - Math.sign(handRaw) * 0.15, -6, 6));
 function roll() {
   if (!raw) return null;
   const x = Math.sin(raw.g) * Math.cos(raw.b), y = Math.sin(raw.b);
@@ -104,7 +119,7 @@ let s, word, phase = "intro", drops = 0, runStart = 0, runEnd = 0, practiceEnd =
 let block = null, lift = 0, liftV = 0; // the block in hand ({ id, letter, x, y, tx, ty, home }); the rack's drop
 function setup(practice) {
   word = practice ? PRACTICE_WORD : SCORED_WORD;
-  s = { th: 0, thV: 0, phi: s?.phi ?? 0, stack: [] }; settle();
+  s = { a: 0, aV: 0, phi: s?.phi ?? 0, phiV: 0, want: s?.want ?? 0, hand: 0, stack: [] }; settle();
   flying = []; dropping = null; block = null; lift = 0; holdFrom = 0; hud();
 }
 const placed = () => s.stack.length;
@@ -183,17 +198,19 @@ function report(finished = false) {
 }
 
 // ---- the tray in the world ----
-// The cradle's top is at (0, STAND_TOP); the tray rolls on it. rot: its tilt on screen (+ is right side down).
+// The phone is the pole, so on screen the pole stands still and the world tilts: the tray's tilt on screen is its
+// tilt in the world less the pole's. It hinges on the ball at (0, STAND_TOP).
+const trayTilt = () => s.a - s.phi;
 function trayFrame() {
-  const rot = s.th, rc = Math.cos(rot), rn = Math.sin(rot), R = CRADLE_R, cu = R * rot;
-  const px = R * rn, py = STAND_TOP - R + R * rc; // where it touches the cradle
-  const qx = px - cu * rc, qy = py + cu * rn;      // its underside's middle
+  const rot = trayTilt(), rc = Math.cos(rot), rn = Math.sin(rot), qx = 0, qy = STAND_TOP;
   return { rot, at: (u, v) => ({ x: qx + u * rc + v * rn, y: qy - u * rn + v * rc }),
     from: (x, y) => { const dx = x - qx, dy = y - qy; return { u: dx * rc - dy * rn, v: dx * rn + dy * rc }; } };
 }
-let rimT = 0; // how long an empty tray has lain on the rim
-function settle() { rimT = 0; s.th = (Math.random() - 0.5) * 0.4 * DEG; s.thV = 0; } // a fresh tray, flat on the cradle
-const onRim = () => Math.abs(s.th) >= RIM - 0.5 * DEG;
+let rimT = 0; // how long an empty tray has lain against the pole
+function settle(nudge = true) { // a fresh tray, level in the world (as far as the pole allows), with a nudge too small to see
+  rimT = 0; s.a = clamp(0, s.phi - RIM * 0.8, s.phi + RIM * 0.8) + (nudge ? (Math.random() - 0.5) * 0.4 * DEG : 0); s.aV = s.phiV;
+}
+const onRim = () => Math.abs(trayTilt()) >= RIM - 0.5 * DEG;
 
 // ---- input: one finger pulls the bottom block out of the rack (anywhere on the rack grabs it) ----
 canvas.addEventListener("pointerdown", (e) => {
@@ -237,8 +254,8 @@ function land(d) { // the dropped block reaches the top of the stack
     lift = 1; liftV = 0; pop("Missed!"); return;
   }
   s.stack.push(d.u); navigator.vibrate?.(15);
-  s.thV += d.u * 0.8; // the knock of setting it down
-  if (toppled(s.stack, s.th + s.phi) >= 0) return fall("Toppled!");
+  s.aV += d.u * 0.8; // the knock of setting it down
+  if (toppled(s.stack, s.a) >= 0) return fall("Toppled!");
   hud(); report();
   if (placed() === word.length) { holdFrom = performance.now(); pop("Hold it!"); }
   else pop(word.slice(word.length - placed()));
@@ -246,10 +263,10 @@ function land(d) { // the dropped block reaches the top of the stack
 // The tower falls: its blocks fly off the tray, then go back to the rack. In a run, that's a drop.
 function fall(why) {
   if (!s.stack.length) return;
-  const f = trayFrame(), lean = Math.sign(s.th + s.phi) || 1;
+  const f = trayFrame(), lean = Math.sign(s.a) || 1;
   s.stack.forEach((u, k) => {
     const w = f.at(u, TRAY_T + BH * (k + 0.5)), r = TRAY_T + BH * (k + 0.5);
-    flying.push({ letter: word[word.length - 1 - k], x: w.x, y: w.y, vx: s.thV * r * Math.cos(s.th) + lean * 0.8 + (k - 3) * 0.05,
+    flying.push({ letter: word[word.length - 1 - k], x: w.x, y: w.y, vx: (s.aV - s.phiV) * r * Math.cos(f.rot) + lean * 0.8 + (k - 3) * 0.05,
       vy: 0.3 + 0.1 * k, ang: f.rot, spin: lean * (2 + k) });
   });
   s.stack = []; holdFrom = 0; lift = 1; liftV = 0; navigator.vibrate?.([40, 30, 40]);
@@ -267,17 +284,17 @@ function step(dt) {
   }
   if (lift > 0 && !block?.home) { liftV += 12 * dt; lift = Math.max(0, lift - liftV * dt); if (!lift) liftV = 0; } // the rack drops a slot
   const gx = 9.8 * Math.sin(s.phi), gy = -9.8 * Math.cos(s.phi); // real gravity, on the tilted screen
-  if (!(phase === "practice" || phase === "run")) { settle(); return stepRest(dt, gx, gy); } // the tray waits, level, until play
+  if (!(phase === "practice" || phase === "run")) { physics(s, dt); settle(false); return stepRest(dt, gx, gy); } // the tray waits, level, until play
   physics(s, dt);
-  if (Math.abs(s.th) >= RIM) { // rolled to the cradle's end: it stops there
-    s.th = Math.sign(s.th) * RIM; if (s.thV * s.th > 0) s.thV *= -0.35; // and bounces back
-    if (s.stack.length) fall("Off the end!");
+  if (Math.abs(trayTilt()) >= RIM) { // the tray hits the pole: it stops there
+    const d = Math.sign(trayTilt()); s.a = s.phi + d * RIM;
+    if ((s.aV - s.phiV) * d > 0) s.aV = s.phiV - (s.aV - s.phiV) * 0.35; // and bounces back
+    if (s.stack.length) fall("Hit the pole!");
     else if ((rimT += dt) > 0.6) settle(); // an empty one lying there is set level again
   } else {
-    if (Math.abs(s.th) < RIM - DEG) rimT = 0;
-    const a = s.th + s.phi;
-    if (s.stack.length && Math.abs(a) > FALL_TILT) fall("Too far!");
-    else if (toppled(s.stack, a) >= 0) fall("Toppled!");
+    if (Math.abs(trayTilt()) < RIM - DEG) rimT = 0;
+    if (s.stack.length && Math.abs(s.a) > FALL_TILT) fall("Too far!");
+    else if (toppled(s.stack, s.a) >= 0) fall("Toppled!");
   }
   if (dropping) {
     dropping.vv -= 9.8 * dt; dropping.v += dropping.vv * dt;
@@ -393,16 +410,19 @@ function drawRack() { // a slotted bamboo rack, top right: pull the bottom block
     ctx.beginPath(); ctx.moveTo(ax - 10, ay); ctx.lineTo(ax, ay - 8); ctx.lineTo(ax, ay + 8); ctx.closePath(); ctx.fill(); ctx.stroke();
   }
 }
-function drawRig() { // the stand, the curved cradle on top, the tray rocking on it, and the tower
-  const k = scale, R = CRADLE_R, cy = STAND_TOP - R, w = Math.min(0.09, R * Math.sin(RIM)), base = STAND_TOP - 0.035;
-  bamboo(sx(0), sy(0.02), sx(0), sy(base), 0.045 * k);
-  ctx.fillStyle = "#8a5d34"; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; // the foot
-  ctx.beginPath(); ctx.roundRect(sx(-0.09), sy(0.05), 0.18 * k, 0.035 * k, 4); ctx.fill(); ctx.stroke();
-  const half = Math.asin(w / R); // the cradle: an arc of radius R across its top
-  ctx.fillStyle = "#6b4423"; ctx.beginPath(); ctx.moveTo(sx(-w), sy(base));
-  for (let i = 0; i <= 16; i++) { const t = -half + (2 * half * i) / 16; ctx.lineTo(sx(R * Math.sin(t)), sy(cy + R * Math.cos(t))); }
-  ctx.lineTo(sx(w), sy(base)); ctx.closePath(); ctx.fill(); ctx.stroke();
-  const f = trayFrame(), c = [[-TRAY_W / 2, 0], [TRAY_W / 2, 0], [TRAY_W / 2, TRAY_T], [-TRAY_W / 2, TRAY_T]].map(([u, v]) => f.at(u, v));
+function drawRig() { // the pole (your phone) running off the bottom, its ball, the tray with its weights, the tower
+  const k = scale, f = trayFrame();
+  bamboo(sx(0), sy(VIEW.y0 - 0.05), sx(0), sy(STAND_TOP - BALL_R * 1.6), 0.04 * k);
+  ctx.strokeStyle = INK; ctx.lineWidth = 2; // the weights' rods, hanging from the tray's ends
+  [-1, 1].forEach((d) => {
+    const top = f.at(d * KEEL_U, 0), wt = f.at(d * KEEL_U, KEEL_V), r = (0.018 + 0.012 * Math.sqrt(KEEL_M)) * k;
+    ctx.beginPath(); ctx.moveTo(sx(top.x), sy(top.y)); ctx.lineTo(sx(wt.x), sy(wt.y)); ctx.stroke();
+    ctx.fillStyle = "#5c5348"; ctx.beginPath(); ctx.arc(sx(wt.x), sy(wt.y), r, 0, 7); ctx.fill(); ctx.stroke();
+  });
+  const bx = sx(0), by = sy(STAND_TOP - BALL_R), r = BALL_R * k;
+  const g = ctx.createRadialGradient(bx - r * 0.4, by - r * 0.4, r * 0.1, bx, by, r); g.addColorStop(0, "#d79a5e"); g.addColorStop(1, "#5b3418");
+  ctx.fillStyle = g; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(bx, by, r, 0, 7); ctx.fill(); ctx.stroke();
+  const c = [[-TRAY_W / 2, 0], [TRAY_W / 2, 0], [TRAY_W / 2, TRAY_T], [-TRAY_W / 2, TRAY_T]].map(([u, v]) => f.at(u, v));
   ctx.fillStyle = "#a0703e"; ctx.lineWidth = 2; ctx.beginPath();
   c.forEach((p, i) => (i ? ctx.lineTo(sx(p.x), sy(p.y)) : ctx.moveTo(sx(p.x), sy(p.y)))); ctx.closePath(); ctx.fill(); ctx.stroke();
   s.stack.forEach((u, i) => { const p = f.at(u, TRAY_T + BH * (i + 0.5)); drawBlock(p.x, p.y, f.rot, word[word.length - 1 - i]); });
@@ -423,10 +443,10 @@ let last = performance.now(), acc = 0;
 const STEP = 1 / 240;
 function frame(now) {
   acc += Math.min(0.05, (now - last) / 1000); last = now;
-  s.phi = readPhi(s.phi);
+  s.want = readPhi(s.want); if (fake == null) s.hand = handNow();
   while (acc >= STEP) { step(STEP); acc -= STEP; }
   frameLogic(now);
-  $("bubble").style.transform = `translateX(${-clamp(s.phi / FALL_TILT, -1, 1) * 15}px)`; // runs uphill; its edge is the tilt that slides blocks off
+  $("bubble").style.transform = `translateX(${-clamp(s.phi / MAX_TILT, -1, 1) * 15}px)`; // runs uphill; at its edge the pole can't swing further
   draw();
   requestAnimationFrame(frame);
 }
@@ -440,7 +460,7 @@ if (!phone && !DEBUG) noGo("Stack 'Em Up needs a phone: you balance the tower by
 $("go").onclick = async () => {
   if (!DEBUG) {
     let answer = "";
-    try { answer = await DeviceOrientationEvent.requestPermission?.(); } catch { answer = "denied"; } // iOS asks; others may just say "prompt"
+    try { [answer] = await Promise.all([DeviceOrientationEvent.requestPermission?.(), window.DeviceMotionEvent?.requestPermission?.()]); } catch { answer = "denied"; } // iOS asks; others may just say "prompt"
     if (answer === "denied") return noGo("Stack 'Em Up needs motion access. Allow it for this site, then reload.");
     const t = performance.now();
     while (!sensed && performance.now() - t < 1500) await new Promise((r) => setTimeout(r, 50));
@@ -465,9 +485,9 @@ if (DEBUG) { // desktop testing: arrows tilt the phone a degree at a time; the m
     const d = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
     if (d) fake = clamp((fake ?? 0) + d * DEG, -MAX_TILT, MAX_TILT);
   });
-  window.__se = { state: () => ({ phase, drops, placed: placed(), th: s.th / DEG, phi: s.phi / DEG, r: CRADLE_R, g: G, stack: [...s.stack] }),
+  window.__se = { state: () => ({ phase, drops, placed: placed(), a: s.a / DEG, tray: trayTilt() / DEG, phi: s.phi / DEG, len: STICK_L, keel: KEEL_M, shake: SHAKE, stack: [...s.stack] }),
     tilt: (deg) => { fake = deg == null ? null : deg * DEG; }, rack: () => rackSlot(0), screen: (x, y) => ({ x: sx(x), y: sy(y) }),
-    tray: (u, v) => trayFrame().at(u, v), physics, toppled, s: () => s };
+    trayAt: (u, v) => trayFrame().at(u, v), jolt: (ms2, ms) => { s.hand = ms2; setTimeout(() => { s.hand = 0; }, ms); }, physics, toppled, s: () => s };
 }
 resize(); setup(true); requestAnimationFrame(frame);
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
