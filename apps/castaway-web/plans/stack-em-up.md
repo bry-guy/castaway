@@ -9,28 +9,24 @@ the balancing device; one finger stacks letter blocks until the tower spells SUR
 
 ## Rules
 
-- Side view, phone upright (portrait). The phone is the pole: it stands still on screen, running off the bottom,
-  with a ball on top that the tray hinges on. Weights hang under the tray's ends (`KEEL_M` each, 15 cm down).
-  Tilting the phone swings the pole's top sideways as if it were `STICK_L` (0.6 m) long, through a smoothing
-  follower so the sensor's jitter isn't amplified; jerking the phone sideways (`devicemotion` acceleration, dead
-  band 0.15 m/s², clamped ±6, scaled by `SHAKE`) pushes it too. Only the pole's top moving matters: holding the
-  phone tilted and still does nothing.
-- Real physics, a pendulum on a moving pivot: while the load's weight (tray, weights, blocks) sits below the ball,
-  0–2 blocks, the tray hangs level by itself. From three it sits above, a broom: it tips unless you move the
-  pole's top the way it leans to get under it (lean or jerk the phone that way). Gravity is slowed (`G` 4.5 m/s²)
-  and the swing has air drag (`DAMP` 1/s). Off-centre blocks lean the tray their way.
-- The tower falls (a drop) if the tray tips past 20° from level in the world, if the blocks above any block have
-  their weight past its edge at the current tilt (22° at four blocks, 10° at eight), if the tray swings into the
-  pole (60°), or if a block is stacked past the edge of the one below. An empty tray bounces off the pole.
-- The level bubble runs uphill; at its edge the pole can't swing further (40°).
-- Free play only: `?len=0.6`, `?keel=1.1`, `?g=4.5`, `?damp=1`, `?shake=1` (0 off, negative flips its direction)
-  and `?fall=20` override those, to tune on a phone. iOS is asked for orientation and motion access in one tap.
+- Side view, phone upright (portrait). A tray rests on two balls in a cup on a fixed stand in the bottom third.
+  Tilting the phone (its roll in the screen plane, from `deviceorientation`, calibrated level on "Hold your phone
+  upright" and the Level button) tilts gravity in the scene. A level bubble beside Ready runs uphill and reaches
+  its edge at the rim.
+- The tray rocks on the balls as if on an 8 cm rocker with little friction, and the balls rolling in the cup throw
+  it about (SLOSH), so even an empty tray wobbles. One or two blocks survive if you're gentle; from about four
+  blocks the tower falls in about 1.5 s unless you tilt against the lean. Gravity is slowed (4.5 m/s²).
 - A slotted bamboo rack top right holds the blocks in placing order (R O V I V R U S from the bottom, so the tower
   reads SURVIVOR from the top). Touching the rack pulls the bottom block; the rest drop down a slot. A small
   pulsing ring and arrow mark it; no instruction text. Let it go over the stack and it drops straight down onto
   the top block, keeping its position along the tray; anywhere else it goes back into the rack. A block whose
   middle is past the edge of the block below falls off; a block that leaves the blocks above some lower block
   overhanging topples the tower.
+- The balls roll in a round cup toward wherever gravity points. Tilt the phone past about 11° (12° is the rim) and
+  they roll over it: balls, tray and tower all fall off the stand, and a fresh tray is set on after a
+  moment.
+- The tower falls (a drop) if the balls leave the cup, the tray tips past 28° from level in the world or it rolls
+  off the balls. Every block goes back to the rack.
 - Eight blocks, then hold for 3 seconds to finish.
 - Practice until Ready, or three minutes at most: six blocks that spell ISLAND. Then a 3-2-1 countdown and the
   timed run.
@@ -58,11 +54,20 @@ the balancing device; one finger stacks letter blocks until the tower spells SUR
 
 - Go unit test `TestStackPoints`; integration test `TestStackEmUp` (refusals, resume attributes, server clock,
   tie in tenths, resolve once, results, ledger, profile, scheduled games). Probst render test.
-- Physics self-check (node, not committed): 0–2 blocks hang level unattended and under a held 15° phone tilt;
-  3+ fall unattended within about 2 s; tilting toward the lean reduces it; a 3 m/s², 150 ms jolt drops eight
-  blocks but not two. A broom-balancing player that sees the tower 150 or 250 ms late (0.3° noise, wrist
-  rate-limited to 170°/s) but knows its own hand holds 4 and 8 blocks for 15 s at both lags (6 at 150 ms).
+- Physics self-check (node, not committed): up to 4 blocks right themselves; 8 blocks fall unattended in about
+  2.7 s; a tilt controller 150 ms or 250 ms late, with the wrist rate-limited to 170°/s, keeps 8 blocks up for
+  30 s.
 - Browser (Playwright, mobile portrait, synthetic pointers and `?debug` tilt, not committed): pulling four blocks
   from the rack and stacking them; a release away from the tray goes back to the rack; a 30° tilt drops the tower.
-- Not verifiable here: real tilt feel on iOS and Android. Tune `STICK_L`, `KEEL_M`, `SHAKE`, `G`, `DAMP`, `FALL_TILT` and `DEAD` on
+- Not verifiable here: real tilt feel on iOS and Android. Tune `G`, `CRADLE_R`, `DAMP`, `SLOSH`, `CUP_R`, `CUP_DAMP`, `CUP_LIP`, `DEAD` and `FALL_TILT`; in free play
+  `?r= ?cupr= ?cupdamp= ?slosh= ?lip= ?fall= ?g= ?damp=` override them on a phone without a deploy on
   devices.
+
+## Tuning (after trying a single ball, a cradle and a pole, all worse)
+
+Back to the two balls in a round cup, with: overdamped balls (`CUP_DAMP` 35), so tilting leans the tray now and the
+bowl forgives over about a second; a held 8° never dumps them, 20° does in under a second. Rocking friction
+`DAMP` 4, so a flicked empty tray settles in about 1.2 s instead of rocking in waves. The balls throw the tray
+less (`SLOSH` 0.3), and less the heavier it is. A tall tower topples over its own base at a smaller tilt (22° at
+four blocks, 10° at eight), and blocks slide off past 20°. The tray's underside bounces off the cup's rim instead
+of passing through it; a loaded tray that hits it drops the tower. The tray waits flat until play.
