@@ -21,8 +21,11 @@ the balancing device; one finger stacks letter blocks until the tower spells SUR
   the top block, keeping its position along the tray; anywhere else it goes back into the rack. A block whose
   middle is past the edge of the block below falls off; a block that leaves the blocks above some lower block
   overhanging topples the tower.
-- The tower falls (a drop) if the tray tips past 28° from level in the world or rolls off the balls. Every block
-  goes back to the rack.
+- The balls roll in a round cup toward wherever gravity points. Tilt the phone past about 15° (or 20° very slowly)
+  and they roll over the rim: balls, tray and tower all fall off the stand, and a fresh tray is set on after a
+  moment.
+- The tower falls (a drop) if the balls leave the cup, the tray tips past 28° from level in the world or it rolls
+  off the balls. Every block goes back to the rack.
 - Eight blocks, then hold for 3 seconds to finish.
 - Practice until Ready, or three minutes at most: six blocks that spell ISLAND. Then a 3-2-1 countdown and the
   timed run.
@@ -55,5 +58,5 @@ the balancing device; one finger stacks letter blocks until the tower spells SUR
   30 s.
 - Browser (Playwright, mobile portrait, synthetic pointers and `?debug` tilt, not committed): pulling four blocks
   from the rack and stacking them; a release away from the tray goes back to the rack; a 30° tilt drops the tower.
-- Not verifiable here: real tilt feel on iOS and Android. Tune `G`, `CRADLE_R`, `DEAD` and `FALL_TILT` on
+- Not verifiable here: real tilt feel on iOS and Android. Tune `G`, `CRADLE_R`, `CUP_R`, `CUP_DAMP`, `CUP_LIP`, `DEAD` and `FALL_TILT` on
   devices.
