@@ -9,27 +9,28 @@ the balancing device; one finger stacks letter blocks until the tower spells SUR
 
 ## Rules
 
-- Side view, phone upright (portrait). A tray rests on two balls in a cup on a fixed stand in the bottom third.
-  Tilting the phone (its roll in the screen plane, from `deviceorientation`, calibrated level on "Hold your phone
-  upright" and the Level button) tilts gravity in the scene.
-- The tray balances on the two balls like a stick on a finger (its weight sits above its 6 mm rocker curve), so it
-  tips one way and keeps going unless the phone is tilted against it: an empty tray takes about 3 s to go from
-  barely off level to over, one block about 1 s, a full tower about 1.8 s (a tall tower is a longer, slower
-  pendulum, but needs bigger corrections). Gravity is slowed (4.5 m/s²); the tray is heavy (5 kg to a block's
-  1 kg) so the first block doesn't throw it about.
-- The balls sit on the cup's flat floor and stick until the phone tilts past 3°, then roll downhill against
-  rolling friction of the same size, so they stop again once it's level. Their speeding up throws the tray the
-  other way. Past the floor's edge (7 cm) they go over the lip; an empty tray tipping past 28° also goes. Either
-  way balls, tray and tower fall off the stand, then a fresh, flat tray is set on after a moment.
-- A level bubble beside Ready runs uphill; inside its inner ring (3°) the balls stay put.
+- Side view, phone upright (portrait). The tray balances on one ball sitting in a cup on a fixed stand in the
+  bottom third, like a stick on a finger. Tilting the phone (its roll in the screen plane, from
+  `deviceorientation`, calibrated level on "Hold your phone upright" and the Level button) tilts gravity in the
+  scene. A level bubble beside Ready runs uphill; its edge is a tilt as far as the rim.
+- The tray tips one way and keeps going unless you tilt against it, continuously. How fast is a design knob, not
+  physics (`TAU`, seconds to grow e-fold, by blocks on the tray): `[0.6, 1.0, 0.9, 0.8, 0.72, 0.65, 0.6, 0.56,
+  0.52]`. The empty tray is twitchy; one centred block steadies it; every block after makes it quicker. A real
+  empty tray would be the slowest, so this curve is imposed. An off-centre stack also pulls its side down
+  (`OFF_GAIN`).
+- The tray's underside lands on the cup's rim at about 15° on screen (from the drawn geometry). An empty tray
+  rests there until you tilt it back, and a block let go onto it slides off ("Missed!", not a drop). A loaded
+  tray touching the rim drops the tower, so it can't be parked there; so does tipping past 20° from level in the
+  world.
+- After a fall, and while waiting to play, the tray is set level in the world (not on screen), as far as the rim
+  allows.
+- Free play only: `?tau=0.6,1,…` and `?fall=20` override the curve and the fall angle, to tune on a phone.
 - A slotted bamboo rack top right holds the blocks in placing order (R O V I V R U S from the bottom, so the tower
   reads SURVIVOR from the top). Touching the rack pulls the bottom block; the rest drop down a slot. A small
   pulsing ring and arrow mark it; no instruction text. Let it go over the stack and it drops straight down onto
   the top block, keeping its position along the tray; anywhere else it goes back into the rack. A block whose
   middle is past the edge of the block below falls off; a block that leaves the blocks above some lower block
   overhanging topples the tower.
-- The tower falls (a drop) if the balls go over the lip, the tray tips past 28° from level in the world or it rolls
-  off the balls. Every block goes back to the rack.
 - Eight blocks, then hold for 3 seconds to finish.
 - Practice until Ready, or three minutes at most: six blocks that spell ISLAND. Then a 3-2-1 countdown and the
   timed run.
@@ -57,10 +58,11 @@ the balancing device; one finger stacks letter blocks until the tower spells SUR
 
 - Go unit test `TestStackPoints`; integration test `TestStackEmUp` (refusals, resume attributes, server clock,
   tie in tenths, resolve once, results, ledger, profile, scheduled games). Probst render test.
-- Physics self-check (node, not committed): up to 4 blocks right themselves; 8 blocks fall unattended in about
-  2.7 s; a tilt controller 150 ms or 250 ms late, with the wrist rate-limited to 170°/s, keeps 8 blocks up for
-  30 s.
+- Physics self-check (node, not committed): a tilt controller 150 or 250 ms late, with 0.3° of sensor noise and
+  the wrist rate-limited to 170°/s. At 250 ms, mean survival over 20 s falls from 20 s (up to 3 blocks) to 13 s
+  at 8, and some gains still hold 8. An unattended tray never reverses direction. A phone held tilted to park a
+  loaded tray on the rim always drops it.
 - Browser (Playwright, mobile portrait, synthetic pointers and `?debug` tilt, not committed): pulling four blocks
   from the rack and stacking them; a release away from the tray goes back to the rack; a 30° tilt drops the tower.
-- Not verifiable here: real tilt feel on iOS and Android. Tune `G`, `CRADLE_R`, `M_TRAY`, `STICK`, `CUP_HALF`, `DEAD` and `FALL_TILT` on
+- Not verifiable here: real tilt feel on iOS and Android. Tune `TAU`, `OFF_GAIN`, `FALL_TILT`, `CUP_GAP`/`CUP_W` (the rim) and `DEAD` on
   devices.
