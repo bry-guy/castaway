@@ -13,9 +13,9 @@ the balancing device; one finger stacks letter blocks until the tower spells SUR
   Tilting the phone (its roll in the screen plane, from `deviceorientation`, calibrated level on "Hold your phone
   upright" and the Level button) tilts gravity in the scene. A level bubble beside Ready runs uphill and reaches
   its edge at the rim.
-- The tray rocks as if on a 22 cm rocker: a short stack rights itself; once the stack's centre of mass is above
-  that curve (around block 5–6) it tips unless the phone is tilted against the lean. Gravity is slowed (4.5 m/s²)
-  so an unattended full tower takes a couple of seconds to fall.
+- The tray rocks on the balls as if on an 8 cm rocker with little friction, and the balls rolling in the cup throw
+  it about (SLOSH), so even an empty tray wobbles. One or two blocks survive if you're gentle; from about four
+  blocks the tower falls in about 1.5 s unless you tilt against the lean. Gravity is slowed (4.5 m/s²).
 - A slotted bamboo rack top right holds the blocks in placing order (R O V I V R U S from the bottom, so the tower
   reads SURVIVOR from the top). Touching the rack pulls the bottom block; the rest drop down a slot. A small
   pulsing ring and arrow mark it; no instruction text. Let it go over the stack and it drops straight down onto
@@ -59,5 +59,5 @@ the balancing device; one finger stacks letter blocks until the tower spells SUR
   30 s.
 - Browser (Playwright, mobile portrait, synthetic pointers and `?debug` tilt, not committed): pulling four blocks
   from the rack and stacking them; a release away from the tray goes back to the rack; a 30° tilt drops the tower.
-- Not verifiable here: real tilt feel on iOS and Android. Tune `G`, `CRADLE_R`, `CUP_R`, `CUP_DAMP`, `CUP_LIP`, `DEAD` and `FALL_TILT` on
+- Not verifiable here: real tilt feel on iOS and Android. Tune `G`, `CRADLE_R`, `DAMP`, `SLOSH`, `CUP_R`, `CUP_DAMP`, `CUP_LIP`, `DEAD` and `FALL_TILT` on
   devices.

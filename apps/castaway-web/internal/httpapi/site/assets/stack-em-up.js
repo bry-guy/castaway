@@ -8,11 +8,12 @@
 const DEG = Math.PI / 180;
 const BW = 0.1, BH = 0.09;                // a block (m)
 const TRAY_W = 0.36, TRAY_T = 0.025;      // the tray
-const CRADLE_R = 0.22;                    // the cup's curve: the tray rocks as if on a rocker this round
+const CRADLE_R = 0.08;                    // the tray rocks on the balls as if on a rocker this round: small, so it wobbles
 const STAND_TOP = 0.42;                   // where the tray rests
 const M_TRAY = 1.5, M_BLOCK = 1;
 const G = 4.5;                            // slowed down: real gravity tips a 0.7 m tower too fast to catch
-const DAMP = 0.8;                         // rocking friction (1/s)
+const DAMP = 0.3;                         // rocking friction (1/s)
+const SLOSH = 0.8;                        // how much the balls rolling in the cup throws the tray
 const CUP_R = 0.1, CUP_DAMP = 1.5;        // the cup the balls roll in, and their rolling friction (1/s)
 const CUP_LIP = 12 * DEG;                 // past this the balls roll over the rim, tray and all
 const BALL_R = 0.028;
@@ -38,10 +39,10 @@ function parts(stack) {
 // on the balls, + is right side down), thV, phi (the phone's roll, + is right side down), stack (block offsets
 // along the tray) }. The balls roll in the cup toward wherever gravity points; the tray rocks on them as on a curve
 // of radius CRADLE_R, so the contact is CRADLE_R·th along the tray, and gravity turns the tray about the contact.
-// Shortcut: the tray's weight doesn't push the balls back, and they don't jolt the tray; fine while it feels right.
+// The tray lags the balls (SLOSH), so they throw it about. Shortcut: its weight doesn't push the balls back.
 function physics(s, dt) {
-  s.psiV += ((G / CUP_R) * Math.sin(s.phi - s.psi) - CUP_DAMP * s.psiV) * dt;
-  s.psi += s.psiV * dt;
+  const kick = ((G / CUP_R) * Math.sin(s.phi - s.psi) - CUP_DAMP * s.psiV) * dt;
+  s.psiV += kick; s.psi += s.psiV * dt; s.thV += SLOSH * kick;
   const contact = CRADLE_R * s.th, a = s.th - s.psi + s.phi; // a: the tray's tilt from level in the world
   let M = 0, I = 0, mu = 0, mv = 0;
   for (const p of parts(s.stack)) { M += p.m; mu += p.m * p.u; mv += p.m * p.v; I += p.i + p.m * ((p.u - contact) ** 2 + p.v ** 2); }
