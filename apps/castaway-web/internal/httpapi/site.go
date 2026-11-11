@@ -40,6 +40,8 @@ type sitePageData struct {
 	FreeTheBlock       *freeTheBlockView
 	Tilt               *tiltView
 	TiltFreePlay       bool // a Tilt Table game has closed: free play is open
+	Stack              *stackView
+	StackFreePlay      bool // a Stack 'Em Up game has closed: free play is open
 	Champion           *championView
 	GameEpisodes       []gameEpisode
 	TestGames          []gameEntry
@@ -52,10 +54,10 @@ type sitePageData struct {
 
 func loginReturnTo(candidate string) string {
 	// Old /castawordle links still return there (it redirects to /games).
-	if candidate == "/games" || candidate == "/me" || candidate == "/games/button" || candidate == "/games/scramble" || candidate == "/games/champion" || candidate == "/games/tilt-table" || candidate == "/castawordle" || candidate == "/button" {
+	if candidate == "/games" || candidate == "/me" || candidate == "/games/button" || candidate == "/games/scramble" || candidate == "/games/champion" || candidate == "/games/tilt-table" || candidate == "/games/stack-em-up" || candidate == "/castawordle" || candidate == "/button" {
 		return candidate
 	}
-	for _, prefix := range []string{"/games/castawordle/", "/games/button/", "/games/scramble/", "/games/tilt-table/", "/castawordle/", "/button/", "/players/"} {
+	for _, prefix := range []string{"/games/castawordle/", "/games/button/", "/games/scramble/", "/games/tilt-table/", "/games/stack-em-up/", "/castawordle/", "/button/", "/players/"} {
 		if suffix, ok := strings.CutPrefix(candidate, prefix); ok {
 			if id, err := uuid.Parse(suffix); err == nil {
 				return prefix + id.String()

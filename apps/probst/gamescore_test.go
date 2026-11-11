@@ -56,6 +56,11 @@ func TestGameSectionsRender(t *testing.T) {
 			{"name":"Cy","tribe_emoji":"🟣","points":2,"finished":false,"holes":2,"aces":2},
 			{"name":"Di","tribe_emoji":"🟡","points":0,"holes":0}]}`,
 			[]string{"🌴 **Tilt Table**:", "🟣 Ann (+7) · 0:30.0 🥇 +3 🎯 3 aces\n🟡 Bo (+3) · 1:23.4 🥈 +2\n🟣 Cy (+2) · 2/3 in 🎯 2 aces"}},
+		"stack_em_up": {`{"players":[
+			{"name":"Ann","tribe_emoji":"🟣","points":6,"place":1,"place_points":3,"clean_points":2,"finished":true,"time_ms":30090,"height":8},
+			{"name":"Bo","tribe_emoji":"🟡","points":3,"place":2,"place_points":2,"finished":true,"time_ms":83460,"height":8,"drops":4},
+			{"name":"Cy","tribe_emoji":"🟣","points":0,"height":5,"drops":1}]}`,
+			[]string{"🪵 **Stack 'Em Up**:", "🟣 Ann (+6) · 0:30.0 🥇 +3 🔥 clean +2\n🟡 Bo (+3) · 1:23.4 🥈 +2"}},
 	}
 	for game, c := range cases {
 		var f seasonFile

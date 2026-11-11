@@ -16,7 +16,7 @@ import (
 )
 
 // gameNames are the games' display names (the season's templates own every other word).
-var gameNames = map[string]string{"press_the_button": "Press the Button", "castawordle": "Castawordle", "spell_it_out": "Island Scramble", "inside_track": "Inside Track", "free_the_block": "Free the Block", "tilt_table": "Tilt Table"}
+var gameNames = map[string]string{"press_the_button": "Press the Button", "castawordle": "Castawordle", "spell_it_out": "Island Scramble", "inside_track": "Inside Track", "free_the_block": "Free the Block", "tilt_table": "Tilt Table", "stack_em_up": "Stack 'Em Up"}
 
 // rankLine is one ranked player in a scores post.
 type rankLine struct {
@@ -369,12 +369,12 @@ func addSeasonApplyCommand(season *cobra.Command, call apiCall, yes *bool) {
 						return fmt.Errorf("%s: %w", line, err)
 					}
 					fmt.Fprintln(out, "applied "+line)
-				case "inside_track", "free_the_block", "tilt_table":
+				case "inside_track", "free_the_block", "tilt_table", "stack_em_up":
 					if !*yes {
 						fmt.Fprintln(out, "would apply "+line)
 						continue
 					}
-					path := map[string]string{"inside_track": "track-games", "free_the_block": "free-the-block-games", "tilt_table": "tilt-games"}[game]
+					path := map[string]string{"inside_track": "track-games", "free_the_block": "free-the-block-games", "tilt_table": "tilt-games", "stack_em_up": "stack-games"}[game]
 					body := map[string]any{"episode_number": week, "opens_at": opens.UTC().Format(time.RFC3339), "cutoff_at": closes.UTC().Format(time.RFC3339)}
 					if err := call(c.Context(), "POST", "/instances/"+url.PathEscape(f.Instance)+"/"+path, body, nil); err != nil {
 						return fmt.Errorf("%s: %w", line, err)
@@ -441,6 +441,7 @@ func gameScore(ctx context.Context, call apiCall, path string, t templateSet, f 
 			Guesses: int(num(m["guesses"])), Solved: m["solved"] == true, Moves: int(num(m["moves"])),
 			PlacePoints: int(num(m["place_points"])), Perfect: m["perfect"] == true,
 			Finished: m["finished"] == true, Time: tiltClock(int64(num(m["time_ms"]))), Holes: int(num(m["holes"])), Rollbacks: int(num(m["rollbacks"])), Aces: int(num(m["aces"])),
+			Height: int(num(m["height"])), Drops: int(num(m["drops"])),
 			RankRule: str(m["rank_rule"]), RankPoints: int(num(m["rank_points"])), VolumePoints: int(num(m["volume_points"])), StreakPoints: int(num(m["streak_points"]))})
 	}
 	for _, m := range res.Tribes {
@@ -522,6 +523,7 @@ type gameRow struct {
 	Finished                               bool   // Tilt Table: all three balls in (Time is the run, m:ss.t)
 	Time                                   string // Tilt Table
 	Holes, Rollbacks, Aces                 int    // Tilt Table: aces are balls in with no rollback (+1 each)
+	Height, Drops                          int    // Stack 'Em Up: tallest tower of 8, towers that fell (Finished, Time, PlacePoints and CleanPoints as above)
 	RankRule                               string
 	RankPoints, VolumePoints, StreakPoints int
 }

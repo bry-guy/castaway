@@ -215,6 +215,8 @@ func (s *Server) registerAPI(protected *gin.RouterGroup) {
 	protected.POST("/free-the-block-games/:gameID/resolve", s.resolveFreeTheBlockGameRequest)
 	protected.POST("/instances/:instanceID/tilt-games", s.createTiltGame)
 	protected.POST("/tilt-games/:gameID/resolve", s.resolveTiltGameRequest)
+	protected.POST("/instances/:instanceID/stack-games", s.createStackGame)
+	protected.POST("/stack-games/:gameID/resolve", s.resolveStackGameRequest)
 	protected.POST("/activities/:activityID/wordle-rounds", s.createWordleRound)
 	protected.GET("/wordle-rounds/:roundID", s.getWordleRound)
 	protected.PUT("/wordle-rounds/:roundID/participants/:participantID", s.putWordleParticipant)

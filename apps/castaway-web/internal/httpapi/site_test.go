@@ -16,6 +16,7 @@ func TestLoginReturnTo(t *testing.T) {
 		{"/games/button/123e4567-e89b-12d3-a456-426614174000", "/games/button/123e4567-e89b-12d3-a456-426614174000"},
 		{"/button", "/button"},
 		{"/games/tilt-table", "/games/tilt-table"},
+		{"/games/stack-em-up", "/games/stack-em-up"},
 		{"https://evil.example", "/"},
 		{"//evil.example", "/"},
 		{"/castawordle/../../evil", "/"},

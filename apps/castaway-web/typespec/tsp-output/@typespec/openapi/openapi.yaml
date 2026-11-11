@@ -3306,6 +3306,44 @@ paths:
               required:
                 - season_yaml
                 - scores_template
+  /instances/{instanceID}/stack-games:
+    post:
+      operationId: createStackGame
+      parameters:
+        - name: instanceID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ButtonGame'
+                  - $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                episode_number:
+                  type: integer
+                  format: int32
+                opens_at:
+                  type: string
+                  format: date-time
+                cutoff_at:
+                  type: string
+                  format: date-time
+              required:
+                - episode_number
+                - opens_at
+                - cutoff_at
   /instances/{instanceID}/stir-the-pot/close:
     post:
       operationId: closeStirThePotRound
@@ -3831,6 +3869,32 @@ paths:
   /scramble-games/{gameID}/resolve:
     post:
       operationId: resolveScrambleGame
+      parameters:
+        - name: gameID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - type: object
+                    properties:
+                      awards:
+                        type: object
+                        additionalProperties:
+                          type: integer
+                          format: int32
+                    required:
+                      - awards
+                  - $ref: '#/components/schemas/ErrorResponse'
+  /stack-games/{gameID}/resolve:
+    post:
+      operationId: resolveStackGame
       parameters:
         - name: gameID
           in: path

@@ -60,7 +60,7 @@ weeks:
   5: {game: {type: inside_track}}   # Inside Track: +1 per cup, +1 per ball left
   6: {game: {type: free_the_block}}   # Free the Block: fewest +3, second +2, +1 solving, +5 at the 25-move optimum
   7: {game: {type: tilt_table}}   # Tilt Table: +1 finishing, fastest +3, second +2, +1 per ace
-  8: {game: TBD}
+  8: {game: {type: stack_em_up}}   # Stack 'Em Up: +1 finishing, fastest +3, second +2, +2 clean (no drops)
   9: {game: TBD}
   10: {game: TBD}
   11: {game: TBD}

@@ -52,6 +52,10 @@ type gameResult struct {
 	Holes     int   `json:"holes"`
 	Rollbacks int   `json:"rollbacks"`
 	Aces      int   `json:"aces"` // +1 each; Points adds +1 for finishing and PlacePoints (fastest +3, second +2)
+	// stack_em_up (Place, PlacePoints, Finished and TimeMS are shared with tilt_table; CleanPoints with
+	// spell_it_out: +2 for finishing with no drops)
+	Height int `json:"height"` // tallest tower, of 8
+	Drops  int `json:"drops"`
 	// castawordle
 	Guesses int  `json:"guesses"`
 	Solved  bool `json:"solved"`
@@ -230,6 +234,26 @@ func (s *Server) gameResults(ctx context.Context, instanceID uuid.UUID, episode 
 				PlacePoints: r.PlacePoints, Finished: r.Finished, TimeMS: r.TimeMS, Holes: r.Holes, Rollbacks: r.Rollbacks, Aces: r.Aces})
 		}
 		return "tilt_table", out, []tribeResult{}, nil
+	} else if !errors.Is(err, pgx.ErrNoRows) {
+		return "", nil, nil, err
+	}
+
+	err = s.pool.QueryRow(ctx, `SELECT g.id, g.resolved_at FROM stack_games g JOIN instances i ON i.id = g.instance_id
+		WHERE i.public_id = $1 AND g.episode_number = $2`, toPGUUID(instanceID), episode).Scan(&id, &resolved)
+	if err == nil {
+		if resolved == nil {
+			return "", nil, nil, errGameNotScored
+		}
+		players, err := loadStackPlayers(ctx, s.pool, id)
+		if err != nil {
+			return "", nil, nil, err
+		}
+		out := []gameResult{}
+		for _, r := range stackResults(players) {
+			out = append(out, gameResult{Name: r.Name, Tribe: r.Tribe, TribeEmoji: emoji[r.Tribe], Place: r.Place, Points: r.Points,
+				PlacePoints: r.PlacePoints, Finished: r.Finished, TimeMS: r.TimeMS, Height: r.Best, Drops: r.Drops, CleanPoints: r.CleanPoints})
+		}
+		return "stack_em_up", out, []tribeResult{}, nil
 	} else if !errors.Is(err, pgx.ErrNoRows) {
 		return "", nil, nil, err
 	}

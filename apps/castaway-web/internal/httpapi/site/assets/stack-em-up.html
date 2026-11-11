@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1f3a24">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/assets/icon-180.png">
+<title>Stack 'Em Up · Castaway</title>
+<link rel="stylesheet" href="/assets/tilt-table.css?v=5">
+<link rel="stylesheet" href="/assets/stack-em-up.css?v=1">
+</head>
+<body>
+<canvas id="c" aria-label="Stack 'Em Up board"></canvas>
+<div class="hud"><span>TIME <b id="time">0:00.0</b></span><span>STACK <b id="height">0/8</b></span><span>DROPS <b id="drops">0</b></span></div>
+<div class="banner hidden" id="practicing">Practice <b id="clock">3:00</b></div>
+<div class="pop" id="pop"></div>
+<div class="count hidden" id="count"></div>
+<div class="count hold hidden" id="hold"></div>
+<div class="grip hidden" id="grip">Hold the stick here</div>
+<div class="bar"><span></span><button id="ready" class="primary hidden" type="button">Ready</button></div>
+<div class="turn">Turn your phone sideways</div>
+<div class="overlay" id="intro">
+  <div class="card">
+    <p class="eyebrow">Castaway challenge</p>
+    <h1>Stack 'Em Up</h1>
+    <p id="how">Hold the stick with your left thumb and slide it to keep the tray balanced on its two balls. With your right thumb, stack the blocks until the tower spells SURVIVOR. Let go, tip too far or stack past an edge and it all falls. Fastest wins.</p>
+    <p class="flat"><b>Turn your phone sideways</b> and turn off rotation lock.</p>
+    <p class="muted" id="hint"></p>
+    <button id="go" class="primary" type="button">Let's go</button>
+  </div>
+</div>
+<div class="overlay hidden" id="done">
+  <div class="card">
+    <p class="eyebrow">Challenge complete</p>
+    <h1 id="final">0:00.0</h1>
+    <div class="stamps" id="stamps"></div>
+    <p id="summary"></p>
+    <button id="again" class="primary" type="button">Play again</button>
+  </div>
+</div>
+<script src="/assets/stack-em-up.js?v=1" defer></script>
+</body>
+</html>

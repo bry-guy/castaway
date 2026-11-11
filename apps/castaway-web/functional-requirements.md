@@ -16,6 +16,7 @@
 - let admins approve an access request as a viewer: viewers see scores, seasons and player pages but cannot play games or use the API
 - provide responsive scores and game pages with system-following light/dark appearance and a saved manual override
 - install as a PWA (web app manifest, root service worker, icons) without caching signed-in pages
+- offer Stack 'Em Up on phones (scored weekly; free play after a game closes): two-thumb input, one holding a balancing stick and one stacking letter blocks, drops when the tower falls, timed run after up to three minutes of practice
 - offer Tilt Table on phones (scored weekly; free play after a game closes): tilt-sensor input, grab-and-place balls, gutter rollbacks, timed run after up to three minutes of practice
 - persist instance-owned, unscored Castawordle games and own-player progress; validate 4–8-letter SCOWL size 70 US/UK words and inflections, return duplicate-aware tile feedback, enforce six guesses and cutoff, and resume across devices
 - automatically submit full guesses; show `invalid word, try again` without consuming a turn and clear transient feedback on edits; show total/bonus scores without a Draft column

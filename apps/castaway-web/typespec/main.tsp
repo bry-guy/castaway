@@ -109,6 +109,17 @@ op createTiltGame(
 @post
 op resolveTiltGame(@path gameID: string): { awards: Record<int32>; } | ErrorResponse;
 
+@route("/instances/{instanceID}/stack-games")
+@post
+op createStackGame(
+  @path instanceID: string,
+  @body body: { episode_number: int32; opens_at: utcDateTime; cutoff_at: utcDateTime; },
+): ButtonGame | ErrorResponse;
+
+@route("/stack-games/{gameID}/resolve")
+@post
+op resolveStackGame(@path gameID: string): { awards: Record<int32>; } | ErrorResponse;
+
 model TrackPlay {
   participant_id: string;
   name: string;
