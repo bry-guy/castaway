@@ -23,7 +23,7 @@ func TestLiveTemplatesRender(t *testing.T) {
 		}
 	}
 	for _, name := range []string{"reminder.md", "next-game.md"} {
-		if _, err := set.render(name, map[string]any{"Week": 3, "Type": "castawordle", "Name": "Castawordle", "Site": "https://x", "Closes": "7:59pm", "Opens": "8pm"}); err != nil {
+		if _, err := set.render(name, map[string]any{"Week": 3, "Type": "castawordle", "Name": "Castawordle", "Site": "https://x", "Closes": "7:59pm", "Opens": "8pm", "Open": ""}); err != nil {
 			t.Errorf("%s: %v", name, err)
 		}
 	}

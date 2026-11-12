@@ -409,8 +409,12 @@ func nextGameLine(t templateSet, f seasonFile, airs []time.Time, week int) (stri
 	if err != nil {
 		return "", err
 	}
+	open := "" // a late post says "open now" instead of "open tonight"
+	if time.Now().After(opens) {
+		open = "yes"
+	}
 	return t.render("next-game.md", map[string]string{"Type": game, "Name": gameNames[game], "Site": siteURL,
-		"Opens": shortTime(opens)})
+		"Opens": shortTime(opens), "Open": open})
 }
 
 // gameScorePlaceholder stands in for a game's results section until the game is scored.
