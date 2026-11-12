@@ -28,4 +28,4 @@ images:
     digest: sha256:116cc38c439b4c45cf69c0e273b4791373f2f5fcd5f9f15fed07a785fafad4ee
   - name: ghcr.io/bry-guy/probst
     newName: ghcr.io/bry-guy/probst
-    digest: sha256:1d6a84268bd4d8078bdaa29b774b77c2f6aa096414b0c047c9a77caed5ebb5a0
+    digest: sha256:43944a19613e3857f88c963e26723b31df7def1d00d476fcff3b2dd4ec3a7989
