@@ -18,7 +18,7 @@ import (
 
 // Stack 'Em Up: the server keeps the clock (first save to the held tower). Drops only go up; without a new drop
 // the tower only grows; a finished run is locked. Points: finishing +1, fastest +3, second +2 (ties in tenths
-// share), +2 for a clean run.
+// share).
 func TestStackEmUp(t *testing.T) {
 	ctx, pool := integrationPool(t)
 	defer pool.Close()
@@ -169,7 +169,6 @@ func TestStackEmUp(t *testing.T) {
 			TimeMS      int64  `json:"time_ms"`
 			Height      int    `json:"height"`
 			Drops       int    `json:"drops"`
-			CleanPoints int    `json:"clean_points"`
 		} `json:"players"`
 	}
 	if err := json.Unmarshal([]byte(serve("GET", "/api/instances/"+instanceID+"/game-results/8", "", "admin", 200)), &res); err != nil {
@@ -177,9 +176,9 @@ func TestStackEmUp(t *testing.T) {
 	}
 	var got []string
 	for _, p := range res.Players {
-		got = append(got, fmt.Sprintf("%s %d %d %d %t %d %d %d %d", p.Name, p.Place, p.Points, p.PlacePoints, p.Finished, p.TimeMS, p.Height, p.Drops, p.CleanPoints))
+		got = append(got, fmt.Sprintf("%s %d %d %d %t %d %d %d", p.Name, p.Place, p.Points, p.PlacePoints, p.Finished, p.TimeMS, p.Height, p.Drops))
 	}
-	want := "fast 1 4 3 true 30040 8 1 0|tie 1 6 3 true 30090 8 0 2|slow 2 3 2 true 45000 8 2 0|quit 0 0 0 false 0 5 1 0"
+	want := "fast 1 4 3 true 30040 8 1|tie 1 4 3 true 30090 8 0|slow 2 3 2 true 45000 8 2|quit 0 0 0 false 0 5 1"
 	if got := strings.Join(got, "|"); res.Type != "stack_em_up" || got != want {
 		t.Errorf("game results: %s\n got %s\nwant %s", res.Type, got, want)
 	}

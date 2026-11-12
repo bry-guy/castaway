@@ -18,13 +18,12 @@ let SLOSH = 0.3;                          // how much the balls rolling in the c
 let CUP_R = 0.1 * BIG, CUP_DAMP = 35 / BIG; // the cup the balls roll in, and their rolling friction (1/s): the balls drift as fast as in the smaller cup
 let CUP_LIP = 24 * DEG;                   // past this the outer ball reaches the drawn rim (RIM_A) and rolls over, tray and all
 const BALL_R = 0.028 * BIG;
-// The tray sits on a wooden saddle across the balls, high enough that it can't reach the cup's rim before the blocks
-// slide off it: the tray reaches the rim only at 48° against the cup, which takes the phone tilted past the point
-// where the balls roll out (the self-check confirms). If it gets there anyway, the rim just stops it.
+// The tray sits on a wooden saddle across the balls, so it reaches the cup's rim only at 48° against the cup. If it
+// gets there (a short, sticky stack can), the rim just stops it: hitting the bowl is never a fall.
 const SADDLE = 0.05 * BIG;
 const CUP_Y = STAND_TOP - SADDLE - 2 * BALL_R - 0.006 * BIG; // the cup's floor
 const MAX_TILT = 40 * DEG, DEAD = 0.5 * DEG; // phone roll used, and ignored jitter
-let FALL_TILT = 20 * DEG;                 // the tower starts sliding past this, from level in the world (wood on wood)
+let FALL_TILT = 45 * DEG;                 // the tower starts sliding past this, from level in the world: sticky, it barely slides
 const HOLD_S = 3, PRACTICE_S = 180;
 const SCORED_WORD = "SURVIVOR", PRACTICE_WORD = "ISLAND";
 const RACK = { x: 0.34, y: 0.8, pitch: 0.1 }; // the slotted rack, top right: slot 0 (the one you pull) at the bottom
@@ -299,7 +298,7 @@ function fall(why) {
   const f = trayFrame(), rc = Math.cos(f.rot), rn = Math.sin(f.rot);
   s.stack.forEach((u, k) => { // each block starts where it was, moving with the tray (plus any slide); gravity does the rest
     const w = f.at(u, TRAY_T + BH * (k + 0.5)), body = pw.createBody({ type: "dynamic", position: V2(w.x, w.y), angle: -f.rot, bullet: true });
-    body.createFixture(planck.Box(BW / 2 * P, BH / 2 * P), { density: 1, friction: 0.5, restitution: 0.15 });
+    body.createFixture(planck.Box(BW / 2 * P, BH / 2 * P), { density: 1, friction: 1.2, restitution: 0.15 });
     const v = pTray.getLinearVelocityFromWorldPoint(body.getPosition());
     body.setLinearVelocity(planck.Vec2(v.x + s.sv * rc * P, v.y - s.sv * rn * P)); body.setAngularVelocity(pTray.getAngularVelocity());
     fallen.push({ body, letter: word[word.length - 1 - k] });
@@ -350,7 +349,7 @@ function step(dt) {
   else if (toppled(s.stack, tilt) >= 0) fall("Toppled!");
   if (!s.stack.length) { // an empty tray never falls off: it settles back over the balls
     if (Math.abs(contact) > TRAY_W / 2 - 0.02) s.th -= (contact - Math.sign(contact) * (TRAY_W / 2 - 0.02)) / CRADLE_R;
-    s.th = clamp(s.th, -FALL_TILT, FALL_TILT);
+    s.th = clamp(s.th, -20 * DEG, 20 * DEG); // an empty tray's swing, as before the blocks got sticky
   }
   if (dropping) {
     dropping.vv -= 9.8 * dt; dropping.v += dropping.vv * dt;
@@ -394,7 +393,7 @@ function finish(saved) {
   setTimeout(() => {
     $("final").textContent = official ?? fmt(time); $("summary").textContent = "";
     const row = $("stamps"); row.textContent = "";
-    const stamps = [["Done +1", ""], ...(drops === 0 ? [["Clean +2", "ace"]] : [])];
+    const stamps = [["Done +1", ""]];
     $("done").classList.remove("hidden");
     stamps.forEach(([txt, kind], i) => setTimeout(() => {
       const el = document.createElement("span"); el.className = `stamp ${kind}`; el.textContent = txt; row.append(el);

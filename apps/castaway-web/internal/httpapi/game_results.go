@@ -52,8 +52,7 @@ type gameResult struct {
 	Holes     int   `json:"holes"`
 	Rollbacks int   `json:"rollbacks"`
 	Aces      int   `json:"aces"` // +1 each; Points adds +1 for finishing and PlacePoints (fastest +3, second +2)
-	// stack_em_up (Place, PlacePoints, Finished and TimeMS are shared with tilt_table; CleanPoints with
-	// spell_it_out: +2 for finishing with no drops)
+	// stack_em_up (Place, PlacePoints, Finished and TimeMS are shared with tilt_table)
 	Height int `json:"height"` // tallest tower, of 8
 	Drops  int `json:"drops"`
 	// castawordle
@@ -251,7 +250,7 @@ func (s *Server) gameResults(ctx context.Context, instanceID uuid.UUID, episode 
 		out := []gameResult{}
 		for _, r := range stackResults(players) {
 			out = append(out, gameResult{Name: r.Name, Tribe: r.Tribe, TribeEmoji: emoji[r.Tribe], Place: r.Place, Points: r.Points,
-				PlacePoints: r.PlacePoints, Finished: r.Finished, TimeMS: r.TimeMS, Height: r.Best, Drops: r.Drops, CleanPoints: r.CleanPoints})
+				PlacePoints: r.PlacePoints, Finished: r.Finished, TimeMS: r.TimeMS, Height: r.Best, Drops: r.Drops})
 		}
 		return "stack_em_up", out, []tribeResult{}, nil
 	} else if !errors.Is(err, pgx.ErrNoRows) {

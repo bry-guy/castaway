@@ -35,7 +35,7 @@ the balancing device; one finger stacks letter blocks until the tower spells SUR
 
 ## Scoring
 
-- Finishing +1, fastest +3, second fastest +2 (ties in tenths share, dense), +2 for a clean run (no drops).
+- Finishing +1, fastest +3, second fastest +2 (ties in tenths share, dense). Drops cost only time.
 - The server keeps the clock: first save (at "Go") to the save with height 8. A reload drops the tower (counted
   as a drop when it had blocks) and the clock keeps running. Shortcut, as with Tilt Table: the physics runs on the
   phone, so a determined player could fake a run.
@@ -80,6 +80,8 @@ if some came to rest on the tray. `DAMP` 3.3 (was 4) for a touch more wobble.
 
 The rig (tray, saddle, balls, cup) is 30% bigger than the first build (`BIG`); blocks aren't, so there's more tray to
 slide along before blocks fall off. The cup's ball friction is scaled with it so the balls drift as before. The tray
-sits on a wooden saddle across the balls (`SADDLE`), so it reaches the cup's rim only at 48° against the cup: 20° of
-slide plus the 24° lip, so the phone is already past dumping the balls. There's no "Hit the bowl" fall; if the tray
-gets there, the rim stops it.
+sits on a wooden saddle across the balls (`SADDLE`), so it reaches the cup's rim only at 48° against the cup.
+There's no "Hit the bowl" fall; if the tray gets there, the rim stops it.
+
+Blocks are sticky: the tower slides only past 45° (`FALL_TILT`; the empty tray still swings at most 20°), and fallen
+blocks grip (planck friction 1.2), so a tall tower topples long before it slides. Scoring is time only: no clean bonus.

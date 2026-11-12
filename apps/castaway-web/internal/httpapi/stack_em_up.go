@@ -23,8 +23,7 @@ import (
 // drop; the save with height 8 means the full tower was held, and finishes the run. The server keeps the clock
 // (first save to the finish, so a reload doesn't pause it). The physics runs on the phone (shortcut: a determined
 // player could post a fake run; fine for a friends' league, as with Tilt Table).
-// League points: every finisher +1, fastest +3, second fastest +2 (ties in tenths share the place, dense), and +2
-// for a clean run (finished with no drops).
+// League points: every finisher +1, fastest +3, second fastest +2 (ties in tenths share the place, dense).
 
 const (
 	stackBlocks   = 8
@@ -47,23 +46,16 @@ func stackPlaces(players []stackPlayer) map[string]int {
 	return tiltPlaces(tilt)
 }
 
-// stackPoints gives each player's league points: +1 for finishing, place points, and +2 for a clean run.
+// stackPoints gives each player's league points: +1 for finishing and place points.
 func stackPoints(players []stackPlayer) (map[string]int, map[string]int) {
 	places, points := stackPlaces(players), map[string]int{}
 	for _, p := range players {
 		points[p.ID] = 0
 		if p.Finished {
-			points[p.ID] = 1 + tiltPlacePoints(places[p.ID]) + stackCleanPoints(p)
+			points[p.ID] = 1 + tiltPlacePoints(places[p.ID])
 		}
 	}
 	return places, points
-}
-
-func stackCleanPoints(p stackPlayer) int {
-	if p.Finished && p.Drops == 0 {
-		return 2
-	}
-	return 0
 }
 
 func loadStackPlayers(ctx context.Context, q scrambleQuerier, gameID int64) ([]stackPlayer, error) {
@@ -265,9 +257,8 @@ type stackResult struct {
 	Best     int
 	Drops    int
 	Points   int
-	// The breakdown behind Points: place points (fastest +3, second +2) and clean points (+2, no drops);
-	// finishing adds +1.
-	PlacePoints, CleanPoints int
+	// The breakdown behind Points: place points (fastest +3, second +2); finishing adds +1.
+	PlacePoints int
 }
 
 type stackPlay struct {
@@ -403,7 +394,7 @@ func stackResults(players []stackPlayer) []stackResult {
 	out := make([]stackResult, 0, len(players))
 	for _, p := range players {
 		r := stackResult{Place: places[p.ID], ID: p.ID, Name: p.Name, Tribe: p.Tribe, Finished: p.Finished, Best: p.Best,
-			Drops: p.Drops, Points: points[p.ID], PlacePoints: tiltPlacePoints(places[p.ID]), CleanPoints: stackCleanPoints(p)}
+			Drops: p.Drops, Points: points[p.ID], PlacePoints: tiltPlacePoints(places[p.ID])}
 		if p.Finished {
 			r.Time, r.TimeMS = tiltClock(p.Time), p.Time.Milliseconds()
 		}
