@@ -15,7 +15,7 @@
 ===Day 14===
 ==Challenges==
 <tabber>Reward=
-'''Challenge:''' ''[[Buggin' Out]]''<br />'''Reward:''' Merge feast<br />'''Winners:''' {{tribehl4|tovuto|Brady Booker}},  {{tribehl4|tovuto|Carter Krull}},  {{tribehl4|tovuto|Devin Way}},  {{tribehl4|tovuto|Eric Macksoud}},  {{tribehl4|tovuto|Jelly Loblack}},  {{tribehl4|tovuto|Danny Kilby}},  {{tribehl4|tovuto|Lewis Kelly}},  {{tribehl4|tovuto|Maggie Nestor}},  {{tribehl4|tovuto|Mike Pinsky}}, and {{tribehl4|tovuto|Thien An Nguyen}}
+'''Challenge:''' ''[[Buggin' Out]]''<br />'''Reward:''' Merge feast<br />'''Winners ''(in order of finish)'':''' {{tribehl4|tovuto|Brady Booker}},  {{tribehl4|tovuto|Carter Krull}},  {{tribehl4|tovuto|Devin Way}},  {{tribehl4|tovuto|Eric Macksoud}},  {{tribehl4|tovuto|Jelly Loblack}},  {{tribehl4|tovuto|Danny Kilby}},  {{tribehl4|tovuto|Lewis Kelly}},  {{tribehl4|tovuto|Maggie Nestor}},  {{tribehl4|tovuto|Mike Pinsky}}, and {{tribehl4|tovuto|Thien An Nguyen}}
 |-|Immunity=
 '''Challenge:''' ''[[Over-Extended]]''<br />'''Winner:''' {{tribehl4|tovuto|Mike Pinsky}}
 </tabber>

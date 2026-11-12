@@ -25,7 +25,7 @@ var (
 	wikiVotedOut = regexp.MustCompile(`VOTED OUT:[^}]*?link=([^|\]]+)`)
 	// Either "'''Immunity Challenge:'''" or a <tabber> tab "|-|Immunity=".
 	wikiChallenge = regexp.MustCompile(`'''((?:Reward|Immunity)(?:\s*(?:/|and|&)\s*(?:Reward|Immunity))?) Challenge:'''|(?m)(?:<tabber>|^\|-\|)\s*((?:Reward|Immunity)(?:\s*(?:/|and|&)\s*(?:Reward|Immunity))?)\s*=`)
-	wikiWinners   = regexp.MustCompile(`'''Winners?[^']*:'''(.*)`)
+	wikiWinners   = regexp.MustCompile(`'''Winners?.*?:'''(.*)`) // also "'''Winners ''(in order of finish)'':'''"
 	wikiTribe     = regexp.MustCompile(`\{\{[Tt]ribeicon\|([^}|]+)`)
 	wikiPerson    = regexp.MustCompile(`\{\{[Tt]ribehl\d*\|[^|}]+\|([^|}]+)`)
 	wikiLink      = regexp.MustCompile(`\[\[([^\]|]+)(?:\|[^\]]*)?\]\]`)
