@@ -71,10 +71,15 @@ bowl forgives over about a second; the balls only go over once the outer one rea
 less (`SLOSH` 0.3), and less the heavier it is. A tall tower topples over its own base at a smaller tilt (22° at
 four blocks, 10° at eight). Past 20° (`FALL_TILT`, wood on wood) the tower slides along the tray and falls off
 the end. A fallen tower and tray really fall: the drop counts, and the tray is set flat with the blocks back in the
-rack, only once they hit the ground. The tray's underside bounces off the cup's rim instead
-of passing through it; a loaded tray that hits it drops the tower. The tray waits flat until play.
+rack, only once they hit the ground. The tray waits flat until play.
 
 A fallen tower is handed to a small rigid-body engine (vendored `site/assets/planck.min.js`, planck.js 1.5.1, MIT):
 each block starts where it was, moving with the tray, and tumbles under the screen's gravity off the tray (which
 it follows), the pole and onto the sand. The drop counts once they're all on the sand or off screen, or after 3 s
 if some came to rest on the tray. `DAMP` 3.3 (was 4) for a touch more wobble.
+
+The rig (tray, saddle, balls, cup) is 30% bigger than the first build (`BIG`); blocks aren't, so there's more tray to
+slide along before blocks fall off. The cup's ball friction is scaled with it so the balls drift as before. The tray
+sits on a wooden saddle across the balls (`SADDLE`), so it reaches the cup's rim only at 48° against the cup: 20° of
+slide plus the 24° lip, so the phone is already past dumping the balls. There's no "Hit the bowl" fall; if the tray
+gets there, the rim stops it.

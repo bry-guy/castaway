@@ -7,16 +7,22 @@
 // goes back to the rack (a drop).
 const DEG = Math.PI / 180;
 const BW = 0.1, BH = 0.09;                // a block (m)
-const TRAY_W = 0.36, TRAY_T = 0.025;      // the tray
+const BIG = 1.3;                          // the tray, saddle, balls and cup, scaled up from the first build (blocks aren't)
+const TRAY_W = 0.36 * BIG, TRAY_T = 0.025; // the tray
 let CRADLE_R = 0.08;                      // the tray rocks on the balls as if on a rocker this round: small, so it wobbles
 const STAND_TOP = 0.42;                   // where the tray rests
 const M_TRAY = 1.5, M_BLOCK = 1;
 let G = 4.5;                              // slowed down: real gravity tips a 0.7 m tower too fast to catch
 let DAMP = 3.3;                           // rocking friction (1/s)
 let SLOSH = 0.3;                          // how much the balls rolling in the cup throws the tray
-let CUP_R = 0.1, CUP_DAMP = 35;            // the cup the balls roll in, and their rolling friction (1/s)
+let CUP_R = 0.1 * BIG, CUP_DAMP = 35 / BIG; // the cup the balls roll in, and their rolling friction (1/s): the balls drift as fast as in the smaller cup
 let CUP_LIP = 24 * DEG;                   // past this the outer ball reaches the drawn rim (RIM_A) and rolls over, tray and all
-const BALL_R = 0.028;
+const BALL_R = 0.028 * BIG;
+// The tray sits on a wooden saddle across the balls, high enough that it can't reach the cup's rim before the blocks
+// slide off it: the tray reaches the rim only at 48° against the cup, which takes the phone tilted past the point
+// where the balls roll out (the self-check confirms). If it gets there anyway, the rim just stops it.
+const SADDLE = 0.05 * BIG;
+const CUP_Y = STAND_TOP - SADDLE - 2 * BALL_R - 0.006 * BIG; // the cup's floor
 const MAX_TILT = 40 * DEG, DEAD = 0.5 * DEG; // phone roll used, and ignored jitter
 let FALL_TILT = 20 * DEG;                 // the tower starts sliding past this, from level in the world (wood on wood)
 const HOLD_S = 3, PRACTICE_S = 180;
@@ -125,7 +131,7 @@ const P = 10; // planck likes bodies 0.1-10 units big, so it works in decimetres
 const V2 = (x, y) => planck.Vec2(x * P, y * P);
 const pw = planck.World({ gravity: V2(0, -9.8) });
 pw.createBody().createFixture(planck.Edge(V2(-5, 0), V2(5, 0)), { friction: 0.6 }); // the sand
-pw.createBody({ position: V2(0, (0.02 + STAND_TOP - 0.07) / 2) }).createFixture(planck.Box(0.0225 * P, (STAND_TOP - 0.09) / 2 * P), { friction: 0.4 }); // the pole
+pw.createBody({ position: V2(0, CUP_Y / 2) }).createFixture(planck.Box(0.0225 * P, (CUP_Y - 0.04) / 2 * P), { friction: 0.4 }); // the pole
 const pTray = pw.createBody({ type: "kinematic" }); // it follows the game's tray, so blocks on it ride and slide on it
 pTray.createFixture(planck.Box(TRAY_W / 2 * P, TRAY_T / 2 * P), { friction: Math.tan(FALL_TILT) });
 let fallen = [], fallenFor = 0; // { body, letter }; how long since the tower fell
@@ -214,7 +220,6 @@ function report(finished = false) {
 // ---- the tray in the world ----
 // The balls' tops sit on a circle inside the cup; the tray rocks on them and touches them at `contact` along its
 // underside. rot: the tray's tilt on screen (+ is right side down).
-const CUP_Y = STAND_TOP - 2 * BALL_R - 0.006; // the cup's floor
 function trayFrame(st = s) {
   const s = st, sp = Math.sin(s.psi), cp = Math.cos(s.psi), c = Math.cos(s.th), n = Math.sin(s.th);
   const bx = CUP_R * sp - sp * (STAND_TOP - CUP_Y), by = CUP_Y + CUP_R * (1 - cp) + cp * (STAND_TOP - CUP_Y); // the balls' tops
@@ -226,18 +231,16 @@ function trayFrame(st = s) {
     from: (x, y) => { const dx = x - qx, dy = y - qy; return { u: dx * rc - dy * rn, v: dx * rn + dy * rc }; } };
 }
 
-// The tray's underside can't pass the cup's rim: pushed back out, it bounces. Returns whether it touched.
-const RIM_A = 50 * DEG; // the cup is drawn this far round from its bottom, each side
-function hitRim(st) {
-  let hit = false;
+const RIM_A = 50 * DEG, RIM_T = 0.014 * BIG; // the cup is drawn this far round from its bottom, each side; its wall
+const rimCorner = (f, d, R = CUP_R + RIM_T) => f.from(d * R * Math.sin(RIM_A), CUP_Y + CUP_R - R * Math.cos(RIM_A));
+function rimClear(st) { // how far the tray's underside is above the cup's rim corners (m)
+  const f = trayFrame(st); return Math.min(...[-1, 1].map((d) => -rimCorner(f, d).v));
+}
+function stopAtRim(st) { // the tray can't pass the rim: that side turns back up and bounces
   for (const d of [-1, 1]) {
-    const f = trayFrame(st), R = CUP_R + 0.014, r = f.from(d * R * Math.sin(RIM_A), CUP_Y + CUP_R - R * Math.cos(RIM_A)); // the rim's outer corner
-    if (r.v <= 0 || Math.abs(r.u) > TRAY_W / 2 || Math.sign(r.u) !== d) continue;
-    st.th -= d * r.v / Math.abs(r.u); // turn that side back up, clear of the rim
-    if (st.thV * d > 0) st.thV *= -0.3;
-    hit = true;
+    const r = rimCorner(trayFrame(st), d);
+    if (r.v > 0 && Math.sign(r.u) === d) { st.th -= d * r.v / Math.abs(r.u); if (st.thV * d > 0) st.thV *= -0.3; }
   }
-  return hit;
 }
 
 // ---- input: one finger pulls the bottom block out of the rack (anywhere on the rack grabs it) ----
@@ -334,7 +337,7 @@ function step(dt) {
     return stepRest(dt, gx, gy);
   }
   if (!(phase === "practice" || phase === "run")) { s.th = s.thV = s.psi = s.psiV = 0; return stepRest(dt, gx, gy); } // the tray waits, flat, until play
-  const contact = physics(s, dt), tilt = s.th - s.psi + s.phi;
+  const contact = physics(s, dt); stopAtRim(s); const tilt = s.th - s.psi + s.phi;
   if (s.stack.length) { // past FALL_TILT the tower slides down the tray (friction holds it below); off the end, it falls
     const mu = Math.tan(FALL_TILT), g = Math.sin(tilt), n = Math.cos(tilt);
     if (s.sv || Math.abs(g) > mu * n) {
@@ -345,7 +348,6 @@ function step(dt) {
   }
   if (s.stack.length && (Math.abs(s.stack[0]) > TRAY_W / 2 || Math.abs(contact) > TRAY_W / 2 - 0.02)) fall(Math.abs(contact) > TRAY_W / 2 - 0.02 ? "Off the balls!" : "Slid off!");
   else if (toppled(s.stack, tilt) >= 0) fall("Toppled!");
-  else if (hitRim(s) && s.stack.length) fall("Hit the bowl!");
   if (!s.stack.length) { // an empty tray never falls off: it settles back over the balls
     if (Math.abs(contact) > TRAY_W / 2 - 0.02) s.th -= (contact - Math.sign(contact) * (TRAY_W / 2 - 0.02)) / CRADLE_R;
     s.th = clamp(s.th, -FALL_TILT, FALL_TILT);
@@ -473,11 +475,13 @@ function drawTray(at, ang) { // the tray, its middle-underneath at `at`, and its
   const k = scale, br = BALL_R, roll = (CRADLE_R * s.th + CUP_R * s.psi) / br; // the balls roll as things move over them
   ctx.save(); ctx.translate(sx(at.x), sy(at.y)); ctx.rotate(ang);
   [-1, 1].forEach((side) => {
-    const x = side * br * 1.15 * k, y = br * k, r = br * k;
+    const x = side * br * 1.15 * k, y = (SADDLE + br) * k, r = br * k;
     const g = ctx.createRadialGradient(x - r * 0.4, y - r * 0.4, r * 0.1, x, y, r); g.addColorStop(0, "#d79a5e"); g.addColorStop(1, "#5b3418");
     ctx.fillStyle = g; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.stroke();
     ctx.strokeStyle = "rgba(43,24,10,.5)"; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(roll) * r, y + Math.sin(roll) * r); ctx.stroke();
   });
+  ctx.fillStyle = "#8a5d34"; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; // the saddle across the balls
+  ctx.beginPath(); ctx.roundRect(-br * 2.3 * k, 0, br * 4.6 * k, SADDLE * k, 3); ctx.fill(); ctx.stroke();
   ctx.fillStyle = "#a0703e"; ctx.strokeStyle = INK; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.rect(-TRAY_W / 2 * k, -TRAY_T * k, TRAY_W * k, TRAY_T * k); ctx.fill(); ctx.stroke();
   ctx.restore();
@@ -488,7 +492,7 @@ function drawRig() { // the stand, the cup, then the balls, the tray and the tow
   ctx.fillStyle = "#8a5d34"; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; // the foot
   ctx.beginPath(); ctx.roundRect(sx(-0.09), sy(0.05), 0.18 * k, 0.035 * k, 4); ctx.fill(); ctx.stroke();
   ctx.fillStyle = "#6b4423"; // the cup: a round bowl, open on top
-  ctx.beginPath(); ctx.arc(ccx, ccy, CUP_R * k, A - w, A + w); ctx.arc(ccx, ccy, (CUP_R + 0.014) * k, A + w, A - w, true); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.arc(ccx, ccy, CUP_R * k, A - w, A + w); ctx.arc(ccx, ccy, (CUP_R + RIM_T) * k, A + w, A - w, true); ctx.closePath(); ctx.fill(); ctx.stroke();
   if (gone) return drawTray(gone, gone.ang);
   const f = trayFrame();
   drawTray(f.at(0, 0), f.rot);
@@ -553,7 +557,7 @@ if (DEBUG) { // desktop testing: arrows tilt the phone a degree at a time; the m
     const d = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
     if (d) fake = clamp((fake ?? 0) + d * DEG, -MAX_TILT, MAX_TILT);
   });
-  window.__se = { state: () => ({ phase, drops, placed: placed(), th: s.th / DEG, phi: s.phi / DEG, stack: [...s.stack] }),
+  window.__se = { rimClear: () => rimClear(s), state: () => ({ phase, drops, placed: placed(), th: s.th / DEG, phi: s.phi / DEG, stack: [...s.stack] }),
     tilt: (deg) => { fake = deg == null ? null : deg * DEG; }, rack: () => rackSlot(0), screen: (x, y) => ({ x: sx(x), y: sy(y) }),
     tray: (u, v) => trayFrame().at(u, v), physics, toppled, s: () => s };
 }
