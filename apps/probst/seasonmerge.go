@@ -24,6 +24,19 @@ func championRoundBody(f seasonFile, airs []time.Time) (map[string]any, string, 
 		return nil, "", fmt.Errorf("merge_episode %d needs a following episode (season has %d)", n, len(airs))
 	}
 	opens, locks := airs[n-1], airs[n]
+	// scoring.champion.opens / .locks move the window, e.g. when the merge is set after its episode aired
+	for key, at := range map[string]*time.Time{"opens": &opens, "locks": &locks} {
+		if v, ok := f.Scoring.Champion[key].(string); ok {
+			t, err := planTime(v, airs[n-1])
+			if err != nil {
+				return nil, "", fmt.Errorf("scoring.champion.%s: %w", key, err)
+			}
+			*at = t
+		}
+	}
+	if !locks.After(opens) {
+		return nil, "", fmt.Errorf("Pick Your Champion locks %s, before it opens", locks.Format(time.RFC3339))
+	}
 	line := fmt.Sprintf("Pick Your Champion (merge Episode %d): picks %s → lock %s ET", n, opens.Format("Mon Jan 02 3:04pm"), locks.Format("Mon Jan 02 3:04pm"))
 	return map[string]any{"merge_episode": n, "opens_at": opens.UTC().Format(time.RFC3339), "locks_at": locks.UTC().Format(time.RFC3339)}, line, nil
 }

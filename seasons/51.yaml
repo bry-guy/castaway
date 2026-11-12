@@ -28,8 +28,8 @@ draft:
 
 scoring:                        # player-facing words: "your Tribe", "your Champion" — never "pony"
   tribe: {immunity: 2, reward: 1, from_episode: 2, until: merge}   # players score when their Tribe wins
-  champion: {immunity: 3, reward: 1, from: merge}                  # Pick Your Champion; any castaway, shareable
-  merge_episode: TBD            # tribe scoring ends; Pick Your Champion opens
+  champion: {immunity: 3, reward: 1, from: merge, opens: 2026-11-12 00:30, locks: 2026-11-18 20:00}   # Pick Your Champion; any castaway, shareable. Merge set late: picks open after Ep 8, lock at Ep 9
+  merge_episode: 7            # tribe scoring ends; Pick Your Champion opens
 
 # ── Recurring every week ─────────────────────────────────────────────────────────────────────────────
 weekly:
@@ -58,8 +58,8 @@ weeks:
   3: {game: {type: press_the_button}}   # most +2, 2nd -1, least +1; ties +size (max 3)
   4: {game: {type: spell_it_out, phrase_file: answers/ep4.txt, decoys: 5}}   # Island Scramble; phrase kept out of git
   5: {game: {type: inside_track}}   # Inside Track: +1 per cup, +1 per ball left
-  6: {game: {type: free_the_block}}   # Free the Block: fewest +3, second +2, +1 solving, +5 at the 25-move optimum
-  7: {game: {type: tilt_table}}   # Tilt Table: +1 finishing, fastest +3, second +2, +1 per ace
+  6: {game: {type: free_the_block}, scores_post: {at: 2026-11-05 01:05, sent: true}}   # posted late; Free the Block: fewest +3, second +2, +1 solving, +5 at the 25-move optimum
+  7: {game: {type: tilt_table}, scores_post: {at: 2026-11-12 01:15}}   # posted late (merge set that night); Tilt Table: +1 finishing, fastest +3, second +2, +1 per ace
   8: {game: {type: stack_em_up}}   # Stack 'Em Up: +1 finishing, fastest +3, second +2
   9: {game: TBD}
   10: {game: TBD}

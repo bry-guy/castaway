@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- Stack 'Em Up: `season apply` creates `stack_em_up` games (`POST /instances/:id/stack-games`) for weeks set to `type: stack_em_up`; the scores post renders `games/stack_em_up.md` from each player's `finished`, `time_ms`, `height`, `place_points` and `clean_points`; `next-game.md` shows 🪵; `correct --game stack_em_up` works.
+- Pick Your Champion: `scoring.champion.opens` / `.locks` (absolute or relative times) move the window from the default merge episode → next episode, for a merge set after its episode aired.
+- Survivor wiki: winners written `'''Winners ''(in order of finish)'':'''` are read.
+- Stack 'Em Up: `season apply` creates `stack_em_up` games (`POST /instances/:id/stack-games`) for weeks set to `type: stack_em_up`; the scores post renders `games/stack_em_up.md` from each player's `finished`, `time_ms`, `height` and `place_points` (time only: no clean bonus); `next-game.md` shows 🪵; `correct --game stack_em_up` works.
 - `probst score correct PLAYER POINTS REASON --week N --game TYPE` adds or takes away points on a week's game (dry run unless `--yes`; use `--` before negative points).
 - Survivor wiki fallback: while survivoR is behind, the reconciler scores an aired episode from the Survivor wiki (survivor.fandom.com episode page + `Template:S<season>epguide`, unedited for an hour) and DMs admins "survivoR hasn't updated Episode N yet". When survivoR has the episode it replaces the wiki import; if any boot or points changed, admins get a "Score update" DM. `probst episode import N --source wiki` runs it by hand. `season plan` now shows whether each due episode was imported (and from where) instead of ✓ once the due time passes.
 
