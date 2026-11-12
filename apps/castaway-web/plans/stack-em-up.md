@@ -73,3 +73,8 @@ four blocks, 10° at eight). Past 20° (`FALL_TILT`, wood on wood) the tower sli
 the end. A fallen tower and tray really fall: the drop counts, and the tray is set flat with the blocks back in the
 rack, only once they hit the ground. The tray's underside bounces off the cup's rim instead
 of passing through it; a loaded tray that hits it drops the tower. The tray waits flat until play.
+
+A fallen tower is handed to a small rigid-body engine (vendored `site/assets/planck.min.js`, planck.js 1.5.1, MIT):
+each block starts where it was, moving with the tray, and tumbles under the screen's gravity off the tray (which
+it follows), the pole and onto the sand. The drop counts once they're all on the sand or off screen, or after 3 s
+if some came to rest on the tray. `DAMP` 3.3 (was 4) for a touch more wobble.

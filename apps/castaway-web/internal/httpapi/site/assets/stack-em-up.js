@@ -12,7 +12,7 @@ let CRADLE_R = 0.08;                      // the tray rocks on the balls as if o
 const STAND_TOP = 0.42;                   // where the tray rests
 const M_TRAY = 1.5, M_BLOCK = 1;
 let G = 4.5;                              // slowed down: real gravity tips a 0.7 m tower too fast to catch
-let DAMP = 4;                             // rocking friction (1/s)
+let DAMP = 3.3;                           // rocking friction (1/s)
 let SLOSH = 0.3;                          // how much the balls rolling in the cup throws the tray
 let CUP_R = 0.1, CUP_DAMP = 35;            // the cup the balls roll in, and their rolling friction (1/s)
 let CUP_LIP = 24 * DEG;                   // past this the outer ball reaches the drawn rim (RIM_A) and rolls over, tray and all
@@ -116,11 +116,28 @@ let block = null, lift = 0, liftV = 0; // the block in hand ({ id, letter, x, y,
 function setup(practice) {
   word = practice ? PRACTICE_WORD : SCORED_WORD;
   s = { psi: 0, psiV: 0, th: 0, thV: 0, sv: 0, phi: s?.phi ?? 0, stack: [] }; gone = null;
-  flying = []; dropping = null; block = null; lift = 0; holdFrom = 0; hud();
+  flying = []; dropping = null; block = null; lift = 0; holdFrom = 0; clearFallen(); hud();
 }
 const placed = () => s.stack.length;
 const nextLetter = () => word[word.length - 1 - placed()];
-const falling = () => flying.filter((b) => b.down).length; // blocks of a fallen tower not yet on the ground
+// ---- a fallen tower: real rigid blocks (planck.js) that tumble off the tray onto the sand ----
+const P = 10; // planck likes bodies 0.1-10 units big, so it works in decimetres
+const V2 = (x, y) => planck.Vec2(x * P, y * P);
+const pw = planck.World({ gravity: V2(0, -9.8) });
+pw.createBody().createFixture(planck.Edge(V2(-5, 0), V2(5, 0)), { friction: 0.6 }); // the sand
+pw.createBody({ position: V2(0, (0.02 + STAND_TOP - 0.07) / 2) }).createFixture(planck.Box(0.0225 * P, (STAND_TOP - 0.09) / 2 * P), { friction: 0.4 }); // the pole
+const pTray = pw.createBody({ type: "kinematic" }); // it follows the game's tray, so blocks on it ride and slide on it
+pTray.createFixture(planck.Box(TRAY_W / 2 * P, TRAY_T / 2 * P), { friction: Math.tan(FALL_TILT) });
+let fallen = [], fallenFor = 0; // { body, letter }; how long since the tower fell
+const falling = () => fallen.length; // blocks of a fallen tower not yet on the ground
+function clearFallen() { fallen.forEach((b) => pw.destroyBody(b.body)); fallen = []; }
+function trackTray(dt) { // move the planck tray to the game's tray this step, with the velocity that takes it there
+  const ang = gone ? gone.ang : trayFrame().rot, c = gone ? { x: gone.x, y: gone.y } : trayFrame().at(0, 0);
+  const to = V2(c.x + Math.sin(ang) * TRAY_T / 2, c.y + Math.cos(ang) * TRAY_T / 2), p = pTray.getPosition();
+  if (planck.Vec2.distance(p, to) > 0.05 * P) { pTray.setTransform(to, -ang); pTray.setLinearVelocity(V2(0, 0)); pTray.setAngularVelocity(0); return; } // a reset: jump
+  pTray.setLinearVelocity(planck.Vec2((to.x - p.x) / dt, (to.y - p.y) / dt));
+  let da = -ang - pTray.getAngle(); da = Math.atan2(Math.sin(da), Math.cos(da)); pTray.setAngularVelocity(da / dt);
+}
 const rackFirst = () => placed() + falling() + (dropping ? 1 : 0) + (block && !block.home ? 1 : 0); // placing index in slot 0
 const rackSlot = (k) => ({ x: RACK.x, y: RACK.y + BH / 2 + (k + lift) * RACK.pitch });
 function holdUpright(then) {
@@ -276,18 +293,20 @@ function land(d) { // the dropped block reaches the top of the stack
 // set flat, and in a run that's a drop (see landed).
 function fall(why) {
   if (!s.stack.length) return;
-  const f = trayFrame(), lean = Math.sign(s.th - s.psi + s.phi) || 1;
-  s.stack.forEach((u, k) => {
-    const w = f.at(u, TRAY_T + BH * (k + 0.5)), r = TRAY_T + BH * (k + 0.5);
-    const slid = s.sv * Math.cos(f.rot); // a sliding tower just carries on off the end; a toppling one is thrown
-    flying.push({ letter: word[word.length - 1 - k], x: w.x, y: w.y, vx: s.thV * r * Math.cos(s.th) + (slid || lean * 0.8 + (k - 3) * 0.05),
-      vy: slid ? -s.sv * Math.sin(f.rot) : 0.3 + 0.1 * k, ang: f.rot, spin: lean * (slid ? 1 : 2 + k), down: true });
+  const f = trayFrame(), rc = Math.cos(f.rot), rn = Math.sin(f.rot);
+  s.stack.forEach((u, k) => { // each block starts where it was, moving with the tray (plus any slide); gravity does the rest
+    const w = f.at(u, TRAY_T + BH * (k + 0.5)), body = pw.createBody({ type: "dynamic", position: V2(w.x, w.y), angle: -f.rot, bullet: true });
+    body.createFixture(planck.Box(BW / 2 * P, BH / 2 * P), { density: 1, friction: 0.5, restitution: 0.15 });
+    const v = pTray.getLinearVelocityFromWorldPoint(body.getPosition());
+    body.setLinearVelocity(planck.Vec2(v.x + s.sv * rc * P, v.y - s.sv * rn * P)); body.setAngularVelocity(pTray.getAngularVelocity());
+    fallen.push({ body, letter: word[word.length - 1 - k] });
   });
+  fallenFor = 0;
   s.stack = []; s.sv = 0; holdFrom = 0; navigator.vibrate?.([40, 30, 40]);
   pop(why); hud();
 }
 function landed() { // the fallen tower is all on the ground
-  flying = flying.filter((b) => !b.down); lift = 1; liftV = 0;
+  clearFallen(); lift = 1; liftV = 0;
   if (!gone) s.th = s.thV = s.psi = s.psiV = 0; // a fresh start: the tray sits flat, the balls at the bottom of the cup
   if (phase === "run") { drops++; report(); }
   hud();
@@ -338,14 +357,13 @@ function step(dt) {
   stepRest(dt, gx, gy);
 }
 function stepRest(dt, gx, gy) { // blocks in the air
-  for (const b of flying) {
-    if (b.rest) continue;
-    b.vx += gx * dt; b.vy += gy * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.ang += b.spin * dt;
-    if (b.down && b.y < BH / 2) { b.y = BH / 2; b.rest = true; } // hit the sand
-    if (b.down && (b.x < VIEW.x0 - 0.3 || b.x > VIEW.x1 + 0.3)) b.rest = true; // off the side: as good as landed
-  }
-  flying = flying.filter((b) => b.down || (b.y > VIEW.y0 - 0.3 && b.x > VIEW.x0 - 0.3 && b.x < VIEW.x1 + 0.3));
-  if (falling() && flying.every((b) => !b.down || b.rest)) landed();
+  for (const b of flying) { b.vx += gx * dt; b.vy += gy * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.ang += b.spin * dt; }
+  flying = flying.filter((b) => b.y > VIEW.y0 - 0.3 && b.x > VIEW.x0 - 0.3 && b.x < VIEW.x1 + 0.3);
+  pw.setGravity(V2(gx, gy)); trackTray(dt); pw.step(dt, 8, 3);
+  if (!fallen.length) return;
+  fallenFor += dt;
+  const down = (b) => { const p = b.body.getPosition(); return p.y < 0.07 * P || p.x < (VIEW.x0 - 0.3) * P || p.x > (VIEW.x1 + 0.3) * P; }; // on the sand, or off the side
+  if (fallen.every(down) || fallenFor > 3) landed(); // blocks still on the tray after 3 s go back too
 }
 function frameLogic(now) {
   if (phase === "practice") {
@@ -485,6 +503,7 @@ function draw() {
   ctx.drawImage(jungle(), 0, 0, W, H);
   drawRack(); drawRig();
   for (const b of flying) drawBlock(b.x, b.y, b.ang, b.letter);
+  for (const b of fallen) { const p = b.body.getPosition(); drawBlock(p.x / P, p.y / P, -b.body.getAngle(), b.letter); }
   if (block) drawBlock(block.x, block.y, 0, block.letter);
 }
 
