@@ -390,19 +390,21 @@ function finish(saved) {
   hud(); $("time").textContent = fmt(time);
   let official = null; // the server's clock is the one that counts
   saved.then((res) => { if (res?.time) { official = res.time; $("final").textContent = $("time").textContent = res.time; } });
-  setTimeout(() => {
+  // a scored run says "Done +1" only once the server has taken the finish
+  Promise.all([saved, new Promise((ok) => setTimeout(ok, 900))]).then(([res]) => {
+    const kept = !ACTION || !!res;
     $("final").textContent = official ?? fmt(time); $("summary").textContent = "";
     const row = $("stamps"); row.textContent = "";
-    const stamps = [["Done +1", ""]];
+    const stamps = kept ? [[ACTION ? "Done +1" : "Done", ""]] : [];
     $("done").classList.remove("hidden");
     stamps.forEach(([txt, kind], i) => setTimeout(() => {
       const el = document.createElement("span"); el.className = `stamp ${kind}`; el.textContent = txt; row.append(el);
       navigator.vibrate?.(25);
     }, 400 + i * 420));
     setTimeout(() => {
-      $("summary").textContent = `${drops} ${drops === 1 ? "drop" : "drops"}` + (ACTION ? ". Fastest +3 and second +2 when it closes." : ". Free play: not scored.");
+      $("summary").textContent = !kept ? "Not saved: see the note below, then reload." : `${drops} ${drops === 1 ? "drop" : "drops"}` + (ACTION ? ". Fastest +3 and second +2 when it closes." : ". Free play: not scored.");
     }, 600 + stamps.length * 420);
-  }, 900);
+  });
 }
 
 // ---- drawing: flat, matte, light from the top left (Tilt Table's jungle, from the side) ----
@@ -547,7 +549,7 @@ $("level").onclick = () => { level(); pop("Level"); };
 $("again").onclick = () => { $("done").classList.add("hidden"); startPractice(); };
 if (ACTION) {
   $("again").textContent = "See results"; $("again").onclick = () => location.reload();
-  $("hint").textContent = RESUME ? "Your run is under way: the clock kept running, and the tower fell when you left (a drop)."
+  $("hint").textContent = RESUME ? "Your run is under way: the clock kept running, and any blocks on the tray fell when you left (a drop)."
     : "Scored, one run: practice up to 3 minutes, then the clock runs until SURVIVOR stands, even if you leave.";
 }
 

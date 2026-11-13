@@ -101,8 +101,10 @@ func TestStackEmUp(t *testing.T) {
 		t.Fatal("game must be listed on /games, free play not yet")
 	}
 
+	progress("fast", 8, 0, 409) // a finish with no run on the clock
 	// fast: Go, three blocks, a drop, then the full tower held at 30.04s.
 	progress("fast", 0, 0, 200)
+	progress("fast", 8, 0, 409) // too fast to count
 	progress("fast", 3, 0, 200)
 	progress("fast", 0, 1, 200)
 	at(12 * time.Second)

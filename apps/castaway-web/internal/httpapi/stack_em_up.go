@@ -28,6 +28,7 @@ import (
 const (
 	stackBlocks   = 8
 	stackMaxDrops = 10000 // only bounds a hostile request
+	stackMinRun   = 10 * time.Second
 )
 
 type stackPlayer struct {
@@ -475,6 +476,11 @@ func (s *Server) stackProgress(c *gin.Context) {
 	now := s.now()
 	var finished any
 	if req.Height == stackBlocks {
+		// a finish needs a run already on the clock, and no one stacks and holds eight blocks this fast
+		if !old.exists || now.Sub(old.started) < stackMinRun {
+			c.JSON(http.StatusConflict, errorResponse{Error: "that run is too fast to count"})
+			return
+		}
 		finished = now
 	}
 	tag, err := tx.Exec(ctx, `INSERT INTO stack_plays (game_id, participant_id, started_at, height, best_height, drops, finished_at)
