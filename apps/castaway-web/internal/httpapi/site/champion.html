@@ -1,10 +1,10 @@
 {{template "header" .}}
 {{with .Champion}}<p class="eyebrow"><a href="/games">Games</a> · Episode {{.MergeEpisode}}</p><h1>Pick Your Champion</h1>
-<p>Pick one castaway still in the game. Whenever your Champion wins individual immunity you get <b>+3</b>; reward, <b>+1</b>. If they're voted out, they stop scoring for you.</p>
+<p>Pick one castaway still in the game. Whenever your Champion wins individual immunity you get <b>+3</b>; reward, <b>+1</b>. If they're voted out, they stop scoring for you. Only challenges after picks lock count.</p>
 {{if .Message}}<p role="status"><b>{{.Message}}</b></p>{{end}}
 {{if .Locked}}<p class="muted">Picks locked {{.LocksAt.Format "Mon Jan 2 3:04pm"}} ET.{{if .Mine}} Your Champion: <b>{{.Mine}}</b>.{{else}} You didn't pick a Champion.{{end}}</p>
 <table><thead><tr><th>Player</th><th>Champion</th></tr></thead><tbody>{{range .Picks}}<tr><td>{{.Player}}</td><td>{{.Contestant}}</td></tr>{{else}}<tr><td colspan="2">No picks.</td></tr>{{end}}</tbody></table>
-{{else if .Open}}<p class="muted">{{if .Mine}}Your Champion: <b>{{.Mine}}</b>. {{end}}You can change it until {{.LocksAt.Format "Mon Jan 2 3:04pm"}} ET; then it's yours for the rest of the season. You can also reply with a name in the Champion thread on Discord.</p>
-<form method="post" action="/games/champion"><label>Champion<select name="contestant" required>{{$mine := .Mine}}{{range .Options}}<option{{if eq . $mine}} selected{{end}}>{{.}}</option>{{end}}</select></label><button type="submit">{{if .Mine}}Change pick{{else}}Pick{{end}}</button></form>
+{{else if .Open}}<p class="muted">{{if .MineOut}}<b>{{.Mine}} is out of the game: pick again.</b> {{else if .Mine}}Your Champion: <b>{{.Mine}}</b>. {{end}}You can change it until {{.LocksAt.Format "Mon Jan 2 3:04pm"}} ET; then it's yours for the rest of the season. You can also reply to the Pick Your Champion post on Discord with a name.</p>
+<form method="post" action="/games/champion"><label>Champion<select name="contestant" required>{{$mine := .Mine}}<option value="" disabled{{if or .MineOut (not .Mine)}} selected{{end}}>Choose a castaway</option>{{range .Options}}<option{{if eq . $mine}} selected{{end}}>{{.}}</option>{{end}}</select></label><button type="submit">{{if and .Mine (not .MineOut)}}Change pick{{else}}Pick{{end}}</button></form>
 {{else}}<p class="muted">Picks open soon.</p>{{end}}{{end}}
 {{template "footer" .}}

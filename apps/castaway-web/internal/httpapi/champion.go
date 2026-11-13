@@ -288,6 +288,7 @@ type championView struct {
 	MergeEpisode int
 	LocksAt      time.Time
 	Mine         string
+	MineOut      bool // before the lock: their pick has been voted out
 	Options      []string
 	Picks        []championPick // everyone's, after the lock
 	Message      string
@@ -351,7 +352,11 @@ func (s *Server) renderChampion(c *gin.Context, message string) {
 	if err == nil {
 		round, err = s.loadChampionRound(ctx, id)
 	}
-	if err == nil && round == nil {
+	if err != nil {
+		c.String(http.StatusInternalServerError, "could not load the page")
+		return
+	}
+	if round == nil {
 		c.Redirect(http.StatusFound, "/games")
 		return
 	}
@@ -371,6 +376,7 @@ func (s *Server) renderChampion(c *gin.Context, message string) {
 		for _, a := range active {
 			view.Options = append(view.Options, a.Name)
 		}
+		view.MineOut = view.Mine != "" && !slices.Contains(view.Options, view.Mine)
 	}
 	if err != nil {
 		c.String(http.StatusInternalServerError, "could not load the page")

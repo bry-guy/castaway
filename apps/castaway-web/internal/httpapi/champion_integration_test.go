@@ -172,7 +172,7 @@ func TestChampionPage(t *testing.T) {
 		}
 	}
 	createContestantForTest(t, ctx, q, instance.ID, "Xena Warrior")
-	createContestantForTest(t, ctx, q, instance.ID, "Yuri Gagarin")
+	yuri := createContestantForTest(t, ctx, q, instance.ID, "Yuri Gagarin")
 	if _, err := pool.Exec(ctx, `INSERT INTO champion_rounds (instance_id, merge_episode, opens_at, locks_at) SELECT id, 7, $2, $3 FROM instances WHERE public_id = $1`,
 		instance.ID, now.Add(-time.Hour), now.Add(24*time.Hour)); err != nil {
 		t.Fatal(err)
@@ -206,6 +206,17 @@ func TestChampionPage(t *testing.T) {
 	serve("POST", "/games/champion", "contestant=Xena+Warrior", "outsider", 403)
 	if page := serve("GET", "/games/champion", "", "amy", 200); strings.Contains(page, "ben") {
 		t.Fatal("picks visible before the lock")
+	}
+	// Yuri is voted out before the lock: amy is told to pick again, and nothing is preselected.
+	if _, err := pool.Exec(ctx, `INSERT INTO outcome_positions (instance_id, position, contestant_id)
+		SELECT i.id, 18, c.id FROM instances i, contestants c WHERE i.public_id = $1 AND c.public_id = $2`, instance.ID, yuri.ID); err != nil {
+		t.Fatal(err)
+	}
+	if page := serve("GET", "/games/champion", "", "amy", 200); !strings.Contains(page, "Yuri Gagarin is out of the game: pick again.") || !strings.Contains(page, `disabled selected>Choose a castaway`) || strings.Contains(page, "<option>Yuri") {
+		t.Fatalf("booted pick: %s", page)
+	}
+	if _, err := pool.Exec(ctx, `DELETE FROM outcome_positions op USING instances i WHERE op.instance_id = i.id AND i.public_id = $1`, instance.ID); err != nil {
+		t.Fatal(err)
 	}
 	now = now.Add(25 * time.Hour)
 	page := serve("GET", "/games/champion", "", "amy", 200)
