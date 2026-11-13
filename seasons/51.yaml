@@ -33,7 +33,7 @@ scoring:                        # player-facing words: "your Tribe", "your Champ
 
 # ── Recurring every week ─────────────────────────────────────────────────────────────────────────────
 weekly:
-  results:                      # `probst episode sync` from survivoR (run by hand for now); scores need them
+  results:                      # `probst episode import N --file seasons/51.yaml` (survivoR, or --source wiki); scores need them
     due: "+6d 23:59"            # Tue night before scores
     needs: [elimination, immunity, reward]
   game:                         # one game/event a week; opens at the episode, closes before scores

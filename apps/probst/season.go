@@ -378,6 +378,11 @@ func addSeasonCommands(root *cobra.Command, call apiCall, instancePath func() (s
 			if err != nil {
 				return err
 			}
+			if merge, err := liveMergeEpisode(ctx, call, p); err != nil {
+				return err
+			} else if merge > 0 && ep.Number >= merge {
+				return fmt.Errorf("episode %d is at or after the merge (episode %d): Tribe scoring has ended", ep.Number, merge)
+			}
 			key := challengeKey
 			if key == "" {
 				key = fmt.Sprintf("ep%d-%s", ep.Number, kind)

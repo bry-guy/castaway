@@ -32,6 +32,8 @@ func TestSeasonSync(t *testing.T) {
 				eps = append(eps, episode{Number: n, AirsAt: air})
 			}
 			return write(map[string]any{"episodes": eps})
+		case strings.HasSuffix(path, "/scheduled-games"):
+			return write(map[string]any{"games": []scheduledGame{}})
 		case strings.HasSuffix(path, "/announcements"):
 			return write(map[string]any{"announcements": []announcement{{RequestKey: "s51-week-3-scores", Status: "draft"}}})
 		case strings.HasSuffix(path, "/season-config") && method == "GET":
@@ -94,5 +96,37 @@ func TestSeasonSync(t *testing.T) {
 	}
 	if _, err := newSyncedReconciler(cmd, call, "00000000-0000-0000-0000-000000000000"); err == nil {
 		t.Fatal("ran another instance's synced config")
+	}
+}
+
+// A week whose game type is set but has no live game shows up as a difference (it stays unplayable otherwise).
+func TestSeasonDiffMissingGame(t *testing.T) {
+	f, err := loadSeasonFile("testdata/season-brainland.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, airs, err := expandSeason(f, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	call := func(_ context.Context, method, path string, body, out any) error {
+		write := func(v any) error { b, _ := json.Marshal(v); return json.Unmarshal(b, out) }
+		switch {
+		case strings.HasSuffix(path, "/scheduled-games"):
+			return write(map[string]any{"games": []scheduledGame{{Type: "castawordle", Episode: 2}}})
+		case strings.HasSuffix(path, "/announcements"):
+			return write(map[string]any{"announcements": []announcement{}})
+		default:
+			var eps []episode
+			for i, a := range airs {
+				eps = append(eps, episode{Number: i + 1, AirsAt: a})
+			}
+			return write(map[string]any{"episodes": eps})
+		}
+	}
+	diffs, err := seasonDiff(context.Background(), call, f, airs)
+	got := strings.Join(diffs, "\n")
+	if err != nil || strings.Contains(got, "Week 2 ") || !strings.Contains(got, "Week 3 Press the Button: not created live") {
+		t.Fatalf("%v\n%s", err, got)
 	}
 }

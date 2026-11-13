@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -41,10 +43,30 @@ func championRoundBody(f seasonFile, airs []time.Time) (map[string]any, string, 
 	return map[string]any{"merge_episode": n, "opens_at": opens.UTC().Format(time.RFC3339), "locks_at": locks.UTC().Format(time.RFC3339)}, line, nil
 }
 
+// liveMergeEpisode is the instance's merge episode from its Pick Your Champion round, or 0 before the merge.
+func liveMergeEpisode(ctx context.Context, call apiCall, instancePath string) (int, error) {
+	var res struct {
+		Round struct {
+			MergeEpisode int `json:"merge_episode"`
+		} `json:"round"`
+	}
+	if err := call(ctx, "GET", instancePath+"/champion-round", nil, &res); err != nil {
+		if strings.Contains(err.Error(), "404") {
+			return 0, nil
+		}
+		return 0, err
+	}
+	return res.Round.MergeEpisode, nil
+}
+
 func applyChampionRound(c *cobra.Command, call apiCall, f seasonFile, airs []time.Time, yes bool) error {
 	body, line, err := championRoundBody(f, airs)
 	if err != nil || body == nil {
 		return err
+	}
+	if locks, _ := time.Parse(time.RFC3339, body["locks_at"].(string)); !time.Now().Before(locks) {
+		fmt.Fprintln(c.OutOrStdout(), "locked (unchanged): "+line)
+		return nil
 	}
 	if !yes {
 		fmt.Fprintln(c.OutOrStdout(), "would apply "+line)

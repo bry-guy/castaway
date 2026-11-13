@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -179,9 +180,17 @@ func expandSeason(f seasonFile, now time.Time) ([]planItem, []time.Time, error) 
 			label = fmt.Sprintf("Episode %d airs — FINALE", ep)
 		}
 		if ep == merge {
-			label += " — MERGE (Tribes end, Pick Your Champion opens)"
+			label += " — MERGE (Tribes end)"
 		}
 		add(air, ep, label, fact(air))
+		if ep == merge {
+			if body, _, err := championRoundBody(f, airs); err == nil && body != nil {
+				for _, k := range []string{"opens", "locks"} {
+					at, _ := time.Parse(time.RFC3339, body[k+"_at"].(string))
+					add(at, ep, "Pick Your Champion "+k, fact(at))
+				}
+			}
+		}
 		if merge == 0 && isTBD(f.Scoring.MergeEpisode) && ep == len(airs)/2 {
 			add(time.Time{}, ep, "Merge episode", "⚠ TBD (scoring.merge_episode)")
 		}
@@ -375,6 +384,21 @@ func seasonDiff(ctx context.Context, call apiCall, f seasonFile, airs []time.Tim
 	for n := range byNum {
 		if n > len(airs) {
 			diffs = append(diffs, fmt.Sprintf("Episode %d: live only (not in file)", n))
+		}
+	}
+	var games struct {
+		Games []scheduledGame `json:"games"`
+	}
+	if err := call(ctx, "GET", path+"/scheduled-games", nil, &games); err != nil {
+		return nil, err
+	}
+	for week := range airs {
+		want := weekGame(f, week+1)
+		if want == "" {
+			continue
+		}
+		if !slices.ContainsFunc(games.Games, func(g scheduledGame) bool { return g.Episode == week+1 && g.Type == want }) {
+			diffs = append(diffs, fmt.Sprintf("Week %d %s: not created live (`season apply FILE --week %d --yes`)", week+1, gameNames[want], week+1))
 		}
 	}
 	anns, err := loadAnnouncements(ctx, call, path)

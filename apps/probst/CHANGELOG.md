@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- After the merge, `probst challenge` refuses and `episode sync` skips tribe challenges; `season plan` lists Pick Your Champion's open and lock times and flags weeks whose game isn't created live; `season apply` leaves a locked Champion round alone.
 - Pick Your Champion: `scoring.champion.opens` / `.locks` (absolute or relative times) move the window from the default merge episode → next episode, for a merge set after its episode aired.
 - Survivor wiki: winners written `'''Winners ''(in order of finish)'':'''` are read.
 - Stack 'Em Up: `season apply` creates `stack_em_up` games (`POST /instances/:id/stack-games`) for weeks set to `type: stack_em_up`; the scores post renders `games/stack_em_up.md` from each player's `finished`, `time_ms`, `height` and `place_points` (time only: no clean bonus); `next-game.md` shows 🪵; `correct --game stack_em_up` works.

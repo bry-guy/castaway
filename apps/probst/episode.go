@@ -221,6 +221,11 @@ func addEpisodeSync(root *cobra.Command, call apiCall, instancePath func() (stri
 			}
 			boots := bootsFromEpisode(data, roster)
 			challenges := challengesFromEpisode(data)
+			if merge, err := liveMergeEpisode(ctx, call, p); err != nil {
+				return err
+			} else if merge > 0 && number >= merge {
+				challenges = nil // Tribe scoring ended at the merge; `episode import` scores Champions
+			}
 			out := c.OutOrStdout()
 			if _, err := fmt.Fprintf(out, "survivoR US%d episode %d saved to %s\n\n", season, number, saved); err != nil {
 				return err

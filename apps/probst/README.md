@@ -227,7 +227,9 @@ It reads the season config synced into the database, not a file: after editing `
 template directory), run `probst season sync seasons/NN.yaml` (dry run) then `--yes`. Sync refuses while the
 live episode schedule differs from the file, and a concurrent sync loses rather than overwriting.
 **Merge:** `probst season merge seasons/NN.yaml N` (dry run, then `--yes`) sets `merge_episode`, opens Pick Your
-Champion (locks when Episode N+1 airs) and syncs. Commit the file change. Post the merge announcement yourself (it
+Champion (locks when Episode N+1 airs) and syncs. A merge set late can move the window with
+`scoring.champion.opens` / `.locks` (e.g. `2026-11-12 00:30`). After the merge, `probst challenge` refuses and
+`episode sync` skips tribe challenges. Commit the file change. Post the merge announcement yourself (it
 must contain "Pick Your Champion" so replies to it count as picks).
 
 `probst season reconcile FILE` still runs a file directly for local testing. Each successful scheduled run
