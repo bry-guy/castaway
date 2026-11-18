@@ -525,7 +525,7 @@ $("go").onclick = async () => {
   if (!DEBUG) {
     let answer = "";
     try { answer = await DeviceOrientationEvent.requestPermission?.(); } catch { answer = "denied"; } // iOS asks; others may just say "prompt"
-    if (answer === "denied") return noGo("Tilt Table needs motion access. Allow it for this site, then reload.");
+    if (answer === "denied") return noGo("Tilt Table needs motion access. On iPhone: Settings → Apps → Safari → Advanced → Website Data, delete this site, then reopen the game and tap Allow.");
     const t = performance.now();
     while (!sensed && performance.now() - t < 1500) await new Promise((r) => setTimeout(r, 50));
     if (!sensed) return noGo("No tilt readings. Tilt Table needs a phone with motion access allowed.");

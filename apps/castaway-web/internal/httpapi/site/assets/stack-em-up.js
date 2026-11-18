@@ -9,14 +9,14 @@ const DEG = Math.PI / 180;
 const BW = 0.1, BH = 0.09;                // a block (m)
 const BIG = 1.3;                          // the tray, saddle, balls and cup, scaled up from the first build (blocks aren't)
 const TRAY_W = 0.36 * BIG, TRAY_T = 0.025; // the tray
-let CRADLE_R = 0.08;                      // the tray rocks on the balls as if on a rocker this round: small, so it wobbles
+let CRADLE_R = 0.16;                      // the saddle's rounded underside: the tray rocks on the balls like a rocker this round
 const STAND_TOP = 0.42;                   // where the tray rests
 const M_TRAY = 1.5, M_BLOCK = 1;
 let G = 4.5;                              // slowed down: real gravity tips a 0.7 m tower too fast to catch
 let DAMP = 3.3;                           // rocking friction (1/s)
 let SLOSH = 0.3;                          // how much the balls rolling in the cup throws the tray
-let CUP_R = 0.1 * BIG, CUP_DAMP = 35 / BIG; // the cup the balls roll in, and their rolling friction (1/s): the balls drift as fast as in the smaller cup
-let CUP_LIP = 24 * DEG;                   // past this the outer ball reaches the drawn rim (RIM_A) and rolls over, tray and all
+let CUP_R = 0.16 * BIG, CUP_DAMP = 35 / BIG; // the cup the balls roll in (wide and shallow, so they drift slowly), and their rolling friction (1/s)
+let CUP_LIP = 34 * DEG;                   // past this the outer ball reaches the drawn rim (RIM_A) and rolls over, tray and all
 const BALL_R = 0.028 * BIG;
 // The tray sits on a wooden saddle across the balls, so it reaches the cup's rim only at 48° against the cup. If it
 // gets there (a short, sticky stack can), the rim just stops it: hitting the bowl is never a fall.
@@ -482,7 +482,8 @@ function drawTray(at, ang) { // the tray, its middle-underneath at `at`, and its
     ctx.strokeStyle = "rgba(43,24,10,.5)"; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(roll) * r, y + Math.sin(roll) * r); ctx.stroke();
   });
   ctx.fillStyle = "#8a5d34"; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; // the saddle across the balls
-  ctx.beginPath(); ctx.roundRect(-br * 2.3 * k, 0, br * 4.6 * k, SADDLE * k, 3); ctx.fill(); ctx.stroke();
+  const hw = br * 2.3, R = CRADLE_R, yc = SADDLE - Math.sqrt(R * R - (br * 1.15) ** 2), a = Math.acos(hw / R); // rounded underneath, touching the balls' tops
+  ctx.beginPath(); ctx.moveTo(-hw * k, 0); ctx.lineTo(hw * k, 0); ctx.arc(0, yc * k, R * k, a, Math.PI - a); ctx.closePath(); ctx.fill(); ctx.stroke();
   ctx.fillStyle = "#a0703e"; ctx.strokeStyle = INK; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.rect(-TRAY_W / 2 * k, -TRAY_T * k, TRAY_W * k, TRAY_T * k); ctx.fill(); ctx.stroke();
   ctx.restore();
@@ -534,7 +535,7 @@ $("go").onclick = async () => {
   if (!DEBUG) {
     let answer = "";
     try { answer = await DeviceOrientationEvent.requestPermission?.(); } catch { answer = "denied"; } // iOS asks; others may just say "prompt"
-    if (answer === "denied") return noGo("Stack 'Em Up needs motion access. Allow it for this site, then reload.");
+    if (answer === "denied") return noGo("Stack 'Em Up needs motion access. On iPhone: Settings → Apps → Safari → Advanced → Website Data, delete this site, then reopen the game and tap Allow.");
     const t = performance.now();
     while (!sensed && performance.now() - t < 1500) await new Promise((r) => setTimeout(r, 50));
     if (!sensed) return noGo("No tilt readings. Stack 'Em Up needs a phone with motion access allowed.");
