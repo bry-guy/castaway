@@ -60,7 +60,7 @@ weeks:
   5: {game: {type: inside_track}}   # Inside Track: +1 per cup, +1 per ball left
   6: {game: {type: free_the_block}, scores_post: {at: 2026-11-05 01:05, sent: true}}   # posted late; Free the Block: fewest +3, second +2, +1 solving, +5 at the 25-move optimum
   7: {game: {type: tilt_table}, scores_post: {at: 2026-11-12 01:15}}   # posted late (merge set that night); Tilt Table: +1 finishing, fastest +3, second +2, +1 per ace
-  8: {game: none}   # Stack 'Em Up moved to week 9 on the easier build; the week 8 game was deleted unscored. Its finishers get a +1 correction on week 9
+  8: {game: {type: stack_em_up}}   # the original, harder build: finishing it is +1 and nothing else (castaway-web stackOriginalGame); replayed on the easier build in week 9
   9: {game: {type: stack_em_up}}   # Stack 'Em Up, created by hand to open Wed Nov 18 10:00 (not via `season apply`, which would move it to 8pm): +1 finishing, fastest +3, second +2
   10: {game: TBD}
   11: {game: TBD}

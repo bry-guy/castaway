@@ -24,6 +24,8 @@ import (
 // (first save to the finish, so a reload doesn't pause it). The physics runs on the phone (shortcut: a determined
 // player could post a fake run; fine for a friends' league, as with Tilt Table).
 // League points: every finisher +1, fastest +3, second fastest +2 (ties in tenths share the place, dense).
+// Season 51's week 8 game (stackOriginalGame) ran on the original, harder build: finishing it before the easier
+// build shipped (stackEasierBuildAt) earns +1 and no place points; Stack 'Em Up was replayed on the easier build in week 9.
 
 const (
 	stackBlocks   = 8
@@ -31,18 +33,25 @@ const (
 	stackMinRun   = 10 * time.Second
 )
 
+var (
+	stackOriginalGame  = "706943de-27bf-4299-8baa-c7ec6f40f8e1"
+	stackEasierBuildAt = time.Date(2026, 11, 18, 6, 33, 0, 0, time.UTC)
+)
+
 type stackPlayer struct {
 	ID, Name, Tribe string
 	Best, Drops     int
 	Finished        bool
+	Original        bool          // played on the original, harder build: no place points
 	Time            time.Duration // finished runs only
 }
 
-// stackPlaces ranks finishers by time in tenths (dense, as Tilt Table); players who didn't finish have no place (0).
+// stackPlaces ranks finishers by time in tenths (dense, as Tilt Table); players who didn't finish, or played the
+// original build, have no place (0).
 func stackPlaces(players []stackPlayer) map[string]int {
 	tilt := make([]tiltPlayer, len(players))
 	for i, p := range players {
-		tilt[i] = tiltPlayer{ID: p.ID, Finished: p.Finished, Time: p.Time}
+		tilt[i] = tiltPlayer{ID: p.ID, Finished: p.Finished && !p.Original, Time: p.Time}
 	}
 	return tiltPlaces(tilt)
 }
@@ -61,19 +70,20 @@ func stackPoints(players []stackPlayer) (map[string]int, map[string]int) {
 
 func loadStackPlayers(ctx context.Context, q scrambleQuerier, gameID int64) ([]stackPlayer, error) {
 	rows, err := q.Query(ctx, `SELECT p.public_id::text, p.name, COALESCE(t.name, ''), sp.best_height, sp.drops,
-			COALESCE(EXTRACT(EPOCH FROM sp.finished_at - sp.started_at) * 1000, -1)::bigint
+			COALESCE(EXTRACT(EPOCH FROM (CASE WHEN g.public_id::text <> $2 OR sp.finished_at < $3 THEN sp.finished_at END) - sp.started_at) * 1000, -1)::bigint,
+			g.public_id::text = $2
 		FROM stack_plays sp JOIN participants p ON p.id = sp.participant_id JOIN stack_games g ON g.id = sp.game_id
 		LEFT JOIN LATERAL (SELECT pg.name FROM participant_group_membership_periods m JOIN participant_groups pg ON pg.id = m.participant_group_id
 			WHERE m.participant_id = p.id AND pg.kind = 'tribe' AND m.starts_at <= g.cutoff_at AND (m.ends_at IS NULL OR m.ends_at > g.cutoff_at)
 			ORDER BY m.starts_at DESC LIMIT 1) t ON true
-		WHERE sp.game_id = $1 ORDER BY p.name`, gameID)
+		WHERE sp.game_id = $1 ORDER BY p.name`, gameID, stackOriginalGame, stackEasierBuildAt)
 	if err != nil {
 		return nil, err
 	}
 	return pgx.CollectRows(rows, func(row pgx.CollectableRow) (stackPlayer, error) {
 		var p stackPlayer
 		var ms int64
-		if err := row.Scan(&p.ID, &p.Name, &p.Tribe, &p.Best, &p.Drops, &ms); err != nil {
+		if err := row.Scan(&p.ID, &p.Name, &p.Tribe, &p.Best, &p.Drops, &ms, &p.Original); err != nil {
 			return p, err
 		}
 		p.Finished, p.Time = ms >= 0, time.Duration(ms)*time.Millisecond

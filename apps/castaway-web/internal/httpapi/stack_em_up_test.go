@@ -19,3 +19,11 @@ func TestStackPoints(t *testing.T) {
 		t.Errorf("places and points %s", got)
 	}
 }
+
+// On the original, harder build a finish is +1 with no place, however fast.
+func TestStackPointsOriginalBuild(t *testing.T) {
+	places, points := stackPoints([]stackPlayer{{ID: "a", Finished: true, Original: true, Time: time.Minute}, {ID: "b", Original: true, Best: 7}})
+	if got := fmt.Sprint(places, points); got != "map[a:0 b:0] map[a:1 b:0]" {
+		t.Errorf("places and points %s", got)
+	}
+}
