@@ -60,8 +60,8 @@ weeks:
   5: {game: {type: inside_track}}   # Inside Track: +1 per cup, +1 per ball left
   6: {game: {type: free_the_block}, scores_post: {at: 2026-11-05 01:05, sent: true}}   # posted late; Free the Block: fewest +3, second +2, +1 solving, +5 at the 25-move optimum
   7: {game: {type: tilt_table}, scores_post: {at: 2026-11-12 01:15}}   # posted late (merge set that night); Tilt Table: +1 finishing, fastest +3, second +2, +1 per ace
-  8: {game: {type: stack_em_up}}   # Stack 'Em Up: +1 finishing, fastest +3, second +2
-  9: {game: TBD}
+  8: {game: {type: stack_em_up}}   # Stack 'Em Up: +1 finishing, fastest +3, second +2. Finishers of this (harder, original) round get a free +1 correction after it resolves
+  9: {game: {type: stack_em_up}}   # Stack 'Em Up round 2, on the easier build (wider cup, rounder saddle): same scoring as week 8
   10: {game: TBD}
   11: {game: TBD}
   12: {game: TBD}
