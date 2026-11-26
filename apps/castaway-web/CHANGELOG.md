@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- Pick Your Champion can be reopened after it locks, as long as no challenge has scored Champions yet (`PUT /instances/:id/champion-round` with a future lock). /games lists it under the latest episode aired when it opens, not under the merge episode further down the page.
 - Season 51's week 8 Stack 'Em Up ran on the original, harder build: finishing it earns +1 with no fastest awards (Stack 'Em Up is replayed on the easier build in week 9). Only finishes from before the easier build shipped count.
 - Stack 'Em Up is easier: a wider, shallower cup (the balls drift about half as fast and roll out only past 34°, from 24°) and a rounder saddle under the tray, so a stack of four rights itself and a full tower tips more slowly. Stack 'Em Up and Tilt Table tell iPhone players how to get the motion prompt back after a "Don't Allow" (delete the site's Safari website data).
 - Stack 'Em Up refuses a finish with no run on the clock or under 10 seconds, and says "Done +1" only once the server keeps the finish. Pick Your Champion asks you to pick again when your pick is voted out before the lock, and says only challenges after the lock count.

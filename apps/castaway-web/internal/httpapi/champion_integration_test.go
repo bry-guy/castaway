@@ -127,6 +127,10 @@ func TestChampionPicks(t *testing.T) {
 	now = locks
 	pick("1001", "Xena", 409) // locked: fixed for the season
 	call("PUT", path+"/champion-round", round, "admin", 409)
+	// Nothing has scored under the lock yet, so it can be reopened (and here, closed again).
+	reopen := fmt.Sprintf(`{"merge_episode":7,"opens_at":%q,"locks_at":%q}`, now.Format(time.RFC3339), now.Add(time.Hour).Format(time.RFC3339))
+	call("PUT", path+"/champion-round", reopen, "admin", 200)
+	call("PUT", path+"/champion-round", round, "admin", 200)
 	if picks, ok := call("GET", path+"/champion-round", "", "admin", 200)["picks"].([]any); !ok || len(picks) != 2 {
 		t.Fatalf("picks after lock = %v", picks)
 	}
@@ -140,6 +144,7 @@ func TestChampionPicks(t *testing.T) {
 	if got := bonus(); got["Alice"] != 1 || got["Bob"] != 4 || got["Cat"] != 0 {
 		t.Fatalf("bonus after ep9 = %v", got)
 	}
+	call("PUT", path+"/champion-round", reopen, "admin", 409)                           // Champions have scored: fixed for good
 	imp(9, fmt.Sprintf(`{"position":2,"contestant_id":%q}`, id(x.ID.Bytes)), body, 200) // replay: no double award
 	imp(9, fmt.Sprintf(`{"position":2,"contestant_id":%q}`, id(x.ID.Bytes)), champ("survivor-ep9-c1-immunity", "immunity", ep9, id(y.ID.Bytes)), 409)
 	// Xena was voted out in Episode 9; she can't win again, so Bob's Champion stops scoring.
@@ -192,8 +197,14 @@ func TestChampionPage(t *testing.T) {
 		}
 		return rec.Body.String()
 	}
-	if page := serve("GET", "/games", "", "amy", 200); !strings.Contains(page, "Pick Your Champion") {
-		t.Fatal("games hub doesn't list Pick Your Champion")
+	// Listed under the latest episode aired when it opens (8), not the merge episode (7).
+	for ep, airs := range map[int]time.Time{7: now.AddDate(0, 0, -14), 8: now.AddDate(0, 0, -7), 9: now.Add(time.Hour)} {
+		if _, err := pool.Exec(ctx, `INSERT INTO instance_episodes (instance_id, episode_number, label, airs_at) SELECT id, $2, 'ep', $3 FROM instances WHERE public_id = $1`, instance.ID, ep, airs); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if page := serve("GET", "/games", "", "amy", 200); !strings.Contains(page, "<h3>Episode 8</h3><div class=\"game-list\"><a class=\"game-card\" href=\"/games/champion\">") {
+		t.Fatalf("games hub doesn't list Pick Your Champion under Episode 8: %s", page)
 	}
 	if page := serve("GET", "/games/champion", "", "amy", 200); !strings.Contains(page, "<option>Xena Warrior</option>") {
 		t.Fatalf("no castaway choices: %s", page)

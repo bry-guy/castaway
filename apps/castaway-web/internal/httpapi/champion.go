@@ -35,7 +35,8 @@ type championPick struct {
 	Contestant string `json:"contestant"`
 }
 
-// putChampionRound creates or reschedules the instance's round; once it has locked it can't change.
+// putChampionRound creates or reschedules the instance's round. A locked round can only be reopened (to a
+// future lock) while no challenge has scored Champions under it.
 func (s *Server) putChampionRound(c *gin.Context) {
 	instanceID, ok := parseUUIDPath(c, "instanceID")
 	if !ok || !s.requireInstanceAdminRequest(c, instanceID) {
@@ -49,7 +50,10 @@ func (s *Server) putChampionRound(c *gin.Context) {
 	tag, err := s.pool.Exec(c.Request.Context(), `INSERT INTO champion_rounds (instance_id, merge_episode, opens_at, locks_at)
 		SELECT id, $2, $3, $4 FROM instances WHERE public_id = $1
 		ON CONFLICT (instance_id) DO UPDATE SET merge_episode = EXCLUDED.merge_episode, opens_at = EXCLUDED.opens_at, locks_at = EXCLUDED.locks_at
-		WHERE champion_rounds.locks_at > $5`, toPGUUID(instanceID), req.MergeEpisode, req.OpensAt.UTC(), req.LocksAt.UTC(), s.now())
+		WHERE champion_rounds.locks_at > $5 OR (EXCLUDED.locks_at > $5 AND NOT EXISTS (SELECT 1 FROM activity_occurrences o
+			JOIN instance_activities a ON a.id = o.activity_id
+			WHERE a.instance_id = champion_rounds.instance_id AND a.activity_type = $6 AND o.effective_at >= champion_rounds.locks_at))`,
+		toPGUUID(instanceID), req.MergeEpisode, req.OpensAt.UTC(), req.LocksAt.UTC(), s.now(), gameplay.ChampionChallengeActivityType)
 	if err != nil {
 		writeAnnouncementError(c, err)
 		return
@@ -294,13 +298,22 @@ type championView struct {
 	Message      string
 }
 
-// addChampionGame lists Pick Your Champion under its merge episode on /games.
+// addChampionGame lists Pick Your Champion on /games under the episode it opens after (else its merge episode).
 func (s *Server) addChampionGame(ctx context.Context, data *sitePageData, instanceID uuid.UUID) error {
 	round, err := s.loadChampionRound(ctx, instanceID)
 	if err != nil || round == nil {
 		return err
 	}
 	ep := int32(round.MergeEpisode) // #nosec G115 -- small episode number
+	episodes, err := s.queries.ListInstanceEpisodes(ctx, toPGUUID(instanceID))
+	if err != nil {
+		return err
+	}
+	for _, e := range episodes {
+		if e.EpisodeNumber > ep && !e.AirsAt.Time.After(round.OpensAt) {
+			ep = e.EpisodeNumber
+		}
+	}
 	data.addGame(&ep, gameEntry{Kind: "Pick Your Champion", Name: "Pick Your Champion", URL: "/games/champion", Badge: "Rest of season",
 		Status: gameStatus(s.now(), round.OpensAt, round.LocksAt, true)})
 	return nil
