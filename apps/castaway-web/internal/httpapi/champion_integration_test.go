@@ -136,6 +136,10 @@ func TestChampionPicks(t *testing.T) {
 	now = ep8.Add(time.Hour)
 	pick("1003", "Zed", 400) // out of the game
 	pick("1003", "Yuri", 409)
+	// An admin's out-of-band change replaces it, from now on only: Zed's reward stays Cat's.
+	override := `{"discord_user_id":"1003","contestant":"Yuri"}`
+	call("PUT", path+"/champion-picks", override, "1001", 403)
+	call("PUT", path+"/champion-picks", override, "admin", 200)
 	wikiImp(8, true, zedOut, champ("wiki-ep8-c1-reward", "reward", ep8, id(z.ID.Bytes))+","+champ("wiki-ep8-c2-immunity", "immunity", ep8, id(x.ID.Bytes)), 200)
 	if got := bonus(); got["Alice"] != 6 || got["Bob"] != 3 || got["Cat"] != 1 {
 		t.Fatalf("bonus after re-imported ep8 = %v", got)
@@ -148,17 +152,17 @@ func TestChampionPicks(t *testing.T) {
 		t.Fatalf("picks after lock = %v", picks)
 	}
 
-	// Xena wins immunity (Alice, Bob +3), Yuri and Xena share a reward (+1 each to Xena's pickers); Xena is voted out.
+	// Xena wins immunity (Alice, Bob +3), Yuri and Xena share a reward (+1 each); Xena is voted out.
 	ep9 := locks.Add(24 * time.Hour)
 	body := champ("survivor-ep9-c1-immunity", "immunity", ep9, id(x.ID.Bytes)) + "," + champ("survivor-ep9-c2-reward", "reward", ep9, id(y.ID.Bytes), id(x.ID.Bytes))
-	if res := imp(9, fmt.Sprintf(`{"position":2,"contestant_id":%q}`, id(x.ID.Bytes)), body, 201); res["challenge_awards"] != 4.0 {
+	if res := imp(9, fmt.Sprintf(`{"position":2,"contestant_id":%q}`, id(x.ID.Bytes)), body, 201); res["challenge_awards"] != 5.0 {
 		t.Fatalf("ep9 awards = %v", res)
 	}
 	imp(9, fmt.Sprintf(`{"position":2,"contestant_id":%q}`, id(x.ID.Bytes)), body, 200) // replay: no double award
 	imp(9, fmt.Sprintf(`{"position":2,"contestant_id":%q}`, id(x.ID.Bytes)), champ("survivor-ep9-c1-immunity", "immunity", ep9, id(y.ID.Bytes)), 409)
 	// Xena is out, so she can't win again; Yuri can.
 	imp(10, "", champ("survivor-ep10-c1-immunity", "immunity", ep9.Add(7*24*time.Hour), id(y.ID.Bytes)), 201)
-	if got := bonus(); got["Alice"] != 10 || got["Bob"] != 7 || got["Cat"] != 1 {
+	if got := bonus(); got["Alice"] != 10 || got["Bob"] != 7 || got["Cat"] != 5 {
 		t.Fatalf("bonus after ep10 = %v", got)
 	}
 }

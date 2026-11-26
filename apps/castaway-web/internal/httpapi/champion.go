@@ -119,8 +119,9 @@ func (s *Server) activeContestants(ctx context.Context, instanceID uuid.UUID) ([
 	})
 }
 
-// saveChampionPick sets a linked player's pick from free text (website choice or Discord message).
-func (s *Server) saveChampionPick(ctx context.Context, instanceID uuid.UUID, discordUserID, text string) (string, error) {
+// saveChampionPick sets a linked player's pick from free text (website choice or Discord message). override is an
+// admin's out-of-band change: it replaces an existing pick, scoring from now on only.
+func (s *Server) saveChampionPick(ctx context.Context, instanceID uuid.UUID, discordUserID, text string, override bool) (string, error) {
 	round, err := s.loadChampionRound(ctx, instanceID)
 	if err != nil {
 		return "", err
@@ -150,8 +151,9 @@ func (s *Server) saveChampionPick(ctx context.Context, instanceID uuid.UUID, dis
 		WHERE i.public_id = $1 AND p.discord_user_id = $2`,
 		toPGUUID(instanceID), discordUserID).Scan(&current)
 	switch {
-	case err == nil:
+	case err == nil && !override:
 		return "", progressionError(http.StatusConflict, current+" is your Champion for the season: picks are one and done")
+	case err == nil:
 	case !errors.Is(err, pgx.ErrNoRows):
 		return "", err
 	}
@@ -192,7 +194,7 @@ func (s *Server) putChampionPickAPI(c *gin.Context) {
 		writeAnnouncementError(c, err)
 		return
 	}
-	name, err := s.saveChampionPick(c.Request.Context(), uuid.UUID(instanceID.Bytes), req.DiscordUserID, req.Contestant)
+	name, err := s.saveChampionPick(c.Request.Context(), uuid.UUID(instanceID.Bytes), req.DiscordUserID, req.Contestant, false)
 	if err != nil {
 		writeAnnouncementError(c, err)
 		return
@@ -357,7 +359,7 @@ func (s *Server) pickChampion(c *gin.Context) {
 		c.Status(http.StatusInternalServerError)
 		return
 	}
-	name, err := s.saveChampionPick(c.Request.Context(), id, data.User.DiscordUserID, c.PostForm("contestant"))
+	name, err := s.saveChampionPick(c.Request.Context(), id, data.User.DiscordUserID, c.PostForm("contestant"), false)
 	var failure *progressionFailure
 	switch {
 	case errors.As(err, &failure):
@@ -417,4 +419,27 @@ func (s *Server) renderChampion(c *gin.Context, message string) {
 	}
 	data.Champion = view
 	renderSite(c, "champion.html", data)
+}
+
+// putChampionPickOverride is an admin's out-of-band pick change (PUT /instances/:instanceID/champion-picks): it
+// replaces a player's pick despite one-and-done, scoring from now on only.
+func (s *Server) putChampionPickOverride(c *gin.Context) {
+	instanceID, ok := parseUUIDPath(c, "instanceID")
+	if !ok || !s.requireInstanceAdminRequest(c, instanceID) {
+		return
+	}
+	var req struct {
+		DiscordUserID string `json:"discord_user_id" binding:"required"`
+		Contestant    string `json:"contestant" binding:"required"`
+	}
+	if c.ShouldBindJSON(&req) != nil {
+		c.JSON(http.StatusBadRequest, errorResponse{Error: "discord_user_id and contestant are required"})
+		return
+	}
+	name, err := s.saveChampionPick(c.Request.Context(), instanceID, req.DiscordUserID, req.Contestant, true)
+	if err != nil {
+		writeAnnouncementError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"contestant": name})
 }

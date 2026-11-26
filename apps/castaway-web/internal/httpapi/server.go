@@ -126,6 +126,7 @@ func (s *Server) registerAPI(protected *gin.RouterGroup) {
 	protected.PUT("/instances/:instanceID/automation-heartbeat", s.automationHeartbeat)
 	protected.PUT("/instances/:instanceID/champion-round", s.putChampionRound)
 	protected.GET("/instances/:instanceID/champion-round", s.getChampionRound)
+	protected.PUT("/instances/:instanceID/champion-picks", s.putChampionPickOverride)
 	protected.PUT("/discord/guilds/:guildID/channels/:channelID/champion-pick", s.putChampionPickAPI)
 	protected.PUT("/instances/:instanceID/score-snapshots/:week", s.takeScoreSnapshot)
 	protected.GET("/instances/:instanceID/score-snapshots/:week", s.getScoreSnapshot)
