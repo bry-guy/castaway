@@ -28,7 +28,7 @@ draft:
 
 scoring:                        # player-facing words: "your Tribe", "your Champion" — never "pony"
   tribe: {immunity: 2, reward: 1, from_episode: 2, until: merge}   # players score when their Tribe wins
-  champion: {immunity: 3, reward: 1, from: merge, opens: 2026-11-25 19:40, locks: 2026-12-02 20:00}   # Pick Your Champion; any castaway, shareable. First window (Nov 12 → Nov 18) was missed on the site; reopened as week 10's game, locks at Ep 11; nothing scored before
+  champion: {immunity: 3, reward: 1, from: merge, opens: 2026-11-25 19:40, locks: 2026-12-16 20:15}   # Pick Your Champion; any castaway, shareable; first opened Nov 12. Open all season (week 10's game): a pick is kept until that castaway is out, and counts for an episode if made by 8:15pm that night
   merge_episode: 7            # tribe scoring ends; Pick Your Champion opens
 
 # ── Recurring every week ─────────────────────────────────────────────────────────────────────────────
