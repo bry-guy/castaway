@@ -28,7 +28,7 @@ draft:
 
 scoring:                        # player-facing words: "your Tribe", "your Champion" — never "pony"
   tribe: {immunity: 2, reward: 1, from_episode: 2, until: merge}   # players score when their Tribe wins
-  champion: {immunity: 3, reward: 1, from: merge, opens: 2026-11-12 00:30, locks: 2026-11-18 20:00}   # Pick Your Champion; any castaway, shareable. Merge set late: picks open after Ep 8, lock at Ep 9
+  champion: {immunity: 3, reward: 1, from: merge, opens: 2026-11-25 19:40, locks: 2026-12-02 20:00}   # Pick Your Champion; any castaway, shareable. First window (Nov 12 → Nov 18) was missed on the site; reopened as week 10's game, locks at Ep 11; nothing scored before
   merge_episode: 7            # tribe scoring ends; Pick Your Champion opens
 
 # ── Recurring every week ─────────────────────────────────────────────────────────────────────────────
@@ -62,7 +62,7 @@ weeks:
   7: {game: {type: tilt_table}, scores_post: {at: 2026-11-12 01:15}}   # posted late (merge set that night); Tilt Table: +1 finishing, fastest +3, second +2, +1 per ace
   8: {game: {type: stack_em_up}}   # the original, harder build: finishing it is +1 and nothing else (castaway-web stackOriginalGame); replayed on the easier build in week 9
   9: {game: {type: stack_em_up}}   # Stack 'Em Up, created by hand to open Wed Nov 18 10:00 (not via `season apply`, which would move it to 8pm): +1 finishing, fastest +3, second +2
-  10: {game: TBD}
+  10: {game: none}   # Pick Your Champion (reopened; see scoring.champion) is the week's game
   11: {game: TBD}
   12: {game: TBD}
   13: # finale: last game is the finale event; final scores the following Wednesday

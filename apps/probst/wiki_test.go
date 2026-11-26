@@ -47,6 +47,14 @@ func TestPlanWikiEpisode(t *testing.T) {
 		t.Fatalf("ep7:\n%s", got)
 	}
 
+	// Episode 9: Lewis lost the Do or Die coin flip, "ELIMINATED" with no vote (flagged for review), after
+	// "9th & 10th Voted Out" (two exits); only the team reward is held.
+	p = planWikiEpisode(51, 9, wikiFixture(t, "ep9"), guide, roster, importRules{TribeFrom: 3, MergeEpisode: 7}, now)
+	if got := p.describe(); p.Status != "ready" || len(p.Holds) != 1 || len(p.Review) != 1 || len(p.Champions) != 1 ||
+		!strings.Contains(got, "Lewis Kelly at place 10 (eliminated)") || !strings.Contains(got, `winner "Purple Team"`) {
+		t.Fatalf("ep9:\n%s\n%+v", got, p)
+	}
+
 	// An unfinished page (episode 8 isn't up), and a fresh edit, wait.
 	if p := planWikiEpisode(51, 8, wikiPage{}, guide, roster, importRules{}, now); p.Status != "incomplete" {
 		t.Fatalf("ep8: %+v", p)

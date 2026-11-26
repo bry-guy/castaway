@@ -1,12 +1,12 @@
-{| class="wikitable" style="margin:auto; text-align:center; font-size:8pt; line-height:18px;" align="center"
-! colspan="2" rowspan="2"|Episode
+{| class="wikitable" style="margin:auto; text-align:center; font-size:8pt; line-height:18px; text-wrap:balance;" align="center"
+! colspan="2" rowspan="2"| Episode
 ! rowspan="2"| Air Date
 ! colspan="2"| Challenges
 ! rowspan="2"| Exiled
 ! rowspan="2"| Journey
 ! rowspan="2"| Eliminated<br>(vote) 
 ! rowspan="2"| Finish
-! rowspan="2"| Viewers<br>(in millions)<ref name=ratings>http://www.spottedratings.com/2026/10/spotvault-survivor-cbs-fall-2026-ratings.html</ref>
+! rowspan="2"| Viewers<br>{{nowrap|(in millions)<ref name=ratings>http://www.spottedratings.com/2026/10/spotvault-survivor-cbs-fall-2026-ratings.html</ref>}}
 ! rowspan="2"| Ratings/Share<br>(18-49)<ref name=ratings/>
 |-
 ! Reward
@@ -16,7 +16,7 @@
 | rowspan="2" align="left"| {{Ep|5101}}
 | rowspan="2" align="left"| September 23, 2026
 | rowspan="2| None
-| colspan="2" style="{{tribecolor|none}}; border-bottom:none;"| Lewis{{notesup|none|lewis exile|1}}
+| class="efn-inherit" colspan="2" style="{{tribecolor|none}}; border-bottom:none;"| Lewis{{efn|At the marooning, the castaways were informed to unanimously select on person who would be starting with them. Lewis was selected and sent to Exile Island until after the proceeding Tribal Council, joining the tribe that lost a member.}}
 | rowspan="2| None
 | rowspan="2" {{tribebox|toka|Aaliyah<br />(6-2)}}
 | rowspan="2"| 1st Voted Out<br />Day 3
@@ -41,10 +41,10 @@
 | rowspan="2"| 3
 | rowspan="2" align="left"| {{Ep|5103}}
 | rowspan="2" align="left"| October 7, 2026
-| rowspan="2" colspan="2" {{tribebox|savu}}{{notesup|savu|combined|3}}
+| rowspan="2" colspan="2" {{tribebox|savu}}{{common footnotes|combined}}
 | rowspan="2"| None
 | rowspan="2"| None
-| {{tribebox|savu|Rob<br />(no vote)}}{{notesup|savu|rob|2}}
+| {{tribebox|savu|Rob<br />(no vote)}}{{common footnotes|quit|Rob|pron=he|reason=due to an injury}}
 | Quit<br />Day 6
 | rowspan="2"| 4.598
 | rowspan="2"| 0.80
@@ -55,7 +55,7 @@
 | rowspan="2"| 4
 | rowspan="2" align="left"| {{Ep|5104}}
 | rowspan="2"align="left"| October 14, 2026
-| colspan="2" {{tribebox|dina}}{{notesup|dina|combined|3}}
+| colspan="2" {{tribebox|dina}}{{common footnotes|combined}}
 | rowspan="2"| None
 | rowspan="2"| None
 | rowspan="2" {{tribebox|savu|Jenna<br />(4-1)}}
@@ -63,12 +63,12 @@
 | rowspan="2"| 4.633
 | rowspan="2"| 0.79
 |-
-| colspan="2" {{tribebox|toka}}{{notesup|toka|combined|3}}
+| colspan="2" {{tribebox|toka}}{{common footnotes|combined}}
 |-
 | rowspan="2"| 5
 | rowspan="2" align="left"| {{Ep|5105}}
 | rowspan="2" align="left"| October 21, 2026
-| colspan="2" rowspan="2" {{tribebox|toka}}{{notesup|toka|combined|3}}
+| colspan="2" rowspan="2" {{tribebox|toka}}{{common footnotes|combined}}
 | rowspan="2"| None
 | rowspan="2"| None
 | {{tribebox|savu|Alexis<br />(3-1)}}
@@ -76,7 +76,7 @@
 | rowspan="2"| 4.966
 | rowspan="2"| 0.87
 |-
-| {{tribebox|dina|Linnea<br />(4-4;<br />4-4;<br />4-0)}}{{sup|[[#endnote tie|<font color=white>4</font>]],[[#endnote deadlock|<font color=white>5</font>]]}}
+| {{tribebox|dina|Linnea<br />(4-4;<br />4-4;<br />4-0)}}{{common footnote|tie-epguide}}{{supcomma}}{{common footnote|deadlock}}
 | 6th Voted Out<br>Day 10
 |-
 | rowspan="6"| 6
@@ -100,34 +100,78 @@
 | rowspan="3" {{Tribebox|dina}}
 | class="nomobile" style="height:11.2px; font-size:0; line-height:0;" | a
 |-
-| colspan="2" rowspan="2" style="{{tribecolor|toka}}; border-top:none;"| Kristin{{notesup|toka|kristin exile|6}}
+| class="efn-inherit" colspan="2" rowspan="2" style="{{tribecolor|toka}}; border-top:none;"| Kristin{{efn|One person from the Journey was selected to be exiled until the next day.}}
 | class="nomobile" style="height:11.2px; font-size:0; line-height:0;" | a
 |-
 | class="nomobile" style="height:11.2px; font-size:0; line-height:0;" | a
 |-
-| 7
-| align="left"| {{Ep|5107}}
-| align="left"| November 4, 2026
-| {{tribebox|tovuto|{{nowrap|Brady, Carter, Devin,<br />Eric, Jelly, Kilby, Lewis,<br />Maggie, Mike, Thien An}}}}
+| rowspan="10"|7
+| rowspan="10" align="left"| {{Ep|5107}}
+| rowspan="10" align="left"| November 4, 2026
+| {{tribebox|tovuto|Brady}}
+| rowspan="10" {{tribebox|tovuto|Mike}}
+| rowspan="10"|None
+| rowspan="10"|None
+| rowspan="10" {{tribebox|tovuto|Brady<br />(9-4)}}
+| rowspan="10"|8th Voted Out<br />Withdrew from Jury{{efn|After being voted out, Brady chose to leave the game rather than serve on the jury so he could seek medical treatment for his injured thumb.}}<br />Day 14
+| rowspan="10"|
+| rowspan="10"|
+|-
+| {{tribebox|tovuto|Carter}}
+|-
 | {{tribebox|tovuto|Mike}}
+|-
+| {{tribebox|tovuto|Thien An}}
+|-
+| {{tribebox|tovuto|Devin}}
+|-
+| {{tribebox|tovuto|Eric}}
+|-
+| {{tribebox|tovuto|Jelly}}
+|-
+| {{tribebox|tovuto|Lewis}}
+|-
+| {{tribebox|tovuto|Maggie}}
+|-
+| {{tribebox|tovuto|Kilby}}
+|-
+| rowspan="2"| 8
+| rowspan="2" align="left"| {{Ep|5108}}
+| rowspan="2" align="left"| November 11, 2026
+| class="efn-inherit" colspan="2" style="{{tribecolor|tovuto}}; border-bottom:none;"| Lewis, Sharonda{{common footnotes|combined}}
+| rowspan="2"| None
+| rowspan="2" {{tribebox|tovuto|Cristian}}
+| rowspan="2" {{tribebox|tovuto|Kristin & Kilby<br />(1-0-0)}}{{common footnote|idol-negated}}{{supcomma}}{{common footnote|sitd-epguide-negated}}
+| rowspan="2"| 9th & 10th Voted Out<br />{{nowrap|1st & 2nd Jury Members}}<br />Day 15
+| rowspan="2"|
+| rowspan="2"|
+|-
+| style="{{tribecolor|tovuto}}; border-top:none;"| [Jelly,<br/>Kristin]
+| {{tribebox2|out2}}
+|-
+| 9
+| align="left"| {{Ep|5109}}
+| align="left"| November 18, 2026
+| {{tribebox|tovuto|Devin, Eric,<br />Lewis, Mike,<br />Thien An}}
+| {{tribebox|tovuto|Carter}}
 | None
 | None
-| {{tribebox|tovuto|Brady<br />(9-4)}}
-| 8th Voted Out<br />1st Jury Member<br>Day 14
+| {{tribebox|tovuto|Lewis<br />(no vote)}}{{common footnotes|coin-flip|Lewis|pron=he}}
+| Eliminated<br />3rd Jury Member<br />Day 17
 |
 |
 |-
-| 8
-| align="left"| {{Ep|5108}}
-| align="left"| November 11, 2026
+| 10
+| align="left"| {{Ep|5110}}
+| align="left"| November 25, 2026
 | {{tribebox|tovuto|TBD}}
 | {{tribebox|tovuto|TBD}}
 | {{tribebox|tovuto|TBD}}
 | {{tribebox|tovuto|TBD}}
-| {{tribebox|tovuto|TBD}}
-| {{nowrap|9th Voted Out<br />2nd Jury Member<br />Day TBD}}
+| {{tribebox|tovuto|TBD<br />(TBD)}}
+| 11th Voted Out<br />4th Jury Member<br />Day TBD
 |
 |
 |-
-| colspan="100%" align="left" style="width:50px;"|  '''Notes:'''{{refbegin}}{{note|lewis exile|1}} At the marooning, the castaways were informed to unanimously select on person who would be starting with them. Lewis was selected and sent to Exile Island until after the proceeding Tribal Council, joining the tribe that lost a member.<br />{{note|rob|2}} Rob elected to quit the game due to an injury. No vote occurred for his removal.<br />{{note|combined|3}} Combined Reward and Immunity Challenge.<br />{{note|tie|4}} The vote resulted in a tie. Per ''Survivor'' rules, a revote would commence.<br />{{note|deadlock|5}} Per ''Survivor'' rules, in the event of a deadlock tie, the non-immune players would have an open discussion to eliminate one of the tied players. If no consensus is reached, the non-immune players will have to draw rocks, with the player who draws the odd-colored rock being eliminated.<br />{{note|kristin exile|6}} One person from the Journey was selected to be exiled until the next day.<br />{{refend}}
+| colspan="100%" align="left" style="width:50px;"|  '''Notes:'''{{notelist}}
 |}

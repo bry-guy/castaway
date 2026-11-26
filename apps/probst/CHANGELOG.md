@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Wiki imports read a non-vote "ELIMINATED" exit (Season 51 Ep 9, Lewis's lost Do or Die coin flip), count "9th & 10th Voted Out" as two exits, and skip the episode guide's "Eliminated" header, so places come out right.
 
 - After the merge, `probst challenge` refuses and `episode sync` skips tribe challenges; `season plan` lists Pick Your Champion's open and lock times and flags weeks whose game isn't created live; `season apply` leaves a locked Champion round alone.
 - Pick Your Champion: `scoring.champion.opens` / `.locks` (absolute or relative times) move the window from the default merge episode → next episode, for a merge set after its episode aired.

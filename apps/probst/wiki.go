@@ -21,8 +21,9 @@ import (
 const wikiSettle = time.Hour
 
 var (
-	wikiExit     = regexp.MustCompile(`\b(\d+(?:st|nd|rd|th) Voted Out|Quit|Medically Evacuated|Evacuated|Ejected)\b`)
-	wikiVotedOut = regexp.MustCompile(`VOTED OUT:[^}]*?link=([^|\]]+)`)
+	wikiExit       = regexp.MustCompile(`\b(\d+(?:st|nd|rd|th) Voted Out|Quit|Medically Evacuated|Evacuated|Ejected|Eliminated)\b`)
+	wikiDoubleExit = regexp.MustCompile(`\b(\d+(?:st|nd|rd|th)) & (\d+(?:st|nd|rd|th)) Voted Out\b`)
+	wikiVotedOut   = regexp.MustCompile(`(?:VOTED OUT|ELIMINATED):[^}]*?link=([^|\]]+)`) // ELIMINATED: e.g. a lost Do or Die coin flip
 	// Either "'''Immunity Challenge:'''" or a <tabber> tab "|-|Immunity=".
 	wikiChallenge = regexp.MustCompile(`'''((?:Reward|Immunity)(?:\s*(?:/|and|&)\s*(?:Reward|Immunity))?) Challenge:'''|(?m)(?:<tabber>|^\|-\|)\s*((?:Reward|Immunity)(?:\s*(?:/|and|&)\s*(?:Reward|Immunity))?)\s*=`)
 	wikiWinners   = regexp.MustCompile(`'''Winners?.*?:'''(.*)`) // also "'''Winners ''(in order of finish)'':'''"
@@ -165,6 +166,10 @@ func wikiEpisodeData(season, episode int, page, guide string, castSize int) (sur
 
 	// Exits, in order, from the season's episode guide; places count down from the cast size.
 	code := func(ep int) string { return fmt.Sprintf("{{Ep|%d%02d}}", season, ep) }
+	if i := strings.Index(guide, "{{Ep|"); i >= 0 {
+		guide = guide[i:] // skip the table header, whose "Eliminated" column isn't an exit
+	}
+	guide = wikiDoubleExit.ReplaceAllString(guide, "$1 Voted Out, $2 Voted Out") // "9th & 10th Voted Out" is two exits
 	start := strings.Index(guide, code(episode))
 	if start < 0 {
 		return data, "the wiki's episode guide doesn't list the episode yet"
