@@ -1692,6 +1692,43 @@ paths:
               required:
                 - name
                 - answer
+  /instances/{instanceID}/champion-picks:
+    put:
+      operationId: putChampionPickOverride
+      parameters:
+        - name: instanceID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - type: object
+                    properties:
+                      contestant:
+                        type: string
+                    required:
+                      - contestant
+                  - $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                discord_user_id:
+                  type: string
+                contestant:
+                  type: string
+              required:
+                - discord_user_id
+                - contestant
   /instances/{instanceID}/champion-round:
     put:
       operationId: putChampionRound

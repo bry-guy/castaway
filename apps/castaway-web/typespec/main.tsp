@@ -200,6 +200,10 @@ op putChampionRound(@path instanceID: string, @body body: ChampionRound): Champi
 @get
 op getChampionRound(@path instanceID: string): { round: ChampionRound; picks?: { player: string; contestant: string; }[]; } | ErrorResponse;
 
+@route("/instances/{instanceID}/champion-picks")
+@put
+op putChampionPickOverride(@path instanceID: string, @body body: { discord_user_id: string; contestant: string; }): { contestant: string; } | ErrorResponse;
+
 @route("/instances/{instanceID}/discord-channels")
 @get
 op listDiscordChannelBindings(@path instanceID: string): { channels: { guild_id: string; channel_id: string; }[]; } | ErrorResponse;
