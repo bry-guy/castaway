@@ -126,8 +126,8 @@ func TestChampionPicks(t *testing.T) {
 		t.Fatalf("picks visible before lock: %v", picks)
 	}
 
-	// Episode 8 (from the wiki): Zed wins a reward, then is voted out. Cat's reward stands after she picks again,
-	// including when the episode is re-imported.
+	// Episode 8 (from the wiki): Zed wins a reward, then is voted out. Cat's reward stands, including when the
+	// episode is re-imported, and she can't pick again: picks are one and done.
 	ep8 := ep7.Add(7 * 24 * time.Hour)
 	zedOut := fmt.Sprintf(`{"position":3,"contestant_id":%q}`, id(z.ID.Bytes))
 	if res := wikiImp(8, false, zedOut, champ("wiki-ep8-c1-reward", "reward", ep8, id(z.ID.Bytes)), 201); res["challenge_awards"] != 1.0 {
@@ -135,7 +135,7 @@ func TestChampionPicks(t *testing.T) {
 	}
 	now = ep8.Add(time.Hour)
 	pick("1003", "Zed", 400) // out of the game
-	pick("1003", "Yuri", 200)
+	pick("1003", "Yuri", 409)
 	wikiImp(8, true, zedOut, champ("wiki-ep8-c1-reward", "reward", ep8, id(z.ID.Bytes))+","+champ("wiki-ep8-c2-immunity", "immunity", ep8, id(x.ID.Bytes)), 200)
 	if got := bonus(); got["Alice"] != 6 || got["Bob"] != 3 || got["Cat"] != 1 {
 		t.Fatalf("bonus after re-imported ep8 = %v", got)
@@ -148,17 +148,17 @@ func TestChampionPicks(t *testing.T) {
 		t.Fatalf("picks after lock = %v", picks)
 	}
 
-	// Xena wins immunity (Alice, Bob +3), Yuri and Xena share a reward (+1 each); Xena is voted out.
+	// Xena wins immunity (Alice, Bob +3), Yuri and Xena share a reward (+1 each to Xena's pickers); Xena is voted out.
 	ep9 := locks.Add(24 * time.Hour)
 	body := champ("survivor-ep9-c1-immunity", "immunity", ep9, id(x.ID.Bytes)) + "," + champ("survivor-ep9-c2-reward", "reward", ep9, id(y.ID.Bytes), id(x.ID.Bytes))
-	if res := imp(9, fmt.Sprintf(`{"position":2,"contestant_id":%q}`, id(x.ID.Bytes)), body, 201); res["challenge_awards"] != 5.0 {
+	if res := imp(9, fmt.Sprintf(`{"position":2,"contestant_id":%q}`, id(x.ID.Bytes)), body, 201); res["challenge_awards"] != 4.0 {
 		t.Fatalf("ep9 awards = %v", res)
 	}
 	imp(9, fmt.Sprintf(`{"position":2,"contestant_id":%q}`, id(x.ID.Bytes)), body, 200) // replay: no double award
 	imp(9, fmt.Sprintf(`{"position":2,"contestant_id":%q}`, id(x.ID.Bytes)), champ("survivor-ep9-c1-immunity", "immunity", ep9, id(y.ID.Bytes)), 409)
 	// Xena is out, so she can't win again; Yuri can.
 	imp(10, "", champ("survivor-ep10-c1-immunity", "immunity", ep9.Add(7*24*time.Hour), id(y.ID.Bytes)), 201)
-	if got := bonus(); got["Alice"] != 10 || got["Bob"] != 7 || got["Cat"] != 5 {
+	if got := bonus(); got["Alice"] != 10 || got["Bob"] != 7 || got["Cat"] != 1 {
 		t.Fatalf("bonus after ep10 = %v", got)
 	}
 }
@@ -221,7 +221,7 @@ func TestChampionPage(t *testing.T) {
 	if page := serve("POST", "/games/champion", "contestant=Yuri+Gagarin", "amy", 200); !strings.Contains(page, "Your Champion is Yuri Gagarin.") {
 		t.Fatalf("pick: %s", page)
 	}
-	if page := serve("POST", "/games/champion", "contestant=Xena+Warrior", "amy", 409); !strings.Contains(page, "Yuri Gagarin is your Champion for the rest of the season") {
+	if page := serve("POST", "/games/champion", "contestant=Xena+Warrior", "amy", 409); !strings.Contains(page, "Yuri Gagarin is your Champion for the season: picks are one and done") {
 		t.Fatalf("changed pick: %s", page)
 	}
 	if page := serve("GET", "/games/champion", "", "amy", 200); !strings.Contains(page, "Your Champion: <b>Yuri Gagarin</b>, for the rest of the season.") || strings.Contains(page, `name="contestant"`) {
@@ -232,14 +232,15 @@ func TestChampionPage(t *testing.T) {
 	if page := serve("GET", "/games/champion", "", "amy", 200); strings.Contains(page, "ben") {
 		t.Fatal("picks visible before the lock")
 	}
-	// Yuri is voted out before the lock: amy is told to pick again, and nothing is preselected.
+	// Yuri is voted out before the lock: amy keeps him (one and done) and gets no form.
 	if _, err := pool.Exec(ctx, `INSERT INTO outcome_positions (instance_id, position, contestant_id)
 		SELECT i.id, 18, c.id FROM instances i, contestants c WHERE i.public_id = $1 AND c.public_id = $2`, instance.ID, yuri.ID); err != nil {
 		t.Fatal(err)
 	}
-	if page := serve("GET", "/games/champion", "", "amy", 200); !strings.Contains(page, "Yuri Gagarin is out of the game: pick again.") || !strings.Contains(page, `disabled selected>Choose a castaway`) || strings.Contains(page, "<option>Yuri") {
+	if page := serve("GET", "/games/champion", "", "amy", 200); !strings.Contains(page, "Your Champion: <b>Yuri Gagarin</b> is out of the game. Picks are one and done.") || strings.Contains(page, `name="contestant"`) {
 		t.Fatalf("booted pick: %s", page)
 	}
+	serve("POST", "/games/champion", "contestant=Xena+Warrior", "amy", 409)
 	if _, err := pool.Exec(ctx, `DELETE FROM outcome_positions op USING instances i WHERE op.instance_id = i.id AND i.public_id = $1`, instance.ID); err != nil {
 		t.Fatal(err)
 	}

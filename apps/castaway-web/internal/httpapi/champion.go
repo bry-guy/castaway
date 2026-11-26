@@ -21,8 +21,8 @@ import (
 )
 
 // Pick Your Champion: from the merge each player picks one castaway still in the game, any time until the round
-// locks (the finale); picks are visible to everyone after that. A pick is for the rest of the season: it can only
-// be replaced once that castaway is out. A challenge awards the pickers of its winners who held that pick by
+// locks (the finale); picks are visible to everyone after that. Picks are one and done: a pick is never changed,
+// even once that castaway is out. A challenge awards the pickers of its winners who held that pick by
 // 8:15pm on the episode's night (championPickLead); later picks score from the next episode.
 
 // championPickLead: challenges are recorded at the episode's air time + 1h (probst's challengeOffset), and a pick
@@ -147,12 +147,11 @@ func (s *Server) saveChampionPick(ctx context.Context, instanceID uuid.UUID, dis
 	var current string
 	err = s.pool.QueryRow(ctx, `SELECT c.name FROM champion_picks cp JOIN instances i ON i.id = cp.instance_id
 		JOIN participants p ON p.id = cp.participant_id JOIN contestants c ON c.id = cp.contestant_id
-		WHERE i.public_id = $1 AND p.discord_user_id = $2
-		AND NOT EXISTS (SELECT 1 FROM outcome_positions o WHERE o.instance_id = cp.instance_id AND o.contestant_id = cp.contestant_id)`,
+		WHERE i.public_id = $1 AND p.discord_user_id = $2`,
 		toPGUUID(instanceID), discordUserID).Scan(&current)
 	switch {
 	case err == nil:
-		return "", progressionError(http.StatusConflict, current+" is your Champion for the rest of the season")
+		return "", progressionError(http.StatusConflict, current+" is your Champion for the season: picks are one and done")
 	case !errors.Is(err, pgx.ErrNoRows):
 		return "", err
 	}

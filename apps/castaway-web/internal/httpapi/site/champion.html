@@ -1,11 +1,11 @@
 {{template "header" .}}
 {{with .Champion}}<p class="eyebrow"><a href="/games">Games</a> · Episode {{.MergeEpisode}}</p><h1>Pick Your Champion</h1>
-<p>Pick one castaway still in the game. Whenever your Champion wins individual immunity you get <b>+3</b>; reward, <b>+1</b>. Your pick is yours for the rest of the season; if they're voted out, pick again. A pick counts from 8:15pm ET on the next episode night, before any challenge airs.</p>
+<p>Pick one castaway still in the game. Whenever your Champion wins individual immunity you get <b>+3</b>; reward, <b>+1</b>. Picks are one and done: once it's in, your pick can't change, even if they're voted out. A pick counts from 8:15pm ET on the next episode night, before any challenge airs.</p>
 {{if .Message}}<p role="status"><b>{{.Message}}</b></p>{{end}}
 {{if .Locked}}<p class="muted">Picks locked {{.LocksAt.Format "Mon Jan 2 3:04pm"}} ET.{{if .Mine}} Your Champion: <b>{{.Mine}}</b>.{{else}} You didn't pick a Champion.{{end}}</p>
 <table><thead><tr><th>Player</th><th>Champion</th></tr></thead><tbody>{{range .Picks}}<tr><td>{{.Player}}</td><td>{{.Contestant}}</td></tr>{{else}}<tr><td colspan="2">No picks.</td></tr>{{end}}</tbody></table>
-{{else if and .Open .Mine (not .MineOut)}}<p class="muted">Your Champion: <b>{{.Mine}}</b>, for the rest of the season.</p>
-{{else if .Open}}<p class="muted">{{if .MineOut}}<b>{{.Mine}} is out of the game: pick again.</b> {{end}}Picks are open until {{.LocksAt.Format "Mon Jan 2 3:04pm"}} ET.</p>
+{{else if and .Open .Mine}}<p class="muted">Your Champion: <b>{{.Mine}}</b>{{if .MineOut}} is out of the game. Picks are one and done.{{else}}, for the rest of the season.{{end}}</p>
+{{else if .Open}}<p class="muted">Picks are open until {{.LocksAt.Format "Mon Jan 2 3:04pm"}} ET.</p>
 <form method="post" action="/games/champion"><label>Champion<select name="contestant" required><option value="" disabled selected>Choose a castaway</option>{{range .Options}}<option>{{.}}</option>{{end}}</select></label><button type="submit">Pick</button></form>
 {{else}}<p class="muted">Picks open soon.</p>{{end}}{{end}}
 {{template "footer" .}}

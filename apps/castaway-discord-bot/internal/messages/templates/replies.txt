@@ -25,7 +25,7 @@ No occurrences found.{{end}}
 {{define "draft-unrecognized"}}That didn't read as a draft ({{.Status}}).{{end}}
 {{define "draft-problem-too-long"}}Still not right, and the draft is too long to show here. Fix it with `probst draft import`.{{end}}
 {{define "draft-conflict-too-long"}}This player already has a saved draft, and the new one is too long to show here. Use `probst draft import`.{{end}}
-{{define "champion-picked"}}🏆 Your Champion: **{{.Name}}**. You can change it until picks lock.{{end}}
+{{define "champion-picked"}}🏆 Your Champion: **{{.Name}}**. Picks are one and done.{{end}}
 {{define "champion-not-picked"}}Not picked: {{.}}{{end}}
 {{define "loan-borrowed"}}Borrowed{{end}}
 {{define "loan-repaid"}}Repaid{{end}}
