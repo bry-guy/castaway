@@ -48,10 +48,10 @@ func TestPlanWikiEpisode(t *testing.T) {
 	}
 
 	// Episode 9: Lewis lost the Do or Die coin flip, "ELIMINATED" with no vote (flagged for review), after
-	// "9th & 10th Voted Out" (two exits); only the team reward is held.
+	// "9th & 10th Voted Out" (two exits); the Purple Team's reward goes to its five members.
 	p = planWikiEpisode(51, 9, wikiFixture(t, "ep9"), guide, roster, importRules{TribeFrom: 3, MergeEpisode: 7}, now)
-	if got := p.describe(); p.Status != "ready" || len(p.Holds) != 1 || len(p.Review) != 1 || len(p.Champions) != 1 ||
-		!strings.Contains(got, "Lewis Kelly at place 10 (eliminated)") || !strings.Contains(got, `winner "Purple Team"`) {
+	if got := p.describe(); p.Status != "ready" || len(p.Holds) != 0 || len(p.Review) != 1 || len(p.Champions) != 2 ||
+		!strings.Contains(got, "Lewis Kelly at place 10 (eliminated)") || len(p.Champions[0].Winners) != 5 || p.Champions[1].Winners[0].Name != "Carter Krull" {
 		t.Fatalf("ep9:\n%s\n%+v", got, p)
 	}
 

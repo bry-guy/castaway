@@ -20,9 +20,14 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// Pick Your Champion: from the merge each player picks one castaway still in the game. Picks can change until
-// the round locks, then they're fixed for the season and visible to everyone. Challenges after the lock award
-// the winners' pickers; a voted-out Champion can't win, so it stops scoring.
+// Pick Your Champion: from the merge each player picks one castaway still in the game, any time until the round
+// locks (the finale); picks are visible to everyone after that. A pick is for the rest of the season: it can only
+// be replaced once that castaway is out. A challenge awards the pickers of its winners who held that pick by
+// 8:15pm on the episode's night (championPickLead); later picks score from the next episode.
+
+// championPickLead: challenges are recorded at the episode's air time + 1h (probst's challengeOffset), and a pick
+// counts for an episode if made by 8:15pm, before its first challenge can air.
+const championPickLead = 45 * time.Minute
 
 type championRound struct {
 	MergeEpisode int       `json:"merge_episode"`
@@ -139,10 +144,24 @@ func (s *Server) saveChampionPick(ctx context.Context, instanceID uuid.UUID, dis
 		}
 		return "", progressionError(http.StatusBadRequest, msg)
 	}
-	tag, err := s.pool.Exec(ctx, `INSERT INTO champion_picks (instance_id, participant_id, contestant_id, picked_at)
+	var current string
+	err = s.pool.QueryRow(ctx, `SELECT c.name FROM champion_picks cp JOIN instances i ON i.id = cp.instance_id
+		JOIN participants p ON p.id = cp.participant_id JOIN contestants c ON c.id = cp.contestant_id
+		WHERE i.public_id = $1 AND p.discord_user_id = $2
+		AND NOT EXISTS (SELECT 1 FROM outcome_positions o WHERE o.instance_id = cp.instance_id AND o.contestant_id = cp.contestant_id)`,
+		toPGUUID(instanceID), discordUserID).Scan(&current)
+	switch {
+	case err == nil:
+		return "", progressionError(http.StatusConflict, current+" is your Champion for the rest of the season")
+	case !errors.Is(err, pgx.ErrNoRows):
+		return "", err
+	}
+	tag, err := s.pool.Exec(ctx, `WITH pick AS (INSERT INTO champion_picks (instance_id, participant_id, contestant_id, picked_at)
 		SELECT i.id, p.id, c.id, $4 FROM instances i JOIN participants p ON p.instance_id = i.id JOIN contestants c ON c.public_id = $3
 		WHERE i.public_id = $1 AND p.discord_user_id = $2
-		ON CONFLICT (instance_id, participant_id) DO UPDATE SET contestant_id = EXCLUDED.contestant_id, picked_at = EXCLUDED.picked_at`,
+		ON CONFLICT (instance_id, participant_id) DO UPDATE SET contestant_id = EXCLUDED.contestant_id, picked_at = EXCLUDED.picked_at
+		RETURNING instance_id, participant_id, contestant_id, picked_at)
+		INSERT INTO champion_pick_log (instance_id, participant_id, contestant_id, picked_at) SELECT * FROM pick`,
 		toPGUUID(instanceID), discordUserID, match.ID, now)
 	if err != nil {
 		return "", err
@@ -246,10 +265,12 @@ func applyChampionChallenge(ctx context.Context, tx pgx.Tx, qtx *db.Queries, ins
 		participant       pgtype.UUID
 		contestant, cname string
 	}
-	rows, err := tx.Query(ctx, `SELECT p.public_id, c.public_id::text, c.name FROM champion_picks cp
-		JOIN champion_rounds r ON r.instance_id = cp.instance_id JOIN instances i ON i.id = cp.instance_id
-		JOIN participants p ON p.id = cp.participant_id JOIN contestants c ON c.id = cp.contestant_id
-		WHERE i.public_id = $1 AND r.locks_at <= $2 AND c.public_id::text = ANY($3::text[])`, toPGUUID(instanceID), at, winners)
+	// Each player's pick as of 8:15pm on the episode's night: their latest log entry by then.
+	rows, err := tx.Query(ctx, `SELECT p.public_id, c.public_id::text, c.name FROM (
+		SELECT DISTINCT ON (l.participant_id) l.participant_id, l.contestant_id FROM champion_pick_log l JOIN instances i ON i.id = l.instance_id
+		WHERE i.public_id = $1 AND l.picked_at <= $2 ORDER BY l.participant_id, l.picked_at DESC) held
+		JOIN participants p ON p.id = held.participant_id JOIN contestants c ON c.id = held.contestant_id
+		WHERE c.public_id::text = ANY($3::text[])`, toPGUUID(instanceID), at.Add(-championPickLead), winners)
 	if err != nil {
 		return 0, err
 	}

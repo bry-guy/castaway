@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- Pick Your Champion stays open all season (migration 048: `champion_pick_log`, started from the current picks). A pick is for the rest of the season; it can be replaced only once that castaway is out. A challenge scores the pick each player held by 8:15pm ET on the episode's night (challenge time minus 45 minutes), so later picks count from the next episode and nothing is retroactive. Episode imports from the wiki, or ones imported by hand, can be redone with `replace` from the wiki or survivoR.
 - Pick Your Champion can be reopened after it locks, as long as no challenge has scored Champions yet (`PUT /instances/:id/champion-round` with a future lock). /games lists it under the latest episode aired when it opens, not under the merge episode further down the page.
 - Season 51's week 8 Stack 'Em Up ran on the original, harder build: finishing it earns +1 with no fastest awards (Stack 'Em Up is replayed on the easier build in week 9). Only finishes from before the easier build shipped count.
 - Stack 'Em Up is easier: a wider, shallower cup (the balls drift about half as fast and roll out only past 34°, from 24°) and a rounder saddle under the tray, so a stack of four rights itself and a full tower tips more slowly. Stack 'Em Up and Tilt Table tell iPhone players how to get the motion prompt back after a "Don't Allow" (delete the site's Safari website data).

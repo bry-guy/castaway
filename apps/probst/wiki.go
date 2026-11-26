@@ -237,8 +237,8 @@ func wikiEpisodeData(season, episode int, page, guide string, castSize int) (sur
 		}
 		for _, l := range append(wikiPerson.FindAllStringSubmatch(w[1], -1), wikiLink.FindAllStringSubmatch(w[1], -1)...) {
 			name := strings.TrimSpace(l[1])
-			if strings.Contains(name, ":") {
-				continue // File:, Category: links
+			if strings.Contains(name, ":") || strings.HasSuffix(name, " Team") {
+				continue // File:, Category: links; a team ("Purple Team (Devin, Eric, ...)") scores its members
 			}
 			cid := "wiki:" + name
 			if !wikiHasCastaway(data, cid) {

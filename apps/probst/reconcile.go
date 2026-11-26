@@ -57,6 +57,7 @@ type reconciler struct {
 	// fetchWiki plans an episode from the Survivor wiki when survivoR is behind; nil turns that off.
 	fetchWiki func(episode int) (episodePlan, error)
 	sources   map[int]string // each imported episode's source (survivor, wiki, manual)
+	replace   bool           // `episode import --replace`: redo an episode imported from the wiki or by hand
 }
 
 func (r *reconciler) logf(format string, args ...any) {
@@ -256,7 +257,7 @@ func (r *reconciler) applyPlan(plan episodePlan, manual bool) error {
 	if err != nil {
 		return err
 	}
-	if r.sources[plan.Episode] == "wiki" && body["source"] == "survivor" {
+	if r.replace || r.sources[plan.Episode] == "wiki" && body["source"] == "survivor" {
 		body["replace"] = true
 	}
 	var res struct {
@@ -669,11 +670,13 @@ func addEpisodeImportCommand(episodeCmd, season *cobra.Command, call apiCall, ye
 	var episode int
 	var resolveHolds bool
 	var source string
+	var replace bool
 	run := func(c *cobra.Command) error {
 		r, err := newReconciler(c, call, file)
 		if err != nil {
 			return err
 		}
+		r.replace = replace
 		if episode < 1 || episode > len(r.airs) {
 			return fmt.Errorf("episode must be 1-%d", len(r.airs))
 		}
@@ -722,6 +725,7 @@ func addEpisodeImportCommand(episodeCmd, season *cobra.Command, call apiCall, ye
 		},
 	}
 	cmd.Flags().StringVar(&file, "file", "", "Season file, e.g. seasons/51.yaml")
+	cmd.Flags().BoolVar(&replace, "replace", false, "Redo an episode imported from the wiki or by hand (its boots and challenge awards), e.g. after a wiki fix")
 	cmd.Flags().BoolVar(&resolveHolds, "resolve-holds", false, "Held items were recorded by hand: import the rest and mark the episode done")
 	cmd.Flags().StringVar(&source, "source", "survivor", "survivor, or wiki (survivor.fandom.com) while survivoR is behind; survivoR later replaces a wiki import")
 	episodeCmd.AddCommand(cmd)

@@ -95,61 +95,70 @@ func TestChampionPicks(t *testing.T) {
 	}
 
 	pick("1001", "Xena", 409) // no round yet
-	opens, locks := now, now.Add(7*24*time.Hour)
+	opens, locks := now, now.Add(14*24*time.Hour)
 	round := fmt.Sprintf(`{"merge_episode":7,"opens_at":%q,"locks_at":%q}`, opens.Format(time.RFC3339), locks.Format(time.RFC3339))
 	call("PUT", path+"/champion-round", round, "nobody", 403)
 	call("PUT", path+"/champion-round", round, "admin", 200)
 
-	// Merge-episode challenge before the lock: recorded, but nobody's Champion is locked yet.
-	pick("1001", "Xena", 200)
-	if res := imp(7, "", champ("survivor-ep7-c1-immunity", "immunity", now.Add(time.Hour), id(x.ID.Bytes)), 201); res["challenge_awards"] != 0.0 {
-		t.Fatalf("pre-lock challenge awarded: %v", res)
+	wikiImp := func(ep int, replace bool, boots, champs string, want int) map[string]any {
+		return call("POST", path+"/episode-imports", fmt.Sprintf(`{"episode_number":%d,"source":"wiki","replace":%t,"source_revision":"w","boots":[%s],"challenges":[],"champion_challenges":[%s]}`, ep, replace, boots, champs), "admin", want)
 	}
 
-	if got := pick("1001", "yuri", 200)["contestant"]; got != "Yuri Gagarin" { // changed pick, fuzzy-free alias
-		t.Fatalf("pick = %v", got)
+	// A pick counts for a challenge if held 45 minutes before it (challenges sit at air time + 1h, so 8:15pm).
+	ep7 := now.Add(time.Hour)
+	pick("1001", "Xena", 200)
+	pick("1003", "Zed", 200)
+	if res := imp(7, "", champ("survivor-ep7-c1-immunity", "immunity", ep7, id(x.ID.Bytes)), 201); res["challenge_awards"] != 1.0 {
+		t.Fatalf("ep7 awards = %v", res)
 	}
-	pick("1002", "Xena Warrior", 200)
+	pick("1001", "yuri", 409) // a pick is for the rest of the season
+	now = now.Add(30 * time.Minute)
+	pick("1002", "Xena Warrior", 200)                                                   // after 8:15: counts from the next episode
+	imp(7, "", champ("survivor-ep7-c1-immunity", "immunity", ep7, id(x.ID.Bytes)), 200) // replay: unchanged
+	if got := bonus(); got["Alice"] != 3 || got["Bob"] != 0 || got["Cat"] != 0 {
+		t.Fatalf("bonus after ep7 = %v", got)
+	}
 	pick("1003", "Nobody At All", 400)
 	pick("9999", "Zed", 403)                                                                                                   // not a player here
 	call("PUT", "/discord/guilds/7001/channels/7999/champion-pick", `{"discord_user_id":"1001","contestant":"Xena"}`, "", 404) // unbound channel
 	call("PUT", "/discord/guilds/7001/channels/7003/champion-pick", `{"discord_user_id":"1001","contestant":"Xena"}`, "", 409) // other season: no round
-	call("GET", path+"/champion-round", "", "admin", 200)
 	if picks := call("GET", path+"/champion-round", "", "admin", 200)["picks"]; picks != nil {
 		t.Fatalf("picks visible before lock: %v", picks)
 	}
 
-	// Zed is voted out in Episode 7: can't be picked.
-	imp(7, "", champ("survivor-ep7-c1-immunity", "immunity", now.Add(time.Hour), id(x.ID.Bytes)), 200) // replay: unchanged
-	imp(8, fmt.Sprintf(`{"position":3,"contestant_id":%q}`, id(z.ID.Bytes)), "", 201)
-	pick("1003", "Zed", 400)
+	// Episode 8 (from the wiki): Zed wins a reward, then is voted out. Cat's reward stands after she picks again,
+	// including when the episode is re-imported.
+	ep8 := ep7.Add(7 * 24 * time.Hour)
+	zedOut := fmt.Sprintf(`{"position":3,"contestant_id":%q}`, id(z.ID.Bytes))
+	if res := wikiImp(8, false, zedOut, champ("wiki-ep8-c1-reward", "reward", ep8, id(z.ID.Bytes)), 201); res["challenge_awards"] != 1.0 {
+		t.Fatalf("ep8 awards = %v", res)
+	}
+	now = ep8.Add(time.Hour)
+	pick("1003", "Zed", 400) // out of the game
+	pick("1003", "Yuri", 200)
+	wikiImp(8, true, zedOut, champ("wiki-ep8-c1-reward", "reward", ep8, id(z.ID.Bytes))+","+champ("wiki-ep8-c2-immunity", "immunity", ep8, id(x.ID.Bytes)), 200)
+	if got := bonus(); got["Alice"] != 6 || got["Bob"] != 3 || got["Cat"] != 1 {
+		t.Fatalf("bonus after re-imported ep8 = %v", got)
+	}
 
 	now = locks
-	pick("1001", "Xena", 409) // locked: fixed for the season
+	pick("1003", "Xena", 409) // locked
 	call("PUT", path+"/champion-round", round, "admin", 409)
-	// Nothing has scored under the lock yet, so it can be reopened (and here, closed again).
-	reopen := fmt.Sprintf(`{"merge_episode":7,"opens_at":%q,"locks_at":%q}`, now.Format(time.RFC3339), now.Add(time.Hour).Format(time.RFC3339))
-	call("PUT", path+"/champion-round", reopen, "admin", 200)
-	call("PUT", path+"/champion-round", round, "admin", 200)
-	if picks, ok := call("GET", path+"/champion-round", "", "admin", 200)["picks"].([]any); !ok || len(picks) != 2 {
+	if picks, ok := call("GET", path+"/champion-round", "", "admin", 200)["picks"].([]any); !ok || len(picks) != 3 {
 		t.Fatalf("picks after lock = %v", picks)
 	}
 
-	// After the lock: Xena wins immunity (Bob +3), Yuri and Xena share a reward (+1 each).
+	// Xena wins immunity (Alice, Bob +3), Yuri and Xena share a reward (+1 each); Xena is voted out.
 	ep9 := locks.Add(24 * time.Hour)
 	body := champ("survivor-ep9-c1-immunity", "immunity", ep9, id(x.ID.Bytes)) + "," + champ("survivor-ep9-c2-reward", "reward", ep9, id(y.ID.Bytes), id(x.ID.Bytes))
-	if res := imp(9, fmt.Sprintf(`{"position":2,"contestant_id":%q}`, id(x.ID.Bytes)), body, 201); res["challenge_awards"] != 3.0 {
+	if res := imp(9, fmt.Sprintf(`{"position":2,"contestant_id":%q}`, id(x.ID.Bytes)), body, 201); res["challenge_awards"] != 5.0 {
 		t.Fatalf("ep9 awards = %v", res)
 	}
-	if got := bonus(); got["Alice"] != 1 || got["Bob"] != 4 || got["Cat"] != 0 {
-		t.Fatalf("bonus after ep9 = %v", got)
-	}
-	call("PUT", path+"/champion-round", reopen, "admin", 409)                           // Champions have scored: fixed for good
 	imp(9, fmt.Sprintf(`{"position":2,"contestant_id":%q}`, id(x.ID.Bytes)), body, 200) // replay: no double award
 	imp(9, fmt.Sprintf(`{"position":2,"contestant_id":%q}`, id(x.ID.Bytes)), champ("survivor-ep9-c1-immunity", "immunity", ep9, id(y.ID.Bytes)), 409)
-	// Xena was voted out in Episode 9; she can't win again, so Bob's Champion stops scoring.
+	// Xena is out, so she can't win again; Yuri can.
 	imp(10, "", champ("survivor-ep10-c1-immunity", "immunity", ep9.Add(7*24*time.Hour), id(y.ID.Bytes)), 201)
-	if got := bonus(); got["Alice"] != 4 || got["Bob"] != 4 {
+	if got := bonus(); got["Alice"] != 10 || got["Bob"] != 7 || got["Cat"] != 5 {
 		t.Fatalf("bonus after ep10 = %v", got)
 	}
 }
@@ -209,9 +218,14 @@ func TestChampionPage(t *testing.T) {
 	if page := serve("GET", "/games/champion", "", "amy", 200); !strings.Contains(page, "<option>Xena Warrior</option>") {
 		t.Fatalf("no castaway choices: %s", page)
 	}
-	serve("POST", "/games/champion", "contestant=Xena+Warrior", "amy", 200)
 	if page := serve("POST", "/games/champion", "contestant=Yuri+Gagarin", "amy", 200); !strings.Contains(page, "Your Champion is Yuri Gagarin.") {
+		t.Fatalf("pick: %s", page)
+	}
+	if page := serve("POST", "/games/champion", "contestant=Xena+Warrior", "amy", 409); !strings.Contains(page, "Yuri Gagarin is your Champion for the rest of the season") {
 		t.Fatalf("changed pick: %s", page)
+	}
+	if page := serve("GET", "/games/champion", "", "amy", 200); !strings.Contains(page, "Your Champion: <b>Yuri Gagarin</b>, for the rest of the season.") || strings.Contains(page, `name="contestant"`) {
+		t.Fatalf("held pick page: %s", page)
 	}
 	serve("POST", "/games/champion", "contestant=Xena+Warrior", "ben", 200)
 	serve("POST", "/games/champion", "contestant=Xena+Warrior", "outsider", 403)

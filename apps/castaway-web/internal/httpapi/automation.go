@@ -40,7 +40,7 @@ type episodeImportRequest struct {
 	EpisodeNumber  int    `json:"episode_number"`
 	Source         string `json:"source"`
 	SourceRevision string `json:"source_revision"`
-	// Replace lets a survivoR import replace an episode first scored from the wiki.
+	// Replace lets a survivoR (or corrected wiki) import replace an episode scored from the wiki or by hand.
 	Replace    bool                     `json:"replace"`
 	Boots      []episodeImportBoot      `json:"boots"`
 	Challenges []episodeImportChallenge `json:"challenges"`
@@ -121,8 +121,8 @@ func (s *Server) importEpisode(c *gin.Context) {
 }
 
 func (r episodeImportRequest) validate() error {
-	if r.EpisodeNumber < 0 || (r.Source != "survivor" && r.Source != "manual" && r.Source != "wiki") || (r.Replace && r.Source != "survivor") || len(r.SourceRevision) > 80 {
-		return errors.New("episode_number (0+) and source (survivor, manual or wiki) are required; only survivor can replace")
+	if r.EpisodeNumber < 0 || (r.Source != "survivor" && r.Source != "manual" && r.Source != "wiki") || (r.Replace && r.Source == "manual") || len(r.SourceRevision) > 80 {
+		return errors.New("episode_number (0+) and source (survivor, manual or wiki) are required; only survivor or wiki can replace")
 	}
 	for _, ch := range r.Challenges {
 		if ch.Key == "" || len(ch.Key) > 64 || ch.EffectiveAt.IsZero() || len(ch.WinningTribes) == 0 || (ch.Kind != "immunity" && ch.Kind != "reward") {
@@ -149,7 +149,7 @@ func (s *Server) applyEpisodeImport(ctx context.Context, tx pgx.Tx, qtx *db.Quer
 	switch {
 	case err == nil && stored == fingerprint:
 		return gin.H{"status": "unchanged"}, nil
-	case err == nil && req.Replace && storedSource == "wiki":
+	case err == nil && req.Replace && (storedSource == "wiki" || storedSource == "manual"):
 		return s.replaceWikiImport(ctx, tx, qtx, instanceID, req, storedBoots, storedKeys)
 	case err == nil:
 		return nil, progressionError(http.StatusConflict, fmt.Sprintf("episode %d was already imported with different results; an admin needs to review it", req.EpisodeNumber))
